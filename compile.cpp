@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include <fstream>
 #include <boost/variant.hpp>
 #include "c0_compile_utils.hpp"
@@ -50,6 +51,7 @@
         FUNC(DOUBLE_QUOTE_SYM) \
         FUNC(INTERGER_SYM) \
         FUNC(EOF_SYM) \
+        FUNC(MAIN_SYM) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -70,12 +72,28 @@ inline void PrintEnumString(SymbolName token) {
     cout << symbol_name_string[token] << endl;
 }
 
+std::map<std::string, SymbolName> keyword = {
+    {"while", WHILE_SYM},
+    {"if", IF_SYM},
+    {"switch", SWITCH_SYM},
+    {"case", CASE_SYM},
+    {"void", VOID_SYM},
+    {"default", DEFAULT_SYM},
+    {"int", INT_SYM},
+    {"char", CHAR_SYM},
+    {"return", RETURN_SYM},
+    {"const", CONST_SYM},
+    {"scanf", SCANF_SYM},
+    {"printf", PRINTF_SYM},
+    {"main", MAIN_SYM}
+};
+
 inline bool isdigit(char ch) {
     return ch >= '0' && ch <= '9';
 }
 
 inline bool isalpha(char ch) {
-    ch == '_' || ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
+    return ch == '_' || ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
 }
 
 class SymbolValue {
@@ -123,12 +141,9 @@ private:
 
 class LexicalAnalysis {
 public:
-    LexicalAnalysis() {
-        cout<<22;
-        fp_in = fopen("test.cpp", "r");
-        cout<<33;
-        memset(buffer, 0, sizeof(buffer)*MAX_LINE_LENGTH);
-        cout<<44;
+    explicit LexicalAnalysis(const char* filename) {
+        fp_in = fopen(filename, "r");
+        memset(buffer, 0, sizeof(char)*MAX_LINE_LENGTH);
         buffer_index = 0;
         enable_number = true;
     }
@@ -210,7 +225,7 @@ compile_errcode LexicalAnalysis::ParseDigit(Symbol& symbol, bool negative) {
         sum = sum * 10 + ch - '0';
         number_count++;
         GetChar();
-    } while (!isdigit(ch));
+    } while (isdigit(ch));
     UnGetChar();
     if (number_count < 10) {
         sum = negative ? (-1*sum) : sum;
@@ -268,6 +283,7 @@ ReadAgainString:
             symbol.SetName(STRING_SYM);
             std::string str = buffer;
             symbol.SetValue<std::string>(str);
+            break;
         }
         default: {
             if (buffer_index == MAX_LINE_LENGTH) {
@@ -292,6 +308,14 @@ compile_errcode LexicalAnalysis::ParseIdentity(Symbol& symbol) {
         buffer[buffer_index++] = ch;
         GetChar();
     } while (isdigit(ch) || isalpha(ch));
+    buffer[buffer_index] = '\0';
+    std::string str = buffer;
+    if (keyword.count(str)) {
+        symbol.SetName(keyword.find(str)->second);
+    } else {
+        symbol.SetName(IDENTITY_SYM);
+    }
+    symbol.SetValue<std::string>(str);
     UnGetChar();
     return ret;
 }
@@ -299,7 +323,7 @@ compile_errcode LexicalAnalysis::ParseIdentity(Symbol& symbol) {
 compile_errcode LexicalAnalysis::ParseCharacter(Symbol& symbol) {
     GetChar();
     switch (ch) {
-        case EOF: UnGetChar(); return INVALID_SINGLE_QUOTE_ERROR; 
+        case EOF: UnGetChar(); return INVALID_SINGLE_QUOTE_ERROR;
         case '+':
         case '-':
         case '*':
@@ -387,6 +411,7 @@ ParseSym:
         }
         case ':': {
             symbol.SetName(COLON_SYM);
+            break;
         }
         case '!': {
             ret = ParseExclamatoryMark(symbol);
@@ -434,40 +459,33 @@ ParseSym:
             }
         }
     }
-    enable_number = symbol.GetName() != INTERGER_SYM;
+    SymbolName ret_name = symbol.GetName();
+    if (ret_name == INTERGER_SYM || ret_name == IDENTITY_SYM) {
+        enable_number = false;
+    } else {
+        enable_number = true;
+    }
     return ret;
 }
 
-std::vector<std::string> keyword = {
-    "while",
-    "if",
-    "switch",
-    "case",
-    "void",
-    "default",
-    "int",
-    "char",
-    "return",
-    "const",
-    "scanf",
-    "printf",
-    "main"
-};
-int main() {
+void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
-    const char test_file_name[] = "test.cpp";
-    cout<<1<<endl;
-    LexicalAnalysis handle_lexical_analysis;
-    //LexicalAnalysis* handle_lexical_analysis = new LexicalAnalysis(test_file_name);
-    cout<<2<<endl;
+    LexicalAnalysis handle_lexical_analysis(test_file_name);
     Symbol symbol;
-    cout<<3<<endl;
     while (true) {
         ret = handle_lexical_analysis.GetSym(symbol);
         if (ret == COMPILE_OK) {
             SymbolName name = symbol.GetName();
             if (name == EOF_SYM) {
                 break;
+            } else if (name == IDENTITY_SYM) {
+                cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
+            } else if (name == STRING_SYM) {
+                cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
+            } else if (name == CHARACTER_SYM) {
+                cout << symbol_name_string[name] << " " << symbol.GetValue<char>() << endl;
+            } else if (name == INTERGER_SYM) {
+                cout << symbol_name_string[name] << " " << symbol.GetValue<int>() << endl;
             } else {
                 cout << symbol_name_string[name] << endl;
             }
@@ -475,7 +493,13 @@ int main() {
             std::cerr << "errcode:" << ret << endl;
         }
     }
-    printf("%s\n", symbol_name_string[DIV_SYM]);
-    
+}
+
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
+    } else {
+        TestLexicalAnalysis(argv[1]);
+    }
     return 0;
 }

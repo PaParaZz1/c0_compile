@@ -1,4 +1,3 @@
-#include <stdio.h>
 const char name = 'n';
 const int date = 20181111;
 int test_int1, test_int2, test_int3;
@@ -22,7 +21,7 @@ int main() {
     char array[10];
     i = 0;
     sum = 0;
-    scanf("%c", &test_c);
+    scanf("%c", test_c);
     fibonacci_ans = fibonacci(n);
     printf("fibonacci_ans:%d", fibonacci_ans);
     switch (test_c) {
