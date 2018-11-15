@@ -1,176 +1,10 @@
-#include <string.h>
-#include <stdio.h>
 #include <limits.h>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <fstream>
-#include <boost/variant.hpp>
+#include "c0_compile.hpp"
 #include "c0_compile_utils.hpp"
+#include "c0_compile_symbol.hpp"
+#include "c0_compile_lexical_analysis.hpp"
 
-#define MAX_LINE_LENGTH 1024
-
-#define FOREACH_FUNC(FUNC) \
-        FUNC(WHILE_SYM) \
-        FUNC(SWITCH_SYM) \
-        FUNC(IF_SYM) \
-        FUNC(CASE_SYM) \
-        FUNC(DEFAULT_SYM) \
-        FUNC(RETURN_SYM) \
-        FUNC(PRINTF_SYM) \
-        FUNC(SCANF_SYM) \
-        FUNC(INT_SYM) \
-        FUNC(CHAR_SYM) \
-        FUNC(VOID_SYM) \
-        FUNC(ADD_SYM) \
-        FUNC(SUB_SYM) \
-        FUNC(MUL_SYM) \
-        FUNC(DIV_SYM) \
-        FUNC(ASSIGN_SYM) \
-        FUNC(EQUAL_SYM) \
-        FUNC(NOT_EQUAL_SYM) \
-        FUNC(SMALL_SYM) \
-        FUNC(SMALL_EQUAL_SYM) \
-        FUNC(LARGE_SYM) \
-        FUNC(LARGE_EQUAL_SYM) \
-        FUNC(CONST_SYM) \
-        FUNC(COMMA_SYM) \
-        FUNC(SEMICOLON_SYM) \
-        FUNC(COLON_SYM) \
-        FUNC(L_CIRCLE_BRACKET_SYM) \
-        FUNC(L_SQUARE_BRACKET_SYM) \
-        FUNC(L_CURLY_BRACKET_SYM) \
-        FUNC(R_CIRCLE_BRACKET_SYM) \
-        FUNC(R_SQUARE_BRACKET_SYM) \
-        FUNC(R_CURLY_BRACKET_SYM) \
-        FUNC(CHARACTER_SYM) \
-        FUNC(STRING_SYM) \
-        FUNC(IDENTITY_SYM) \
-        FUNC(SINGLE_QUOTE_SYM) \
-        FUNC(DOUBLE_QUOTE_SYM) \
-        FUNC(INTERGER_SYM) \
-        FUNC(EOF_SYM) \
-        FUNC(MAIN_SYM) \
-
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
-
-using std::cout;
 using std::endl;
-
-
-typedef enum _SymbolName {
-    FOREACH_FUNC(GENERATE_ENUM)
-}SymbolName;
-
-const char* symbol_name_string[] = {
-    FOREACH_FUNC(GENERATE_STRING)
-};
-
-inline void PrintEnumString(SymbolName token) {
-    cout << symbol_name_string[token] << endl;
-}
-
-std::map<std::string, SymbolName> keyword = {
-    {"while", WHILE_SYM},
-    {"if", IF_SYM},
-    {"switch", SWITCH_SYM},
-    {"case", CASE_SYM},
-    {"void", VOID_SYM},
-    {"default", DEFAULT_SYM},
-    {"int", INT_SYM},
-    {"char", CHAR_SYM},
-    {"return", RETURN_SYM},
-    {"const", CONST_SYM},
-    {"scanf", SCANF_SYM},
-    {"printf", PRINTF_SYM},
-    {"main", MAIN_SYM}
-};
-
-inline bool isdigit(char ch) {
-    return ch >= '0' && ch <= '9';
-}
-
-inline bool isalpha(char ch) {
-    return ch == '_' || ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
-}
-
-class SymbolValue {
-public:
-    SymbolValue() {}
-    explicit SymbolValue(int _value) {
-        value = _value;
-    }
-    explicit SymbolValue(char _value) {
-        value = _value;
-    }
-    explicit SymbolValue(const std::string& _value) {
-        value = _value;
-    }
-    template<typename T>
-    T GetValue() {
-        // TODO check type T
-        return boost::get<T>(value);
-    }
-private:
-    boost::variant<int, char, std::string> value;
-};
-
-class Symbol {
-public:
-    Symbol() {}
-    void SetName(SymbolName _name) {
-        this->name = _name;
-    }
-    template<typename T>
-    void SetValue(T _value) {
-        value = SymbolValue(_value);
-    }
-    SymbolName GetName() {
-        return this->name;
-    }
-    template<typename T>
-    T GetValue() {
-        return value.GetValue<T>();
-    }
-private:
-    SymbolName name;
-    SymbolValue value;
-};
-
-class LexicalAnalysis {
-public:
-    explicit LexicalAnalysis(const char* filename) {
-        fp_in = fopen(filename, "r");
-        memset(buffer, 0, sizeof(char)*MAX_LINE_LENGTH);
-        buffer_index = 0;
-        enable_number = true;
-    }
-    ~LexicalAnalysis() {
-        if (!fp_in)
-            fclose(fp_in);
-    }
-    compile_errcode GetSym(Symbol& symbol);
-private: 
-    FILE* fp_in;
-    char ch;
-    char buffer[MAX_LINE_LENGTH];
-    int buffer_index;
-    bool enable_number;
-    void GetChar();
-    void UnGetChar();
-    void ParseSmallMark(Symbol& symbol);
-    void ParseLargeMark(Symbol& symbol);
-    void ParseEqualMark(Symbol& symbol);
-    compile_errcode ParseExclamatoryMark(Symbol& symbol);
-    compile_errcode ParseDigit(Symbol& symbol, bool negative);
-    compile_errcode ParseAdd(Symbol& symbol);
-    compile_errcode ParseSub(Symbol& symbol);
-    compile_errcode ParseString(Symbol& symbol);
-    compile_errcode ParseIdentity(Symbol& symbol);
-    compile_errcode ParseCharacter(Symbol& symbol);
-};
 
 void LexicalAnalysis::GetChar() {
     ch = fgetc(fp_in);
@@ -225,7 +59,7 @@ compile_errcode LexicalAnalysis::ParseDigit(Symbol& symbol, bool negative) {
         sum = sum * 10 + ch - '0';
         number_count++;
         GetChar();
-    } while (isdigit(ch));
+    } while (c0_compile::isdigit(ch));
     UnGetChar();
     if (number_count < 10) {
         sum = negative ? (-1*sum) : sum;
@@ -244,7 +78,7 @@ compile_errcode LexicalAnalysis::ParseAdd(Symbol& symbol) {
         return COMPILE_OK;
     } else {
         GetChar();
-        if (isdigit(ch)) {
+        if (c0_compile::isdigit(ch)) {
             return ParseDigit(symbol, false);
         } else {
             UnGetChar();
@@ -257,7 +91,7 @@ compile_errcode LexicalAnalysis::ParseAdd(Symbol& symbol) {
 compile_errcode LexicalAnalysis::ParseSub(Symbol& symbol) {
     if (enable_number) {
         GetChar();
-        if (isdigit(ch)) {
+        if (c0_compile::isdigit(ch)) {
             return ParseDigit(symbol, true);
         } else {
             UnGetChar();
@@ -307,7 +141,7 @@ compile_errcode LexicalAnalysis::ParseIdentity(Symbol& symbol) {
         }
         buffer[buffer_index++] = ch;
         GetChar();
-    } while (isdigit(ch) || isalpha(ch));
+    } while (c0_compile::isdigit(ch) || isalpha(ch));
     buffer[buffer_index] = '\0';
     std::string str = buffer;
     if (keyword.count(str)) {
@@ -329,7 +163,7 @@ compile_errcode LexicalAnalysis::ParseCharacter(Symbol& symbol) {
         case '*':
         case '\\': buffer[0] = ch; goto CharacterCorrect;
         default: {
-            if (isdigit(ch) || isalpha(ch)) {
+            if (c0_compile::isdigit(ch) || isalpha(ch)) {
                 buffer[0] = ch;
                 goto CharacterCorrect;
             } else {
@@ -452,7 +286,7 @@ ParseSym:
         default: {
             if (isalpha(ch)) {
                 ret = ParseIdentity(symbol);
-            } else if (isdigit(ch)) {
+            } else if (c0_compile::isdigit(ch)) {
                 ret = ParseDigit(symbol, false);
             } else {
                 ret = UNKNOWN_CHARACTER_ERROR;
@@ -466,40 +300,4 @@ ParseSym:
         enable_number = true;
     }
     return ret;
-}
-
-void TestLexicalAnalysis(const char* test_file_name) {
-    int ret = COMPILE_OK;
-    LexicalAnalysis handle_lexical_analysis(test_file_name);
-    Symbol symbol;
-    while (true) {
-        ret = handle_lexical_analysis.GetSym(symbol);
-        if (ret == COMPILE_OK) {
-            SymbolName name = symbol.GetName();
-            if (name == EOF_SYM) {
-                break;
-            } else if (name == IDENTITY_SYM) {
-                cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
-            } else if (name == STRING_SYM) {
-                cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
-            } else if (name == CHARACTER_SYM) {
-                cout << symbol_name_string[name] << " " << symbol.GetValue<char>() << endl;
-            } else if (name == INTERGER_SYM) {
-                cout << symbol_name_string[name] << " " << symbol.GetValue<int>() << endl;
-            } else {
-                cout << symbol_name_string[name] << endl;
-            }
-        } else {
-            std::cerr << "errcode:" << ret << endl;
-        }
-    }
-}
-
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
-    } else {
-        TestLexicalAnalysis(argv[1]);
-    }
-    return 0;
 }
