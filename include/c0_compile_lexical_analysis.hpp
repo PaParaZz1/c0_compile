@@ -3,9 +3,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <string>
+#include <vector>
 #include "c0_compile.hpp"
 #include "c0_compile_utils.hpp"
 #include "c0_compile_symbol.hpp"
+
+using std::vector;
 
 namespace c0_compile {
     inline bool isdigit(char ch) {
@@ -50,4 +53,29 @@ private:
     compile_errcode ParseCharacter(Symbol& symbol);
 };
 
+class SymbolQueue {
+public:
+    SymbolQueue() {
+        m_current_locate = 0;
+        m_cache_locate = 0;
+    }
+    int GetLen();
+    template<typename T>
+    T GetCurrentValue() {
+        return m_symbol_queue[m_current_locate].GetValue<T>();
+    }
+    void PushSymbol(Symbol& symbol) {
+        m_symbol_queue.push_back(symbol);
+    }
+    SymbolName GetCurrentName();
+    compile_errcode NextSymbol();
+    void SetCacheLocate();
+    void SetCurrentLocate();
+private:
+    int m_current_locate;
+    int m_cache_locate;
+    vector<Symbol> m_symbol_queue;
+};
+
+extern SymbolQueue* handle_symbol_queue;
 #endif // _C0_COMPILE_LEXICAL_ANALYSIS_H_

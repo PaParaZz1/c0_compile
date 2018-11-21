@@ -1,6 +1,6 @@
 #include "c0_compile_symbol.hpp"
 const char* symbol_name_string[] = {
-    FOREACH_FUNC(GENERATE_STRING)
+    FOREACH_FUNC_SYMBOL(GENERATE_STRING)
 };
 
 std::map<std::string, SymbolName> keyword = {
@@ -18,3 +18,5 @@ std::map<std::string, SymbolName> keyword = {
     {"printf", PRINTF_SYM},
     {"main", MAIN_SYM}
 };
+
+SymbolTable* handle_symbol_table = new SymbolTable;

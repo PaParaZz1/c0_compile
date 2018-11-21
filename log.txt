@@ -1,0 +1,10 @@
+This is a constant definition
+This is a constant definition
+This is a constant definition
+This is a constant declaration
+This is a variable definition
+This is a variable definition
+This is a variable definition
+This is a variable definition
+This is a variable declaration
+This is a main function

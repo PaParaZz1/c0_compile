@@ -147,7 +147,7 @@ compile_errcode LexicalAnalysis::ParseIdentity(Symbol& symbol) {
     if (keyword.count(str)) {
         symbol.SetName(keyword.find(str)->second);
     } else {
-        symbol.SetName(IDENTITY_SYM);
+        symbol.SetName(IDENTIFIER_SYM);
     }
     symbol.SetValue<std::string>(str);
     UnGetChar();
@@ -294,10 +294,35 @@ ParseSym:
         }
     }
     SymbolName ret_name = symbol.GetName();
-    if (ret_name == INTERGER_SYM || ret_name == IDENTITY_SYM) {
+    if (ret_name == INTERGER_SYM || ret_name == IDENTIFIER_SYM) {
         enable_number = false;
     } else {
         enable_number = true;
     }
     return ret;
 }
+
+int SymbolQueue::GetLen() {
+    return m_symbol_queue.size();
+}
+
+SymbolName SymbolQueue::GetCurrentName() {
+    return m_symbol_queue[m_current_locate].GetName();
+}
+
+compile_errcode SymbolQueue::NextSymbol() {
+    if (m_current_locate < this->GetLen())
+        m_current_locate++;
+    else
+        return -2;
+}
+
+void SymbolQueue::SetCacheLocate() {
+    m_cache_locate = m_current_locate;
+}
+
+void SymbolQueue::SetCurrentLocate() {
+    m_current_locate = m_cache_locate;
+}
+
+SymbolQueue* handle_symbol_queue = new SymbolQueue;

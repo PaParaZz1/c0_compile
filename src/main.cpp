@@ -2,24 +2,24 @@
 #include <iostream>
 #include "c0_compile_utils.hpp"
 #include "c0_compile_lexical_analysis.hpp"
+#include "c0_compile_gramma_analysis.hpp"
+#include "c0_compile_symbol.hpp"
 
-extern const char* symbol_name_string[];
-class Symbol;
 using std::cout;
 using std::endl;
 
 
 void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
-    LexicalAnalysis handle_lexical_analysis(test_file_name);
+    LexicalAnalysis lexical_analysis(test_file_name);
     Symbol symbol;
     while (true) {
-        ret = handle_lexical_analysis.GetSym(symbol);
+        ret = lexical_analysis.GetSym(symbol);
         if (ret == COMPILE_OK) {
             SymbolName name = symbol.GetName();
             if (name == EOF_SYM) {
                 break;
-            } else if (name == IDENTITY_SYM) {
+            } else if (name == IDENTIFIER_SYM) {
                 cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
             } else if (name == STRING_SYM) {
                 cout << symbol_name_string[name] << " " << symbol.GetValue<std::string>() << endl;
@@ -36,11 +36,28 @@ void TestLexicalAnalysis(const char* test_file_name) {
     }
 }
 
+void TestGrammaAnalysis(const char* test_file_name) {
+    int ret = COMPILE_OK;
+    LexicalAnalysis lexical_analysis(test_file_name);
+    Symbol symbol;
+    while (true) {
+        ret = lexical_analysis.GetSym(symbol);
+        handle_symbol_queue->PushSymbol(symbol);
+        SymbolName name = symbol.GetName();
+        if (name == EOF_SYM)
+            break;
+    }
+    cout << "push over" << endl;
+    Program program;
+    program.Parse();
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
     } else {
-        TestLexicalAnalysis(argv[1]);
+        //TestLexicalAnalysis(argv[1]);
+        TestGrammaAnalysis(argv[1]);
     }
     return 0;
 }

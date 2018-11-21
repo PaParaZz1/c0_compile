@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-PROJECT(nyz_compile)
+PROJECT(c0_compile)
 
 SET(ALL_INCLUDE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/
@@ -13,6 +13,7 @@ SET(ALL_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_symbol.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_lexical_analysis.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_gramma_analysis.cpp
 )
 
 ADD_EXECUTABLE(compile_test

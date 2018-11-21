@@ -7,11 +7,15 @@ typedef int compile_errcode;
 #define COMPILE_ERROR 2000
 
 #define COMPILE_OK 0
+#define NOT_MATCH -1
 #define BAD_FILE_ERROR                  (-(SYSTEM_ERROR | 1))
 #define INVALID_STRING_LENGTH_ERROR     (-(SYSTEM_ERROR | 2))
 #define UNKNOWN_CHARACTER_ERROR         (-(COMPILE_ERROR | 1))
 #define INVALID_DIGIT_ERROR             (-(COMPILE_ERROR | 2))
 #define INVALID_DOUBLE_QUOTE_ERROR      (-(COMPILE_ERROR | 3))
 #define INVALID_SINGLE_QUOTE_ERROR      (-(COMPILE_ERROR | 4))
-
+#define INVALID_ARRAY_SIZE_ERROR        (-(COMPILE_ERROR | 5))
+#define REPEAT_DEFINITION_IDENTIFIER    (-(COMPILE_ERROR | 6))
+#define UNDEFINED_IDENTIFIER_ERROR      (-(COMPILE_ERROR | 7))
+#define INVALID_TYPE_ERROR              (-(COMPILE_ERROR | 8))
 #endif // _C0_COMPILE_UTILS_H_
