@@ -48,15 +48,17 @@ void TestGrammaAnalysis(const char* test_file_name) {
             break;
     }
     cout << "push over" << endl;
-    Program program;
-    program.Parse();
+    // Program program;
+    // program.Parse();
+    Expression exp;
+    exp.Parse();
 }
 
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
     } else {
-        //TestLexicalAnalysis(argv[1]);
+        TestLexicalAnalysis(argv[1]);
         TestGrammaAnalysis(argv[1]);
     }
     return 0;

@@ -52,6 +52,73 @@ private:
     bool m_is_definition;
 };
 
+class Factor;
+class Term : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a term");
+        LOG_OUTPUT(str);
+    }
+private:
+    Factor* m_factor;
+};
+
+class Expression : AnalysisInterface {
+public:
+    Expression() {
+        m_first_term_factor = 1;
+        m_first_term_flag = true;
+    }
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a expression");
+        LOG_OUTPUT(str);
+    }
+private:
+    int m_first_term_factor;
+    bool m_first_term_flag;
+    Term m_term;
+};
+
+class Factor : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a factor");
+        LOG_OUTPUT(str);
+    }
+private:
+    Expression m_expression;
+};
+
+class ArgumentList : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a argument list");
+        LOG_OUTPUT(str);
+    }
+};
+
+class FunctionCall : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("THis is a function call");
+        LOG_OUTPUT(str);
+    }
+};
+
+class ValueArgumentList : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a value argument list");
+        LOG_OUTPUT(str);
+    }
+};
+
 class ConstantDefinition : AnalysisInterface {
 public:
     compile_errcode Parse();

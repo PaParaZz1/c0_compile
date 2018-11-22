@@ -7,4 +7,6 @@ char f1[10],f,g;
 int f2[11], h;
 
 void main() {
+    const int ar=3;
+    int a1;
 }
