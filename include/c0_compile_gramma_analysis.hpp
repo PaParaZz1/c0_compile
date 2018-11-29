@@ -5,9 +5,9 @@
 #include "c0_compile_symbol.hpp"
 
 #define LOG_SWITCH 1
-extern FILE* log_fp;
-#define LOG_OUTPUT(str) do { \
-                            if (LOG_SWITCH) fprintf(log_fp, "%s\n", str.c_str()); \
+extern FILE* log_gramma;
+#define GRAMMA_LOG(str) do { \
+                            if (LOG_SWITCH) fprintf(log_gramma, "%s\n", str.c_str()); \
                         }while(0) 
 
 typedef int compile_errcode;
@@ -38,19 +38,6 @@ public:
     virtual void LogOutput() = 0;
 };
 
-class Identifier : AnalysisInterface {
-public:
-    Identifier() {
-        m_is_definition = true;
-    }
-    compile_errcode Parse();
-    void LogOutput() {
-        string str("This is a identifier");
-        LOG_OUTPUT(str);
-    }
-private:
-    bool m_is_definition;
-};
 
 class Factor;
 class Term : AnalysisInterface {
@@ -58,7 +45,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a term");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     Factor* m_factor;
@@ -66,48 +53,13 @@ private:
 
 class Expression : AnalysisInterface {
 public:
-    Expression() {
-        m_first_term_factor = 1;
-        m_first_term_flag = true;
-    }
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a expression");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
-    int m_first_term_factor;
-    bool m_first_term_flag;
     Term m_term;
-};
-
-class Factor : AnalysisInterface {
-public:
-    compile_errcode Parse();
-    void LogOutput() {
-        string str("This is a factor");
-        LOG_OUTPUT(str);
-    }
-private:
-    Expression m_expression;
-};
-
-class ArgumentList : AnalysisInterface {
-public:
-    compile_errcode Parse();
-    void LogOutput() {
-        string str("This is a argument list");
-        LOG_OUTPUT(str);
-    }
-};
-
-class FunctionCall : AnalysisInterface {
-public:
-    compile_errcode Parse();
-    void LogOutput() {
-        string str("THis is a function call");
-        LOG_OUTPUT(str);
-    }
 };
 
 class ValueArgumentList : AnalysisInterface {
@@ -115,8 +67,124 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a value argument list");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
+private:
+    Expression m_expression;
+};
+
+class Factor : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a factor");
+        GRAMMA_LOG(str);
+    }
+private:
+    Expression m_expression;
+    ValueArgumentList m_value_argument_list;
+};
+
+class ArgumentList : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a argument list");
+        GRAMMA_LOG(str);
+    }
+};
+
+class Condition : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a condition");
+        GRAMMA_LOG(str);
+    }
+private:
+    Expression m_expression;
+};
+
+class Statement;
+class ConditionStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a condition statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Condition m_condition;
+    Statement* m_statement_ptr;
+};
+
+class WhileLoopStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a while loop statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Condition m_condition;
+    Statement* m_statement_ptr;
+};
+
+class SwitchChildStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a switch child statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Statement* m_statement_ptr;
+};
+
+class SwitchTable : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a switch table");
+        GRAMMA_LOG(str);
+    }
+private:
+    SwitchChildStatement m_switch_child_statement;
+};
+
+class Default : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a default");
+        GRAMMA_LOG(str);
+    }
+private:
+    Statement* m_statement_ptr;
+};
+
+class SwitchStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a switch loop statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Expression m_expression;
+    SwitchTable m_switch_table;
+    Default m_default;
+};
+
+class FunctionCall : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a function call");
+        GRAMMA_LOG(str);
+    }
+private:
+    ValueArgumentList m_value_argument_list;
 };
 
 class ConstantDefinition : AnalysisInterface {
@@ -124,14 +192,8 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a constant definition");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
-private:
-    Identifier m_identifier;
-    int m_int_value;
-    char m_char_value;
-    SymbolName m_type;
-    string m_identifier_name;
 };
 
 class ConstantDeclaration : AnalysisInterface{
@@ -139,7 +201,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a constant declaration");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     ConstantDefinition m_constant_definition;
@@ -150,13 +212,8 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a variable definition");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
-private:
-    SymbolName m_type;
-    string m_identifier_name;
-    int m_array_length;
-    Identifier m_identifier;
 };
 
 class VariableDeclaration : AnalysisInterface{
@@ -164,26 +221,83 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a variable declaration");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     VariableDefinition m_variable_definition;
 };
 
-class FunctionDefinition : AnalysisInterface {
+class OutputStatement: AnalysisInterface {
 public:
     compile_errcode Parse();
     void LogOutput() {
-        string str("This is a funtion definition with return");
+        string str("This is a output statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Expression m_expression;
+};
+
+class InputStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a input statement");
+        GRAMMA_LOG(str);
     }
 };
 
-class FunctionDefinitionNoReturn : AnalysisInterface {
+class ReturnStatement : AnalysisInterface {
 public:
     compile_errcode Parse();
     void LogOutput() {
-        string str("This is a fucntion definition without return");
+        string str("This is a return statement");
+        GRAMMA_LOG(str);
     }
+private:
+    Expression m_expression;
+};
+
+class AssignStatement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a assign statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    Expression m_expression;
+};
+
+class StatementList;
+class Statement : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a statement");
+        GRAMMA_LOG(str);
+    }
+private:
+    OutputStatement m_output_statement;
+    InputStatement m_input_statement;
+    ReturnStatement m_return_statement;
+    AssignStatement m_assign_statement;
+    FunctionCall m_function_call;
+    ConditionStatement m_condition_statement;
+    WhileLoopStatement m_while_loop_statement;
+    SwitchStatement m_switch_statement;
+    StatementList* m_statement_list_ptr;
+};
+
+class StatementList : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a statement list");
+        GRAMMA_LOG(str);
+    }
+private:
+    Statement m_statement;
 };
 
 class CompoundStatement : AnalysisInterface {
@@ -191,11 +305,24 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a compound statement");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;
+    StatementList m_statement_list;
+};
+
+class FunctionDefinition : AnalysisInterface {
+public:
+    compile_errcode Parse();
+    void LogOutput() {
+        string str("This is a funtion definition");
+        GRAMMA_LOG(str);
+    }
+private:
+    ArgumentList m_argument_list;
+    CompoundStatement m_compound_statement;
 };
 
 class MainFunction : AnalysisInterface {
@@ -203,7 +330,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a main function");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     CompoundStatement m_compound_statement;
@@ -214,11 +341,12 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a c0 program");
-        LOG_OUTPUT(str);
+        GRAMMA_LOG(str);
     }
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;
+    FunctionDefinition m_function_definition;
     MainFunction m_main_function;
 };
 

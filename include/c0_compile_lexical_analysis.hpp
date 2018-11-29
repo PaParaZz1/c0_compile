@@ -27,6 +27,8 @@ public:
         memset(buffer, 0, sizeof(char)*MAX_LINE_LENGTH);
         buffer_index = 0;
         enable_number = true;
+        m_line_number = 0;
+        m_character_number = 0;
     }
     ~LexicalAnalysis() {
         if (!fp_in)
@@ -39,6 +41,8 @@ private:
     char buffer[MAX_LINE_LENGTH];
     int buffer_index;
     bool enable_number;
+    int m_line_number;
+    int m_character_number;
     void GetChar();
     void UnGetChar();
     void ParseSmallMark(Symbol& symbol);

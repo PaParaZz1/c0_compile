@@ -12,7 +12,7 @@ int fibonacci(int n) {
     if (n >= 2)
         return (fibonacci(n-1) + fibonacci(n-2));
 }
-int main() {
+void main() {
     const int n = 10;
     const char c1 = 'a';
     int fibonacci_ans;
@@ -21,7 +21,7 @@ int main() {
     char array[10];
     i = 0;
     sum = 0;
-    scanf("%c", test_c);
+    scanf(test_c);
     fibonacci_ans = fibonacci(n);
     printf("fibonacci_ans:%d", fibonacci_ans);
     switch (test_c) {
@@ -50,5 +50,5 @@ int main() {
     }
     printf("    ");
     printf("end");
-    return 0;
+    return (0);
 }

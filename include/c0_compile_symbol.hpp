@@ -94,23 +94,35 @@ private:
 class Symbol {
 public:
     Symbol() {}
-    void SetName(SymbolName _name) {
-        this->name = _name;
+    void SetName(SymbolName name) {
+        m_name = name;
     }
     template<typename T>
-    void SetValue(T _value) {
-        value = SymbolValue(_value);
+    void SetValue(T value) {
+        m_value = SymbolValue(value);
     }
     SymbolName GetName() {
-        return this->name;
+        return m_name;
     }
     template<typename T>
     T GetValue() {
-        return value.GetValue<T>();
+        return m_value.GetValue<T>();
+    }
+    void SetLocate(int line_number, int character_number) {
+        this->SetLineNumber(line_number);
+        this->SetCharacterNumber(character_number);
+    }
+    void SetLineNumber(int line_number) {
+        m_line_number = line_number;
+    }
+    void SetCharacterNumber(int character_number) {
+        m_character_number = character_number;
     }
 private:
-    SymbolName name;
-    SymbolValue value;
+    SymbolName m_name;
+    SymbolValue m_value;
+    int m_line_number;
+    int m_character_number;
 };
 
 typedef enum _SymbolKind {
