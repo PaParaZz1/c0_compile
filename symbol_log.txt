@@ -1,0 +1,114 @@
+-------------------------------------------------
+function main's symbol table
+{
+ name: a
+ kind: CONST
+ type: INT
+ const int value: 0
+}
+{
+ name: b
+ kind: CONST
+ type: INT
+ const int value: 2
+}
+{
+ name: c
+ kind: CONST
+ type: INT
+ const int value: 3
+}
+{
+ name: a1
+ kind: CONST
+ type: INT
+ const int value: 3
+}
+{
+ name: qw
+ kind: CONST
+ type: CHAR
+ const char value: a
+}
+{
+ name: wqe
+ kind: CONST
+ type: CHAR
+ const char value: b
+}
+{
+ name: a3
+ kind: CONST
+ type: INT
+ const int value: 3
+}
+{
+ name: a11
+ kind: VARIABLE
+ type: INT
+}
+{
+ name: _a43
+ kind: VARIABLE
+ type: INT
+}
+{
+ name: b5
+ kind: VARIABLE
+ type: INT
+}
+{
+ name: a9
+ kind: VARIABLE
+ type: CHAR
+}
+{
+ name: a031
+ kind: VARIABLE
+ type: CHAR
+}
+{
+ name: a3213
+ kind: VARIABLE
+ type: INT
+}
+{
+ name: aer
+ kind: ARRAY
+ type: INT
+ array length: 12
+}
+{
+ name: kl
+ kind: ARRAY
+ type: CHAR
+ array length: 32
+}
+{
+ name: func1
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+{
+ name: func2
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 2
+}
+{
+ name: error_func1_error
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+-------------------------------------------------
+-------------------------------------------------
+function func1's symbol table
+-------------------------------------------------
+-------------------------------------------------
+function func2's symbol table
+-------------------------------------------------
+-------------------------------------------------
+function error_func1_error's symbol table
+-------------------------------------------------

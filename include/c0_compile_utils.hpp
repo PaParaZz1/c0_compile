@@ -18,4 +18,5 @@ typedef int compile_errcode;
 #define REPEAT_DEFINITION_IDENTIFIER    (-(COMPILE_ERROR | 6))
 #define UNDEFINED_IDENTIFIER_ERROR      (-(COMPILE_ERROR | 7))
 #define INVALID_TYPE_ERROR              (-(COMPILE_ERROR | 8))
+#define INVALID_ASSIGN_MATCH_ERROR      (-(COMPILE_ERROR | 9))
 #endif // _C0_COMPILE_UTILS_H_

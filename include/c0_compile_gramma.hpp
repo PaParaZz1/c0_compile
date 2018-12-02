@@ -14,7 +14,6 @@ typedef int compile_errcode;
 using std::string;
 
 
-
 /*class BaseAnalysisTool {
 public:
     BaseAnalysisTool(const char* filename) {
@@ -36,6 +35,7 @@ class AnalysisInterface {
 public:
     virtual compile_errcode Parse() = 0;
     virtual void LogOutput() = 0;
+    virtual compile_errcode Action() = 0;
 };
 
 
@@ -47,6 +47,7 @@ public:
         string str("This is a term");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Factor* m_factor;
 };
@@ -58,6 +59,7 @@ public:
         string str("This is a expression");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Term m_term;
 };
@@ -69,6 +71,7 @@ public:
         string str("This is a value argument list");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
 };
@@ -80,6 +83,7 @@ public:
         string str("This is a factor");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
     ValueArgumentList m_value_argument_list;
@@ -92,6 +96,8 @@ public:
         string str("This is a argument list");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action() {}
+    compile_errcode Action(int& argument_number);
 };
 
 class Condition : AnalysisInterface {
@@ -101,6 +107,7 @@ public:
         string str("This is a condition");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
 };
@@ -113,6 +120,7 @@ public:
         string str("This is a condition statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
@@ -125,6 +133,7 @@ public:
         string str("This is a while loop statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
@@ -137,6 +146,7 @@ public:
         string str("This is a switch child statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Statement* m_statement_ptr;
 };
@@ -148,6 +158,7 @@ public:
         string str("This is a switch table");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     SwitchChildStatement m_switch_child_statement;
 };
@@ -159,6 +170,7 @@ public:
         string str("This is a default");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Statement* m_statement_ptr;
 };
@@ -170,6 +182,7 @@ public:
         string str("This is a switch loop statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
     SwitchTable m_switch_table;
@@ -183,6 +196,7 @@ public:
         string str("This is a function call");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     ValueArgumentList m_value_argument_list;
 };
@@ -194,6 +208,11 @@ public:
         string str("This is a constant definition");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
+private:
+    SymbolName m_type;
+    string m_identifier_name;
+    bool m_valid;
 };
 
 class ConstantDeclaration : AnalysisInterface{
@@ -203,6 +222,7 @@ public:
         string str("This is a constant declaration");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     ConstantDefinition m_constant_definition;
 };
@@ -214,6 +234,12 @@ public:
         string str("This is a variable definition");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
+private:
+    SymbolName m_type;
+    string m_identifier_name;
+    int m_array_length;
+    bool m_valid;
 };
 
 class VariableDeclaration : AnalysisInterface{
@@ -223,6 +249,7 @@ public:
         string str("This is a variable declaration");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     VariableDefinition m_variable_definition;
 };
@@ -234,6 +261,7 @@ public:
         string str("This is a output statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
 };
@@ -245,6 +273,7 @@ public:
         string str("This is a input statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 };
 
 class ReturnStatement : AnalysisInterface {
@@ -254,6 +283,7 @@ public:
         string str("This is a return statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
 };
@@ -265,6 +295,7 @@ public:
         string str("This is a assign statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Expression m_expression;
 };
@@ -277,6 +308,7 @@ public:
         string str("This is a statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     OutputStatement m_output_statement;
     InputStatement m_input_statement;
@@ -296,6 +328,7 @@ public:
         string str("This is a statement list");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     Statement m_statement;
 };
@@ -307,6 +340,7 @@ public:
         string str("This is a compound statement");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;
@@ -320,9 +354,14 @@ public:
         string str("This is a funtion definition");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     ArgumentList m_argument_list;
     CompoundStatement m_compound_statement;
+    bool m_valid;
+    string m_identifier_name;
+    SymbolName m_type;
+    int m_argument_number;
 };
 
 class MainFunction : AnalysisInterface {
@@ -332,6 +371,7 @@ public:
         string str("This is a main function");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     CompoundStatement m_compound_statement;
 };
@@ -343,6 +383,7 @@ public:
         string str("This is a c0 program");
         GRAMMA_LOG(str);
     }
+    compile_errcode Action();
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;

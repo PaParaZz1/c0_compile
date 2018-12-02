@@ -306,7 +306,7 @@ ParseSym:
         case '\r': goto ParseSym;
         case '\n': {
             m_line_number++;
-            m_character_number = 0;
+            m_character_number = 1;
             goto ParseSym;
         }
         default: {
@@ -351,6 +351,11 @@ void SymbolQueue::SetCacheLocate() {
 
 void SymbolQueue::SetCurrentLocate() {
     m_current_locate = m_cache_locate;
+}
+
+void SymbolQueue::Restart() {
+    m_cache_locate = 0;
+    m_current_locate = 0;
 }
 
 SymbolQueue* handle_symbol_queue;

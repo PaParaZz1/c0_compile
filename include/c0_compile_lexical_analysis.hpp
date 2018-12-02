@@ -27,12 +27,15 @@ public:
         memset(buffer, 0, sizeof(char)*MAX_LINE_LENGTH);
         buffer_index = 0;
         enable_number = true;
-        m_line_number = 0;
-        m_character_number = 0;
+        m_line_number = 1;
+        m_character_number = 1;
     }
     ~LexicalAnalysis() {
         if (!fp_in)
             fclose(fp_in);
+    }
+    bool CheckFile() {
+        return fp_in != NULL;
     }
     compile_errcode GetSym(Symbol& symbol);
 private: 
@@ -68,6 +71,12 @@ public:
     T GetCurrentValue() {
         return m_symbol_queue[m_current_locate].GetValue<T>();
     }
+    int GetCurrentLine() {
+        return m_symbol_queue[m_current_locate].GetLine();
+    }
+    int GetCurrentCharacter() {
+        return m_symbol_queue[m_current_locate].GetCharacter();
+    }
     void PushSymbol(Symbol& symbol) {
         m_symbol_queue.push_back(symbol);
     }
@@ -75,6 +84,7 @@ public:
     compile_errcode NextSymbol();
     void SetCacheLocate();
     void SetCurrentLocate();
+    void Restart();
 private:
     int m_current_locate;
     int m_cache_locate;

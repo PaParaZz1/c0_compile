@@ -14,6 +14,7 @@ SET(ALL_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_symbol.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_lexical_analysis.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_gramma_analysis.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_semantic_analysis.cpp
 )
 
 ADD_EXECUTABLE(compile_test

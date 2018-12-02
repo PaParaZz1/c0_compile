@@ -9,8 +9,9 @@ using std::string;
 using std::cout;
 using std::endl;
 
+extern SymbolTableTree* symbol_table_tree;
 extern SymbolQueue* handle_symbol_queue;
-FILE* log_gramma = fopen("gramma_log.txt", "w");
+SymbolQueue* handle_correct_queue = handle_symbol_queue;
 
 inline bool IsAddOperation(SymbolName name) {
     return (name == ADD_SYM) || (name == SUB_SYM);
@@ -37,21 +38,30 @@ inline bool IsRelationalOpeartor(SymbolName name) {
             name == LARGE_EQUAL_SYM);
 }
 
-compile_errcode Factor::Parse() {
+FILE* semantic_error = fopen("semantic_error.txt", "w");
+void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
+    if (semantic_error == NULL) {
+        fprintf(stderr, "%s error: '%s' in line %d character %d\n", error_type.c_str(), content.c_str(), line_number, character_number);
+    } else {
+        fprintf(semantic_error, "%s error: '%s' in line %d character %d\n", error_type.c_str(),  content.c_str(), line_number, character_number);
+    }
+}
+
+compile_errcode Factor::Action() {
     int ret = COMPILE_OK;
-    SymbolName name = handle_symbol_queue->GetCurrentName();
+    SymbolName name = handle_correct_queue->GetCurrentName();
     switch (name) {
         case INTERGER_SYM: break;
         case CHARACTER_SYM: break;
         case IDENTIFIER_SYM: {
-            handle_symbol_queue->SetCacheLocate();
-            handle_symbol_queue->NextSymbol();
-            name = handle_symbol_queue->GetCurrentName();
+            handle_correct_queue->SetCacheLocate();
+            handle_correct_queue->NextSymbol();
+            name = handle_correct_queue->GetCurrentName();
             if (name == L_SQUARE_BRACKET_SYM) {
-                handle_symbol_queue->NextSymbol();
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                handle_correct_queue->NextSymbol();
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     // m_expression.LogOutput();
-                    name = handle_symbol_queue->GetCurrentName();
+                    name = handle_correct_queue->GetCurrentName();
                     if (name == R_SQUARE_BRACKET_SYM) {
                         break;
                     } else {
@@ -61,10 +71,10 @@ compile_errcode Factor::Parse() {
                     return NOT_MATCH;
                 }
             } else if (name == L_CIRCLE_BRACKET_SYM) {
-                handle_symbol_queue->NextSymbol();
-                if ((ret = m_value_argument_list.Parse()) == COMPILE_OK) {
+                handle_correct_queue->NextSymbol();
+                if ((ret = m_value_argument_list.Action()) == COMPILE_OK) {
                     // m_value_argument_list.LogOutput();
-                    name = handle_symbol_queue->GetCurrentName();
+                    name = handle_correct_queue->GetCurrentName();
                     if (name == R_CIRCLE_BRACKET_SYM) {
                         string str = "This is a function call";
                         GRAMMA_LOG(str);
@@ -76,15 +86,15 @@ compile_errcode Factor::Parse() {
                     return NOT_MATCH;
                 }
             } else {
-                handle_symbol_queue->SetCurrentLocate();
+                handle_correct_queue->SetCurrentLocate();
                 break;
             }
         }
         case L_CIRCLE_BRACKET_SYM: {
-            handle_symbol_queue->NextSymbol();
-            if ((ret = m_expression.Parse()) == COMPILE_OK) {
+            handle_correct_queue->NextSymbol();
+            if ((ret = m_expression.Action()) == COMPILE_OK) {
                 // m_expression.LogOutput();
-                name = handle_symbol_queue->GetCurrentName();
+                name = handle_correct_queue->GetCurrentName();
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     break;
                 } else {
@@ -95,19 +105,19 @@ compile_errcode Factor::Parse() {
             }
         }
     }
-    handle_symbol_queue->NextSymbol();
+    handle_correct_queue->NextSymbol();
     return COMPILE_OK;
 }
 
-compile_errcode Term::Parse() {
+compile_errcode Term::Action() {
     m_factor = new Factor;
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                if ((ret = m_factor->Parse()) == COMPILE_OK) {
+                if ((ret = m_factor->Action()) == COMPILE_OK) {
                     state = 1;
                     break;
                 } else {
@@ -126,21 +136,21 @@ compile_errcode Term::Parse() {
             }
         }
         if (state == 0)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode Expression::Parse() {
+compile_errcode Expression::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (IsAddOperation(name)) {
                     state = 0;
                     break;
-                } else if ((ret = m_term.Parse()) == COMPILE_OK) {
+                } else if ((ret = m_term.Action()) == COMPILE_OK) {
                     m_term.LogOutput();
                     state = 1;
                     break;
@@ -157,7 +167,7 @@ compile_errcode Expression::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_term.Parse()) == COMPILE_OK) {
+                if ((ret = m_term.Action()) == COMPILE_OK) {
                     m_term.LogOutput();
                     state = 1;
                     break;
@@ -167,16 +177,18 @@ compile_errcode Expression::Parse() {
             }
         }
         if (state != 1) {
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
         }
     }
 }
 
-compile_errcode ConstantDefinition::Parse() {
+compile_errcode ConstantDefinition::Action() {
     int state = 0;
     int ret = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == CONST_SYM) {
@@ -189,6 +201,7 @@ compile_errcode ConstantDefinition::Parse() {
             case 1: {
                 if (IsValidVariableType(name)) {
                     state = 2;
+                    m_type = name;
                     break;
                 } else {
                     return INVALID_TYPE_ERROR;
@@ -197,6 +210,13 @@ compile_errcode ConstantDefinition::Parse() {
             case 2: {
                 if (name == IDENTIFIER_SYM) {
                     state = 3;
+                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                        SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
+                        m_valid = false;
+                    } else {
+                        m_valid = true;
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -213,6 +233,22 @@ compile_errcode ConstantDefinition::Parse() {
             case 4: {
                 if (name == INTERGER_SYM || name == CHARACTER_SYM) {
                     state = 5;
+                    if (m_type == INT_SYM && name != INTERGER_SYM) {
+                        SemanticErrorLog(string("invalid assign match(int)"), m_identifier_name, line_number, character_number);
+                        break;
+                    }
+                    if (m_type == CHAR_SYM && name != CHARACTER_SYM) {
+                        SemanticErrorLog(string("invalid assign match(char)"), m_identifier_name, line_number, character_number);
+                        break;
+                    }
+                    if (m_valid) {
+                        SymbolTableTerm term(m_identifier_name, CONST, m_type);
+                        if (name == INTERGER_SYM)
+                            term.SetConstInformation<int>(handle_correct_queue->GetCurrentValue<int>());
+                        else if (name == CHARACTER_SYM)
+                            term.SetConstInformation<char>(handle_correct_queue->GetCurrentValue<char>());
+                        symbol_table_tree->Insert(term);
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -230,17 +266,17 @@ compile_errcode ConstantDefinition::Parse() {
             }
             case 6: return COMPILE_OK;
         }
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode ConstantDeclaration::Parse() {
+compile_errcode ConstantDeclaration::Action() {
     int ret = 0;
     int correct_count = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         if (name == CONST_SYM) {
-            if ((ret = m_constant_definition.Parse()) == COMPILE_OK) {
+            if ((ret = m_constant_definition.Action()) == COMPILE_OK) {
                 m_constant_definition.LogOutput();
                 correct_count++;
             } else {
@@ -255,14 +291,17 @@ compile_errcode ConstantDeclaration::Parse() {
     }
 }
 
-compile_errcode VariableDefinition::Parse() {
+compile_errcode VariableDefinition::Action() {
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (IsValidVariableType(name)) {
                     state = 1;
+                    m_type = name;
                     break;
                 } else {
                     return NOT_MATCH;
@@ -271,6 +310,13 @@ compile_errcode VariableDefinition::Parse() {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
+                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                        SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
+                        m_valid = false;
+                    } else {
+                        m_valid = true;
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -282,9 +328,17 @@ compile_errcode VariableDefinition::Parse() {
                     break;
                 } else if (name == COMMA_SYM) {
                     state = 1;
+                    if (m_valid) {
+                        SymbolTableTerm term(m_identifier_name, VARIABLE, m_type);
+                        symbol_table_tree->Insert(term);
+                    }
                     break;
                 } else if (name == SEMICOLON_SYM) {
                     state = 3;
+                    if (m_valid) {
+                        SymbolTableTerm term(m_identifier_name, VARIABLE, m_type);
+                        symbol_table_tree->Insert(term);
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -294,6 +348,11 @@ compile_errcode VariableDefinition::Parse() {
             case 11: {
                 if (name == INTERGER_SYM) {
                     state = 12;
+                    m_array_length = handle_correct_queue->GetCurrentValue<int>();
+                    if (m_array_length <= 0) {
+                        m_valid = false;
+                        SemanticErrorLog(string("invalid array length"), m_identifier_name, line_number, character_number);
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -302,6 +361,11 @@ compile_errcode VariableDefinition::Parse() {
             case 12: {
                 if (name == R_SQUARE_BRACKET_SYM) {
                     state = 13;
+                    if (m_valid) {
+                        SymbolTableTerm term(m_identifier_name, ARRAY, m_type);
+                        term.SetArrayInformation(m_array_length);
+                        symbol_table_tree->Insert(term);
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -319,27 +383,27 @@ compile_errcode VariableDefinition::Parse() {
                 }
             }
         }
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode VariableDeclaration::Parse() {
+compile_errcode VariableDeclaration::Action() {
     int ret = 0;
     int correct_count = 0;
     while (true) {
-        handle_symbol_queue->SetCacheLocate();
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        handle_correct_queue->SetCacheLocate();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         if (IsValidVariableType(name)) {
-            handle_symbol_queue->NextSymbol();
-            name = handle_symbol_queue->GetCurrentName();
+            handle_correct_queue->NextSymbol();
+            name = handle_correct_queue->GetCurrentName();
             if (name == IDENTIFIER_SYM) {
-                handle_symbol_queue->NextSymbol();
-                name = handle_symbol_queue->GetCurrentName();
+                handle_correct_queue->NextSymbol();
+                name = handle_correct_queue->GetCurrentName();
                 if (name == L_CIRCLE_BRACKET_SYM) {
-                    handle_symbol_queue->SetCurrentLocate();
+                    handle_correct_queue->SetCurrentLocate();
                     break;
                 } else {
-                    handle_symbol_queue->SetCurrentLocate();
+                    handle_correct_queue->SetCurrentLocate();
                 }
             } else {
                 break;
@@ -350,7 +414,7 @@ compile_errcode VariableDeclaration::Parse() {
             else
                 return NOT_MATCH;
         }
-        if ((ret = m_variable_definition.Parse()) == COMPILE_OK) {
+        if ((ret = m_variable_definition.Action()) == COMPILE_OK) {
             m_variable_definition.LogOutput();
             correct_count++;
         } else {
@@ -360,11 +424,11 @@ compile_errcode VariableDeclaration::Parse() {
     return NOT_MATCH;
 }
 
-compile_errcode InputStatement::Parse() {
+compile_errcode InputStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == SCANF_SYM) {
@@ -403,15 +467,15 @@ compile_errcode InputStatement::Parse() {
             }
             case 4: return COMPILE_OK;
         }
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode ReturnStatement::Parse() {
+compile_errcode ReturnStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == RETURN_SYM) {
@@ -432,7 +496,7 @@ compile_errcode ReturnStatement::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 3;
                     m_expression.LogOutput();
                     break;
@@ -451,15 +515,15 @@ compile_errcode ReturnStatement::Parse() {
             case 4: return COMPILE_OK;
         }
         if (state != 3)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode OutputStatement::Parse() {
+compile_errcode OutputStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == PRINTF_SYM) {
@@ -483,7 +547,7 @@ compile_errcode OutputStatement::Parse() {
                     GRAMMA_LOG(str);
                     state = 3;
                     break;
-                } else if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 5;
                     break;
                 } else {
@@ -502,7 +566,7 @@ compile_errcode OutputStatement::Parse() {
                 }
             }
             case 4: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 5;
                     break;
                 } else {
@@ -520,15 +584,15 @@ compile_errcode OutputStatement::Parse() {
             case 6: return COMPILE_OK;
         }
         if (state != 5)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode AssignStatement::Parse() {
+compile_errcode AssignStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
@@ -550,7 +614,7 @@ compile_errcode AssignStatement::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -559,7 +623,7 @@ compile_errcode AssignStatement::Parse() {
             }
             case 3: return COMPILE_OK;
             case 11: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 12;
                     break;
@@ -585,18 +649,18 @@ compile_errcode AssignStatement::Parse() {
             }
         }
         if (state != 3 && state != 12)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode Condition::Parse() {
+compile_errcode Condition::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 1;
                     break;
@@ -613,7 +677,7 @@ compile_errcode Condition::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 3;
                     break;
@@ -624,16 +688,16 @@ compile_errcode Condition::Parse() {
             case 3: return COMPILE_OK;
         }
         if (state == 2)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode ConditionStatement::Parse() {
+compile_errcode ConditionStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     m_statement_ptr = new Statement;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == IF_SYM) {
@@ -652,7 +716,7 @@ compile_errcode ConditionStatement::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_condition.Parse()) == COMPILE_OK) {
+                if ((ret = m_condition.Action()) == COMPILE_OK) {
                     m_condition.LogOutput();
                     state = 3;
                     break;
@@ -669,7 +733,7 @@ compile_errcode ConditionStatement::Parse() {
                 }
             }
             case 4: {
-                if ((ret = m_statement_ptr->Parse()) == COMPILE_OK) {
+                if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
                     m_statement_ptr->LogOutput();
                     state = 5;
                     break;
@@ -680,7 +744,7 @@ compile_errcode ConditionStatement::Parse() {
             case 5: goto CORRECT_IF;
         }
         if (state != 3 && state != 5)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
     CORRECT_IF:
         delete(m_statement_ptr);
@@ -690,12 +754,12 @@ compile_errcode ConditionStatement::Parse() {
         return NOT_MATCH;
 }
 
-compile_errcode WhileLoopStatement::Parse() {
+compile_errcode WhileLoopStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     m_statement_ptr = new Statement;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == WHILE_SYM) {
@@ -714,7 +778,7 @@ compile_errcode WhileLoopStatement::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_condition.Parse()) == COMPILE_OK) {
+                if ((ret = m_condition.Action()) == COMPILE_OK) {
                     m_condition.LogOutput();
                     state = 3;
                     break;
@@ -731,7 +795,7 @@ compile_errcode WhileLoopStatement::Parse() {
                 }
             }
             case 4: {
-                if ((ret = m_statement_ptr->Parse()) == COMPILE_OK) {
+                if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
                     m_statement_ptr->LogOutput();
                     state = 5;
                     break;
@@ -742,7 +806,7 @@ compile_errcode WhileLoopStatement::Parse() {
             case 5: goto CORRECT_WHILE;
         }
         if (state != 3 && state != 5)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
     CORRECT_WHILE:
         delete(m_statement_ptr);
@@ -752,12 +816,12 @@ compile_errcode WhileLoopStatement::Parse() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchChildStatement::Parse() {
+compile_errcode SwitchChildStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     m_statement_ptr = new Statement;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == CASE_SYM) {
@@ -784,7 +848,7 @@ compile_errcode SwitchChildStatement::Parse() {
                 }
             }
             case 3: {
-                if ((ret = m_statement_ptr->Parse()) == COMPILE_OK) {
+                if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
                     m_statement_ptr->LogOutput();
                     state = 4;
                     break;
@@ -795,7 +859,7 @@ compile_errcode SwitchChildStatement::Parse() {
             case 4: goto CORRECT_SWITCH_CHILD;
         }
         if (state != 4)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
     CORRECT_SWITCH_CHILD:
         delete(m_statement_ptr);
@@ -805,11 +869,11 @@ compile_errcode SwitchChildStatement::Parse() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchTable::Parse() {
+compile_errcode SwitchTable::Action() {
     int ret = 0;
     int count = 0;
     while (true) {
-        if ((ret = m_switch_child_statement.Parse()) == COMPILE_OK) {
+        if ((ret = m_switch_child_statement.Action()) == COMPILE_OK) {
             m_switch_child_statement.LogOutput();
             count++;
         } else {
@@ -822,11 +886,11 @@ compile_errcode SwitchTable::Parse() {
         return NOT_MATCH;
 }
 
-compile_errcode Default::Parse() {
+compile_errcode Default::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == DEFAULT_SYM) {
@@ -849,7 +913,7 @@ compile_errcode Default::Parse() {
                     return COMPILE_OK;
                 } else {
                     m_statement_ptr = new Statement;
-                    if ((ret = m_statement_ptr->Parse()) == COMPILE_OK) {
+                    if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
                         m_statement_ptr->LogOutput();
                         delete(m_statement_ptr);
                         return COMPILE_OK;
@@ -860,14 +924,14 @@ compile_errcode Default::Parse() {
                 }
             }
         }
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
     }
 }
-compile_errcode SwitchStatement::Parse() {
+compile_errcode SwitchStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == SWITCH_SYM) {
@@ -886,7 +950,7 @@ compile_errcode SwitchStatement::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 3;
                     break;
@@ -911,7 +975,7 @@ compile_errcode SwitchStatement::Parse() {
                 }
             }
             case 5: {
-                if ((ret = m_switch_table.Parse()) == COMPILE_OK) {
+                if ((ret = m_switch_table.Action()) == COMPILE_OK) {
                     m_switch_table.LogOutput();
                     state = 6;
                     break;
@@ -920,7 +984,7 @@ compile_errcode SwitchStatement::Parse() {
                 }
             }
             case 6: {
-                if ((ret = m_default.Parse()) == COMPILE_OK) {
+                if ((ret = m_default.Action()) == COMPILE_OK) {
                     m_default.LogOutput();
                     state = 7;
                     break;
@@ -939,25 +1003,25 @@ compile_errcode SwitchStatement::Parse() {
             case 8: return COMPILE_OK;
         }
         if (state != 3 && state != 6 && state != 7)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
     ERROR_SWITCH:
        return NOT_MATCH;
 }
 
-compile_errcode Statement::Parse() {
+compile_errcode Statement::Action() {
     int ret = COMPILE_OK;
-    SymbolName name = handle_symbol_queue->GetCurrentName();
-    handle_symbol_queue->SetCacheLocate();
+    SymbolName name = handle_correct_queue->GetCurrentName();
+    handle_correct_queue->SetCacheLocate();
     if (name == L_CURLY_BRACKET_SYM) {
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
         m_statement_list_ptr = new StatementList;
-        if ((ret = m_statement_list_ptr->Parse()) == COMPILE_OK) {
+        if ((ret = m_statement_list_ptr->Action()) == COMPILE_OK) {
             m_statement_list_ptr->LogOutput();
             delete(m_statement_list_ptr);
-            name = handle_symbol_queue->GetCurrentName();
+            name = handle_correct_queue->GetCurrentName();
             if (name == R_CURLY_BRACKET_SYM) {
-                handle_symbol_queue->NextSymbol();
+                handle_correct_queue->NextSymbol();
                 goto NO_SEMICOLON;
             } else {
                 return NOT_MATCH;
@@ -966,34 +1030,34 @@ compile_errcode Statement::Parse() {
             delete(m_statement_list_ptr);
             NOT_MATCH;
         }
-    } else if ((ret = m_output_statement.Parse()) == COMPILE_OK) {
+    } else if ((ret = m_output_statement.Action()) == COMPILE_OK) {
         m_output_statement.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_input_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_input_statement.Action()) == COMPILE_OK) {
         m_input_statement.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_return_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Action()) == COMPILE_OK) {
         m_return_statement.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_assign_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_assign_statement.Action()) == COMPILE_OK) {
         m_assign_statement.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_function_call.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_function_call.Action()) == COMPILE_OK) {
         m_function_call.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_condition_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_condition_statement.Action()) == COMPILE_OK) {
         m_condition_statement.LogOutput();
         goto NO_SEMICOLON;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_while_loop_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_while_loop_statement.Action()) == COMPILE_OK) {
         m_while_loop_statement.LogOutput();
         goto NO_SEMICOLON;
-    } else if (handle_symbol_queue->SetCurrentLocate(), (ret = m_switch_statement.Parse()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_switch_statement.Action()) == COMPILE_OK) {
         m_switch_statement.LogOutput();
         goto NO_SEMICOLON;
     } else {
-        name = handle_symbol_queue->GetCurrentName();
+        name = handle_correct_queue->GetCurrentName();
         if (name == SEMICOLON_SYM) {
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
             string str("This is a empty statement");
             GRAMMA_LOG(str);
             return COMPILE_OK;
@@ -1002,9 +1066,9 @@ compile_errcode Statement::Parse() {
         }
     }
     SEMICOLON_CHECK:
-        name = handle_symbol_queue->GetCurrentName();
+        name = handle_correct_queue->GetCurrentName();
         if (name == SEMICOLON_SYM) {
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
             return COMPILE_OK;
         } else {
             fprintf(stderr, "expected a ':' in the end of statement\n");
@@ -1014,39 +1078,40 @@ compile_errcode Statement::Parse() {
         return COMPILE_OK;
 }
 
-compile_errcode StatementList::Parse() {
+compile_errcode StatementList::Action() {
     int ret = COMPILE_OK;
     while (true) {
-        handle_symbol_queue->SetCacheLocate();
-        if ((ret = m_statement.Parse()) == COMPILE_OK) {
+        handle_correct_queue->SetCacheLocate();
+        if ((ret = m_statement.Action()) == COMPILE_OK) {
             m_statement.LogOutput();
         } else {
-            handle_symbol_queue->SetCurrentLocate();
+            handle_correct_queue->SetCurrentLocate();
             return COMPILE_OK;
         }
     }
 }
 
-compile_errcode CompoundStatement::Parse() {
+compile_errcode CompoundStatement::Action() {
     int ret = COMPILE_OK;
-    SymbolName name = handle_symbol_queue->GetCurrentName();
+    SymbolName name = handle_correct_queue->GetCurrentName();
     if (name == CONST_SYM) {
-        if ((ret = m_constant_declaration.Parse()) == COMPILE_OK) {
+        if ((ret = m_constant_declaration.Action()) == COMPILE_OK) {
             m_constant_declaration.LogOutput();
         }
     }
-    if ((ret = m_variable_declaration.Parse()) == COMPILE_OK) {
+    if ((ret = m_variable_declaration.Action()) == COMPILE_OK) {
         m_variable_declaration.LogOutput();
     }
-    m_statement_list.Parse();
+    m_statement_list.Action();
     return COMPILE_OK;
 }
 
-compile_errcode ArgumentList::Parse() {
+compile_errcode ArgumentList::Action(int& argument_number) {
     int ret = COMPILE_OK;
     int state = 0;
+    argument_number = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
@@ -1061,6 +1126,7 @@ compile_errcode ArgumentList::Parse() {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
+                    argument_number++;
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1083,20 +1149,20 @@ compile_errcode ArgumentList::Parse() {
                 }
             }
         }
-        handle_symbol_queue->NextSymbol();
+        handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode ValueArgumentList::Parse() {
+compile_errcode ValueArgumentList::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
-                } else if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 1;
                     break;
                 } else {
@@ -1112,7 +1178,7 @@ compile_errcode ValueArgumentList::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Parse()) == COMPILE_OK) {
+                if ((ret = m_expression.Action()) == COMPILE_OK) {
                     state = 1;
                     break;
                 } else {
@@ -1121,15 +1187,15 @@ compile_errcode ValueArgumentList::Parse() {
             }
         }
         if (state != 1)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode FunctionCall::Parse() {
+compile_errcode FunctionCall::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
@@ -1148,7 +1214,7 @@ compile_errcode FunctionCall::Parse() {
                 }
             }
             case 2: {
-                if ((ret = m_value_argument_list.Parse()) == COMPILE_OK) {
+                if ((ret = m_value_argument_list.Action()) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -1166,19 +1232,22 @@ compile_errcode FunctionCall::Parse() {
             case 4: return COMPILE_OK;
         }
         if (state != 3)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode FunctionDefinition::Parse() {
+compile_errcode FunctionDefinition::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == VOID_SYM || name == INT_SYM || name == CHAR_SYM) {
                     state = 1;
+                    m_type = name;
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1186,6 +1255,20 @@ compile_errcode FunctionDefinition::Parse() {
             }
             case 1: {
                 if (name == IDENTIFIER_SYM) {
+                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    if (symbol_table_tree->Find(m_identifier_name, false)) {
+                        m_valid = false;
+                        SemanticErrorLog(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
+                        m_identifier_name = "error_" + m_identifier_name + "_error";
+                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
+                        symbol_table_tree->CreateTable(m_identifier_name, previous_table_name);
+                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
+                    } else {
+                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
+                        symbol_table_tree->CreateTable(m_identifier_name, previous_table_name);
+                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
+                        m_valid = true;
+                    }
                     state = 2;
                     break;
                 } else {
@@ -1201,7 +1284,7 @@ compile_errcode FunctionDefinition::Parse() {
                 }
             }
             case 3: {
-                if ((ret = m_argument_list.Parse()) == COMPILE_OK) {
+                if ((ret = m_argument_list.Action(m_argument_number)) == COMPILE_OK) {
                     m_argument_list.LogOutput();
                     state = 4;
                     break;
@@ -1226,7 +1309,7 @@ compile_errcode FunctionDefinition::Parse() {
                 }
             }
             case 6: {
-                if ((ret = m_compound_statement.Parse()) == COMPILE_OK) {
+                if ((ret = m_compound_statement.Action()) == COMPILE_OK) {
                     m_compound_statement.LogOutput();
                     state = 7;
                     break;
@@ -1236,6 +1319,11 @@ compile_errcode FunctionDefinition::Parse() {
             }
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
+                    symbol_table_tree->SetCurrentTableName(previous_table_name);
+                    SymbolTableTerm term(m_identifier_name, FUNCTION, m_type);
+                    term.SetFuncInformation(m_argument_number);
+                    symbol_table_tree->Insert(term);
                     state = 8;
                     break;
                 } else {
@@ -1245,15 +1333,15 @@ compile_errcode FunctionDefinition::Parse() {
             case 8: return COMPILE_OK;
         }
         if (state != 4 && state != 7)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode MainFunction::Parse() {
+compile_errcode MainFunction::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     while (true) {
-        SymbolName name = handle_symbol_queue->GetCurrentName();
+        SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == VOID_SYM) {
@@ -1296,7 +1384,7 @@ compile_errcode MainFunction::Parse() {
                 }
             }
             case 5: {
-                if ((ret = m_compound_statement.Parse()) == COMPILE_OK) {
+                if ((ret = m_compound_statement.Action()) == COMPILE_OK) {
                     m_compound_statement.LogOutput();
                     state = 6;
                     break;
@@ -1315,31 +1403,31 @@ compile_errcode MainFunction::Parse() {
             case 7: return COMPILE_OK;
         }
         if (state != 6)
-            handle_symbol_queue->NextSymbol();
+            handle_correct_queue->NextSymbol();
     }
 }
 
-compile_errcode Program::Parse() {
+compile_errcode Program::Action() {
     int ret = COMPILE_OK;
-    SymbolName name = handle_symbol_queue->GetCurrentName();
+    SymbolName name = handle_correct_queue->GetCurrentName();
     if (name == CONST_SYM) {
-        if ((ret = m_constant_declaration.Parse()) == COMPILE_OK) {
+        if ((ret = m_constant_declaration.Action()) == COMPILE_OK) {
             m_constant_declaration.LogOutput();
         }
     }
-    if ((ret = m_variable_declaration.Parse()) == COMPILE_OK) {
+    if ((ret = m_variable_declaration.Action()) == COMPILE_OK) {
         m_variable_declaration.LogOutput();
     }
     while (true) {
-        handle_symbol_queue->SetCacheLocate();
-        if ((ret = m_function_definition.Parse()) == COMPILE_OK) {
+        handle_correct_queue->SetCacheLocate();
+        if ((ret = m_function_definition.Action()) == COMPILE_OK) {
             m_function_definition.LogOutput();
         } else {
-            handle_symbol_queue->SetCurrentLocate();
+            handle_correct_queue->SetCurrentLocate();
             break;
         }
     }
-    if ((ret = m_main_function.Parse()) == COMPILE_OK) {
+    if ((ret = m_main_function.Action()) == COMPILE_OK) {
         m_main_function.LogOutput();
     }
     return ret;

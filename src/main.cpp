@@ -2,17 +2,23 @@
 #include <iostream>
 #include "c0_compile_utils.hpp"
 #include "c0_compile_lexical_analysis.hpp"
-#include "c0_compile_gramma_analysis.hpp"
+#include "c0_compile_gramma.hpp"
 #include "c0_compile_symbol.hpp"
 
 using std::cout;
 using std::endl;
 
 extern SymbolQueue* handle_symbol_queue;
+extern SymbolQueue* handle_correct_queue;
+extern SymbolTableTree* symbol_table_tree;
 
 void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
     LexicalAnalysis lexical_analysis(test_file_name);
+    if (!lexical_analysis.CheckFile()) {
+        std::cerr << "bad file" << endl;
+        return;
+    }
     Symbol symbol;
     bool log_flag = false;
     while (true) {
@@ -43,6 +49,10 @@ void TestLexicalAnalysis(const char* test_file_name) {
 void TestGrammaAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
     LexicalAnalysis lexical_analysis(test_file_name);
+    if (!lexical_analysis.CheckFile()) {
+        std::cerr << "bad file" << endl;
+        return;
+    }
     Symbol symbol;
     handle_symbol_queue = new SymbolQueue;
     while (true) {
@@ -58,12 +68,43 @@ void TestGrammaAnalysis(const char* test_file_name) {
     delete(handle_symbol_queue);
 }
 
+void TestSemanticAnalysis(const char* test_file_name) {
+    int ret = COMPILE_OK;
+    LexicalAnalysis lexical_analysis(test_file_name);
+    if (!lexical_analysis.CheckFile()) {
+        std::cerr << "bad file" << endl;
+        return;
+    }
+    Symbol symbol;
+    handle_symbol_queue = new SymbolQueue;
+    while (true) {
+        ret = lexical_analysis.GetSym(symbol);
+        handle_symbol_queue->PushSymbol(symbol);
+        SymbolName name = symbol.GetName();
+        if (name == EOF_SYM)
+            break;
+    }
+    cout << "push over" << endl;
+    Program program;
+    program.Parse();
+    symbol_table_tree = new SymbolTableTree;
+    symbol_table_tree->CreateTable(string("main"), string("end"));
+    symbol_table_tree->SetCurrentTableName(string("main"));
+    handle_correct_queue = handle_symbol_queue;
+    handle_correct_queue->Restart();
+    program.Action();
+    symbol_table_tree->PrintTree();
+    delete(symbol_table_tree);
+    delete(handle_symbol_queue);
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
     } else {
-        TestLexicalAnalysis(argv[1]);
-        TestGrammaAnalysis(argv[1]);
+        //TestLexicalAnalysis(argv[1]);
+       // TestGrammaAnalysis(argv[1]);
+        TestSemanticAnalysis(argv[1]);
     }
     return 0;
 }
