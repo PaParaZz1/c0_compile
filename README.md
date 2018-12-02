@@ -1,5 +1,5 @@
 # README
-  compiler for 'c0' gramma in BUAA
+  compiler for 'c0' gramma
 ## run
 - cmake >= 2.8
 - gcc/g++ >= 4.8
