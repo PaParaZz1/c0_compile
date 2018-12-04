@@ -192,6 +192,9 @@ public:
     string GetName() {
         return m_name;
     }
+    SymbolType GetType() {
+        return m_type;
+    }
     template<typename T>
     compile_errcode SetConstInformation(T value) {
         memcpy(&m_other_information, &value, sizeof(T));
@@ -230,11 +233,13 @@ public:
     string GetPreviousTableName() {
         return m_previous_level_name;
     }
+    compile_errcode GetTermType(string name, SymbolType& type);
     void PrintTable();
 private:
     vector<pair<string, SymbolTableTerm>> m_symbol_table;
     string m_table_name;
     string m_previous_level_name;
+    compile_errcode GetTerm(string name, SymbolTableTerm* term_ptr);
 };
 
 class SymbolTableTree {
@@ -247,6 +252,7 @@ public:
     string GetCurrentTableName() {
         return current_table_name;
     }
+    compile_errcode GetTermType(string name, SymbolType& type);
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }

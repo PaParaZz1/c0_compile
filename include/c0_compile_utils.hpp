@@ -19,4 +19,5 @@ typedef int compile_errcode;
 #define UNDEFINED_IDENTIFIER_ERROR      (-(COMPILE_ERROR | 7))
 #define INVALID_TYPE_ERROR              (-(COMPILE_ERROR | 8))
 #define INVALID_ASSIGN_MATCH_ERROR      (-(COMPILE_ERROR | 9))
+#define UNDEFINED_SYMBOL_TERM           (-(COMPILE_ERROR | 10))
 #endif // _C0_COMPILE_UTILS_H_

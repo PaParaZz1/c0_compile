@@ -47,7 +47,8 @@ public:
         string str("This is a term");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action() {}
+    compile_errcode Action(SymbolType& term_type);
 private:
     Factor* m_factor;
 };
@@ -59,7 +60,8 @@ public:
         string str("This is a expression");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action() {}
+    compile_errcode Action(SymbolType& expression_type);
 private:
     Term m_term;
 };
@@ -83,10 +85,13 @@ public:
         string str("This is a factor");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action() {}
+    compile_errcode Action(SymbolType& factor_type);
 private:
     Expression m_expression;
     ValueArgumentList m_value_argument_list;
+    bool m_valid;
+    string m_identifier_name;
 };
 
 class ArgumentList : AnalysisInterface {
@@ -286,7 +291,8 @@ public:
         string str("This is a return statement");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action() {}
+    compile_errcode Action(SymbolType& function_type, string funtion_name);
 private:
     Expression m_expression;
 };

@@ -38,6 +38,31 @@ inline bool IsRelationalOpeartor(SymbolName name) {
             name == LARGE_EQUAL_SYM);
 }
 
+inline int SymbolTypeMap(SymbolType& item) {
+    switch (item) {
+        case CHAR: return 1;
+        case INT: return 2;
+        default: fprintf(stderr, "inlvaid symbol type");
+    }
+    return -2;
+}
+
+inline SymbolType SymbolTypeInverseMap(int map_value) {
+    switch (map_value) {
+        case 1: return CHAR;
+        case 2: return INT;
+        default: fprintf(stderr, "inlvaid symbol type");
+    }
+    return VOID;
+}
+
+inline SymbolType MaxDataType(SymbolType& item1, SymbolType& item2) {
+    int value1 = SymbolTypeMap(item1);
+    int value2 = SymbolTypeMap(item2);
+    int max_value = value1 >= value2 ? value1 : value2;
+    return SymbolTypeInverseMap(max_value);
+}
+
 FILE* semantic_error = fopen("semantic_error.txt", "w");
 
 void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
@@ -48,22 +73,39 @@ void SemanticErrorLog(string error_type, string content, int line_number, int ch
     }
 }
 
-compile_errcode Factor::Action() {
+compile_errcode Factor::Action(SymbolType& factor_type) {
     int ret = COMPILE_OK;
+    SymbolType expression_type;
+    SymbolKind identifier_kind;
     SymbolName name = handle_correct_queue->GetCurrentName();
+    int line_number = handle_correct_queue->GetCurrentLine();
+    int character_number = handle_correct_queue->GetCurrentCharacter();
     switch (name) {
-        case INTERGER_SYM: break;
-        case CHARACTER_SYM: break;
+        case INTERGER_SYM: factor_type = INT; break;
+        case CHARACTER_SYM: factor_type = CHAR; break;
         case IDENTIFIER_SYM: {
+            // check identifier
+            m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+            if (symbol_table_tree->Find(m_identifier_name, false)) {
+                m_valid = true;
+            } else {
+                m_valid = false;
+                SemanticErrorLog(string("undefined identifier error"), m_identifier_name, line_number, character_number);
+            }
             handle_correct_queue->SetCacheLocate();
             handle_correct_queue->NextSymbol();
             name = handle_correct_queue->GetCurrentName();
             if (name == L_SQUARE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     // m_expression.LogOutput();
                     name = handle_correct_queue->GetCurrentName();
                     if (name == R_SQUARE_BRACKET_SYM) {
+                        if (m_valid) {
+                            symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                        } else {
+                            factor_type = VOID;
+                        }
                         break;
                     } else {
                         return NOT_MATCH;
@@ -79,6 +121,15 @@ compile_errcode Factor::Action() {
                     if (name == R_CIRCLE_BRACKET_SYM) {
                         string str = "This is a function call";
                         GRAMMA_LOG(str);
+                        if (m_valid) {
+                            symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                            if (factor_type == VOID) {
+                                m_valid = false; // (doubt)
+                                SemanticErrorLog(string("no return value func can't be used as factor"), m_identifier_name, line_number, character_number);
+                            }
+                        } else {
+                            factor_type = VOID;
+                        }
                         break;
                     } else {
                         return NOT_MATCH;
@@ -88,12 +139,17 @@ compile_errcode Factor::Action() {
                 }
             } else {
                 handle_correct_queue->SetCurrentLocate();
+                if (m_valid) {
+                    symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                } else {
+                    factor_type = VOID;
+                }
                 break;
             }
         }
         case L_CIRCLE_BRACKET_SYM: {
             handle_correct_queue->NextSymbol();
-            if ((ret = m_expression.Action()) == COMPILE_OK) {
+            if ((ret = m_expression.Action(factor_type)) == COMPILE_OK) {
                 // m_expression.LogOutput();
                 name = handle_correct_queue->GetCurrentName();
                 if (name == R_CIRCLE_BRACKET_SYM) {
@@ -110,16 +166,19 @@ compile_errcode Factor::Action() {
     return COMPILE_OK;
 }
 
-compile_errcode Term::Action() {
+compile_errcode Term::Action(SymbolType& term_type) {
     m_factor = new Factor;
     int ret = COMPILE_OK;
     int state = 0;
+    term_type = CHAR;
+    SymbolType cur_factor_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                if ((ret = m_factor->Action()) == COMPILE_OK) {
+                if ((ret = m_factor->Action(cur_factor_type)) == COMPILE_OK) {
                     state = 1;
+                    term_type = MaxDataType(term_type, cur_factor_type);
                     break;
                 } else {
                     delete(m_factor);
@@ -141,9 +200,11 @@ compile_errcode Term::Action() {
     }
 }
 
-compile_errcode Expression::Action() {
+compile_errcode Expression::Action(SymbolType& expression_type) {
     int ret = COMPILE_OK;
     int state = 0;
+    expression_type = CHAR;
+    SymbolType cur_term_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -151,8 +212,9 @@ compile_errcode Expression::Action() {
                 if (IsAddOperation(name)) {
                     state = 0;
                     break;
-                } else if ((ret = m_term.Action()) == COMPILE_OK) {
+                } else if ((ret = m_term.Action(cur_term_type)) == COMPILE_OK) {
                     m_term.LogOutput();
+                    expression_type = MaxDataType(expression_type, cur_term_type);
                     state = 1;
                     break;
                 } else {
@@ -168,8 +230,9 @@ compile_errcode Expression::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_term.Action()) == COMPILE_OK) {
+                if ((ret = m_term.Action(cur_term_type)) == COMPILE_OK) {
                     m_term.LogOutput();
+                    expression_type = MaxDataType(expression_type, cur_term_type);
                     state = 1;
                     break;
                 } else {
@@ -472,9 +535,12 @@ compile_errcode InputStatement::Action() {
     }
 }
 
-compile_errcode ReturnStatement::Action() {
+compile_errcode ReturnStatement::Action(SymbolType& function_type, string funtion_name) {
     int ret = COMPILE_OK;
     int state = 0;
+    int line_number = handle_correct_queue->GetCurrentLine();
+    int character_number = handle_correct_queue->GetCurrentCharacter();
+    SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -491,14 +557,20 @@ compile_errcode ReturnStatement::Action() {
                     state = 2;
                     break;
                 } else if (name == SEMICOLON_SYM) {
+                    if (function_type != VOID) {
+                        SemanticErrorLog(string("non void funtion with void return value"), funtion_name, line_number, character_number);
+                    }
                     return COMPILE_OK;
                 } else {
                     return NOT_MATCH;
                 }
             }
             case 2: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 3;
+                    if (function_type != expression_type) {
+                        SemanticErrorLog(string("funtion return value not match"), funtion_name, line_number, character_number);
+                    }
                     m_expression.LogOutput();
                     break;
                 } else {
@@ -523,6 +595,7 @@ compile_errcode ReturnStatement::Action() {
 compile_errcode OutputStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -548,7 +621,7 @@ compile_errcode OutputStatement::Action() {
                     GRAMMA_LOG(str);
                     state = 3;
                     break;
-                } else if ((ret = m_expression.Action()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 5;
                     break;
                 } else {
@@ -567,7 +640,7 @@ compile_errcode OutputStatement::Action() {
                 }
             }
             case 4: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 5;
                     break;
                 } else {
@@ -592,6 +665,9 @@ compile_errcode OutputStatement::Action() {
 compile_errcode AssignStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    SymbolType expression_type;
+    SymbolType identifier_type;
+    SymbolKind identifier_kind;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -615,7 +691,7 @@ compile_errcode AssignStatement::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {

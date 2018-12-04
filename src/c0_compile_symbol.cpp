@@ -107,6 +107,28 @@ void SymbolTable::PrintTable() {
     fprintf(fp_symbol, "-------------------------------------------------\n");
 }
 
+compile_errcode SymbolTable::GetTerm(string name, SymbolTableTerm* term_ptr) {
+    auto iter = m_symbol_table.begin();
+    for (; iter != m_symbol_table.end(); ++iter) {
+        if (iter->first == name) {
+            term_ptr = &(iter->second);
+            return COMPILE_OK;
+        }
+    }
+    return UNDEFINED_SYMBOL_TERM;
+}
+
+compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
+    SymbolTableTerm* term_ptr = NULL;
+    int ret = COMPILE_OK;
+    if ((ret = this->GetTerm(name, term_ptr)) != COMPILE_OK) {
+        return ret;
+    } else {
+        type = term_ptr->GetType();
+        return COMPILE_OK;
+    }
+}
+
 SymbolTableTree::~SymbolTableTree() {
 }
 
@@ -162,6 +184,25 @@ void SymbolTableTree::PrintTree() {
     for (; iter != m_table_tree.end(); ++iter) {
         (iter->second).PrintTable();
     }
+}
+
+compile_errcode SymbolTableTree::GetTermType(string name, SymbolType& type) {
+    int ret = COMPILE_OK;
+    string current_table_name = this->GetCurrentTableName();
+    do {
+        auto iter = m_table_tree.begin();
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == current_table_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetTermType(name, type)) != COMPILE_OK) {
+            current_table_name = iter->second.GetPreviousTableName();
+        } else {
+            return COMPILE_OK;
+        }
+    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    return ret;
 }
 
 SymbolTableTree* symbol_table_tree;
