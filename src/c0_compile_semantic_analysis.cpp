@@ -39,6 +39,7 @@ inline bool IsRelationalOpeartor(SymbolName name) {
 }
 
 FILE* semantic_error = fopen("semantic_error.txt", "w");
+
 void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
     if (semantic_error == NULL) {
         fprintf(stderr, "%s error: '%s' in line %d character %d\n", error_type.c_str(), content.c_str(), line_number, character_number);
