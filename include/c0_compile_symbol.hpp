@@ -54,7 +54,7 @@
         FUNC(VARIABLE) \
         FUNC(ARRAY) \
         FUNC(FUNCTION) \
-        FUNC(PARA) \
+        FUNC(PARAMETER) \
 
 #define FOREACH_FUNC_SYMBOL_TYPE(FUNC) \
         FUNC(INT) \

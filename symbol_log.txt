@@ -1,48 +1,6 @@
 -------------------------------------------------
 function main's symbol table
 {
- name: a
- kind: CONST
- type: INT
- const int value: 0
-}
-{
- name: b
- kind: CONST
- type: INT
- const int value: 2
-}
-{
- name: c
- kind: CONST
- type: INT
- const int value: 3
-}
-{
- name: a1
- kind: CONST
- type: INT
- const int value: 3
-}
-{
- name: qw
- kind: CONST
- type: CHAR
- const char value: a
-}
-{
- name: wqe
- kind: CONST
- type: CHAR
- const char value: b
-}
-{
- name: a3
- kind: CONST
- type: INT
- const int value: 3
-}
-{
  name: a11
  kind: VARIABLE
  type: INT
@@ -68,6 +26,11 @@ function main's symbol table
  type: CHAR
 }
 {
+ name: a
+ kind: VARIABLE
+ type: CHAR
+}
+{
  name: a3213
  kind: VARIABLE
  type: INT
@@ -88,7 +51,7 @@ function main's symbol table
  name: func1
  kind: FUNCTION
  type: VOID
- function parameter number: 0
+ function parameter number: 1
 }
 {
  name: func2
@@ -105,10 +68,49 @@ function main's symbol table
 -------------------------------------------------
 -------------------------------------------------
 function func1's symbol table
+{
+ name: c
+ kind: PARAMETER
+ type: CHAR
+}
 -------------------------------------------------
 -------------------------------------------------
 function func2's symbol table
+{
+ name: a
+ kind: PARAMETER
+ type: INT
+}
+{
+ name: c
+ kind: PARAMETER
+ type: INT
+}
+{
+ name: asd
+ kind: CONST
+ type: INT
+ const int value: 4
+}
 -------------------------------------------------
 -------------------------------------------------
 function error_func1_error's symbol table
+{
+ name: b5
+ kind: CONST
+ type: INT
+ const int value: 3
+}
+{
+ name: aer
+ kind: ARRAY
+ type: INT
+ array length: 15
+}
+{
+ name: aer1
+ kind: ARRAY
+ type: INT
+ array length: 31
+}
 -------------------------------------------------

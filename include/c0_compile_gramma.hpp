@@ -98,6 +98,9 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(int& argument_number);
+private:
+    string m_identifier_name;
+    SymbolName m_type;
 };
 
 class Condition : AnalysisInterface {

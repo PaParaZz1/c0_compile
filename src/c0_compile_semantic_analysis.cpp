@@ -1118,6 +1118,7 @@ compile_errcode ArgumentList::Action(int& argument_number) {
                     return COMPILE_OK;
                 } else if (IsValidVariableType(name)) {
                     state = 1;
+                    m_type = name;
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1127,6 +1128,9 @@ compile_errcode ArgumentList::Action(int& argument_number) {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
                     argument_number++;
+                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    SymbolTableTerm term(m_identifier_name, PARAMETER, m_type);
+                    symbol_table_tree->Insert(term);
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1143,6 +1147,7 @@ compile_errcode ArgumentList::Action(int& argument_number) {
             case 3: {
                 if (IsValidVariableType(name)) {
                     state = 1;
+                    m_type = name;
                     break;
                 } else {
                     return NOT_MATCH;
