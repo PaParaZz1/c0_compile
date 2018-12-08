@@ -187,6 +187,8 @@ public:
             m_type = CHAR;
         else if (type_name == VOID_SYM && kind == FUNCTION)
             m_type = VOID;
+        else
+            fprintf(stderr, "invalid type name\n");
     }
     ~SymbolTableTerm();
     string GetName() {
@@ -224,8 +226,9 @@ class SymbolTable {
 public:
     //SymbolTable(string name, string previous_level) : m_table_name(name), m_previous_level_name(previous_level) {}
     SymbolTable() {}
-    SymbolTable(string name, string previous_level) {
+    SymbolTable(string name, SymbolType type, string previous_level) {
         m_table_name = name;
+        m_table_type = type;
         m_previous_level_name = previous_level;
     }
     bool Find(string name);
@@ -234,24 +237,30 @@ public:
         return m_previous_level_name;
     }
     compile_errcode GetTermType(string name, SymbolType& type);
+    void GetTableType(SymbolType& type) {
+        type = m_table_type;
+    }
     void PrintTable();
 private:
     vector<pair<string, SymbolTableTerm>> m_symbol_table;
     string m_table_name;
     string m_previous_level_name;
-    compile_errcode GetTerm(string name, SymbolTableTerm* term_ptr);
+    SymbolType m_table_type;
+    //compile_errcode GetTerm(string name, SymbolTableTerm* term_ptr);
+    compile_errcode GetTerm(string name, vector<pair<string, SymbolTableTerm>>::iterator& iter);
 };
 
 class SymbolTableTree {
 public:
     ~SymbolTableTree();
-    compile_errcode CreateTable(string table_name, string previous_level_name);
+    compile_errcode CreateTable(string table_name, SymbolType type, string previous_level_name);
     bool Find(string name, bool only_this_level);
     compile_errcode Insert(SymbolTableTerm& term);
     string GetCurrentPreviousTableName();
     string GetCurrentTableName() {
         return current_table_name;
     }
+    compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
     void SetCurrentTableName(string name) {
         current_table_name = name;

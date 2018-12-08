@@ -100,6 +100,7 @@ compile_errcode SymbolTable::Insert(SymbolTableTerm& term) {
 void SymbolTable::PrintTable() {
     fprintf(fp_symbol, "-------------------------------------------------\n");
     fprintf(fp_symbol, "function %s's symbol table\n", m_table_name.c_str());
+    fprintf(fp_symbol, "function type: %s\n", symbol_type_string[m_table_type]);
     auto iter = m_symbol_table.begin();
     for (; iter != m_symbol_table.end(); ++iter) {
         iter->second.PrintTerm();
@@ -107,11 +108,10 @@ void SymbolTable::PrintTable() {
     fprintf(fp_symbol, "-------------------------------------------------\n");
 }
 
-compile_errcode SymbolTable::GetTerm(string name, SymbolTableTerm* term_ptr) {
-    auto iter = m_symbol_table.begin();
+compile_errcode SymbolTable::GetTerm(string name, vector<pair<string, SymbolTableTerm>>::iterator& iter) {
+    iter = m_symbol_table.begin();
     for (; iter != m_symbol_table.end(); ++iter) {
         if (iter->first == name) {
-            term_ptr = &(iter->second);
             return COMPILE_OK;
         }
     }
@@ -119,12 +119,12 @@ compile_errcode SymbolTable::GetTerm(string name, SymbolTableTerm* term_ptr) {
 }
 
 compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
-    SymbolTableTerm* term_ptr = NULL;
     int ret = COMPILE_OK;
-    if ((ret = this->GetTerm(name, term_ptr)) != COMPILE_OK) {
+    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
         return ret;
     } else {
-        type = term_ptr->GetType();
+        type = iter->second.GetType();
         return COMPILE_OK;
     }
 }
@@ -132,8 +132,8 @@ compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
 SymbolTableTree::~SymbolTableTree() {
 }
 
-compile_errcode SymbolTableTree::CreateTable(string table_name, string previous_level) {
-    auto table = SymbolTable(table_name, previous_level);
+compile_errcode SymbolTableTree::CreateTable(string table_name, SymbolType type, string previous_level) {
+    auto table = SymbolTable(table_name, type, previous_level);
     pair<string, SymbolTable> pair_term(table_name, table);
     m_table_tree.push_back(pair_term);
     // m_table_tree.insert(map<string, SymbolTable>::value_type(table_name, table));
@@ -142,7 +142,7 @@ compile_errcode SymbolTableTree::CreateTable(string table_name, string previous_
 compile_errcode SymbolTableTree::Insert(SymbolTableTerm& term) {
     string table_name = this->GetCurrentTableName();
     auto iter = m_table_tree.begin();
-    for(; iter != m_table_tree.end(); ++iter) {
+    for (; iter != m_table_tree.end(); ++iter) {
         if (iter->first == table_name)
             break;
     }
@@ -205,4 +205,18 @@ compile_errcode SymbolTableTree::GetTermType(string name, SymbolType& type) {
     return ret;
 }
 
+compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
+    string current_table_name = this->GetCurrentTableName();
+    auto iter = m_table_tree.begin();
+    for (; iter != m_table_tree.end(); ++iter) {
+        if (iter->first == current_table_name) {
+            break;
+        }
+    }
+    if (iter == m_table_tree.end()) {
+        return -2;
+    }
+    iter->second.GetTableType(type);
+    return COMPILE_OK;
+}
 SymbolTableTree* symbol_table_tree;

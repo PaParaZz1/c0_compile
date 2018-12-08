@@ -63,6 +63,14 @@ inline SymbolType MaxDataType(SymbolType& item1, SymbolType& item2) {
     return SymbolTypeInverseMap(max_value);
 }
 
+inline SymbolType Name2Type(SymbolName name) {
+    switch (name) {
+        case (INT_SYM): return INT;
+        case (CHAR_SYM): return CHAR;
+        case (VOID_SYM): return VOID;
+    }
+}
+
 FILE* semantic_error = fopen("semantic_error.txt", "w");
 
 void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
@@ -1088,6 +1096,9 @@ compile_errcode SwitchStatement::Action() {
 
 compile_errcode Statement::Action() {
     int ret = COMPILE_OK;
+    SymbolType function_type;
+    ret = symbol_table_tree->GetCurrentTableType(function_type);
+    string funtion_name = symbol_table_tree->GetCurrentTableName();
     SymbolName name = handle_correct_queue->GetCurrentName();
     handle_correct_queue->SetCacheLocate();
     if (name == L_CURLY_BRACKET_SYM) {
@@ -1113,7 +1124,7 @@ compile_errcode Statement::Action() {
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_input_statement.Action()) == COMPILE_OK) {
         m_input_statement.LogOutput();
         goto SEMICOLON_CHECK;
-    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Action()) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Action(function_type, funtion_name)) == COMPILE_OK) {
         m_return_statement.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_assign_statement.Action()) == COMPILE_OK) {
@@ -1343,11 +1354,11 @@ compile_errcode FunctionDefinition::Action() {
                         SemanticErrorLog(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
                         m_identifier_name = "error_" + m_identifier_name + "_error";
                         string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, previous_table_name);
+                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
                         symbol_table_tree->SetCurrentTableName(m_identifier_name);
                     } else {
                         string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, previous_table_name);
+                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
                         symbol_table_tree->SetCurrentTableName(m_identifier_name);
                         m_valid = true;
                     }

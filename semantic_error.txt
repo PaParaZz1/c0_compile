@@ -8,3 +8,6 @@ repeat definition identifier error: 'a' in line 10 character 24
 invalid assign match(char) error: 'a' in line 10 character 25
 repeat definition identifier(func) error: 'func1' in line 12 character 12
 repeat definition identifier error: 'aer' in line 15 character 13
+funtion return value not match error: 'error_func1_error' in line 17 character 12
+funtion return value not match error: 'fun3' in line 22 character 12
+non void funtion with void return value error: 'func3' in line 25 character 12

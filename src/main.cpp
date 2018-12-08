@@ -92,8 +92,8 @@ void TestSemanticAnalysis(const char* test_file_name) {
     cout << "push over" << endl;
     program.Parse();
     symbol_table_tree = new SymbolTableTree;
-    symbol_table_tree->CreateTable(string("main"), string("end"));
-    symbol_table_tree->SetCurrentTableName(string("main"));
+    symbol_table_tree->CreateTable(string("global"), VOID, string("end"));
+    symbol_table_tree->SetCurrentTableName(string("global"));
     handle_correct_queue = handle_symbol_queue;
     handle_correct_queue->Restart();
     program.Action();
