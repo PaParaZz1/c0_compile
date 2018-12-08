@@ -57,7 +57,14 @@ compile_errcode LexicalAnalysis::ParseExclamatoryMark(Symbol& symbol) {
 compile_errcode LexicalAnalysis::ParseDigit(Symbol& symbol, bool negative) {
     long sum = 0;
     int number_count = 0;
+    bool first_flag = true;
+    bool zero_flag = false;
     do {
+        if (first_flag) {
+            first_flag = false;
+            if (ch == '0')
+                zero_flag = true;
+        }
         sum = sum * 10 + ch - '0';
         number_count++;
         GetChar();
@@ -66,6 +73,9 @@ compile_errcode LexicalAnalysis::ParseDigit(Symbol& symbol, bool negative) {
     if (number_count < 10) {
         sum = negative ? (-1*sum) : sum;
         if (sum >= INT_MIN && sum <= INT_MAX) {
+            if (sum != 0 && zero_flag) {
+                return INVALID_DIGIT_ERROR;  // with front zero
+            }
             symbol.SetLocate(m_line_number, m_character_number);
             symbol.SetName(INTERGER_SYM);
             symbol.SetValue<int>(sum);

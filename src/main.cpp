@@ -77,15 +77,19 @@ void TestSemanticAnalysis(const char* test_file_name) {
     }
     Symbol symbol;
     handle_symbol_queue = new SymbolQueue;
+    Program program;
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
+        if (ret != COMPILE_OK) {
+            std::cerr << "lexical analysys error, please run TestLexicalAnalysis to check" << endl;
+            goto ERROR1;
+        }
         handle_symbol_queue->PushSymbol(symbol);
         SymbolName name = symbol.GetName();
         if (name == EOF_SYM)
             break;
     }
     cout << "push over" << endl;
-    Program program;
     program.Parse();
     symbol_table_tree = new SymbolTableTree;
     symbol_table_tree->CreateTable(string("main"), string("end"));
@@ -95,6 +99,7 @@ void TestSemanticAnalysis(const char* test_file_name) {
     program.Action();
     symbol_table_tree->PrintTree();
     delete(symbol_table_tree);
+ERROR1:
     delete(handle_symbol_queue);
 }
 
