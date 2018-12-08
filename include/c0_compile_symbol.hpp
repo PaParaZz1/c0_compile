@@ -197,6 +197,15 @@ public:
     SymbolType GetType() {
         return m_type;
     }
+    SymbolKind GetKind() {
+        return m_kind;
+    }
+    int GetRelativeAddr() {
+        return m_relative_address;
+    }
+    int GetAbsoluteAddr() {
+        return m_absolute_address;
+    }
     template<typename T>
     compile_errcode SetConstInformation(T value) {
         memcpy(&m_other_information, &value, sizeof(T));
@@ -207,12 +216,20 @@ public:
     void SetFuncInformation(int value) {
         m_other_information.func_argument_number = value;
     }
+    void SetAddress(int relative_address, int base_address) {
+        m_relative_address = relative_address;
+        m_absolute_address = base_address + relative_address;
+    }
+    int GetArrayInformation() {
+        return m_other_information.array_length;
+    }
     void PrintTerm();
 private:
     string m_name;
     SymbolKind m_kind;
     SymbolType m_type;
     int m_relative_address;
+    int m_absolute_address;
     typedef union {
         int int_value;
         char char_value;
@@ -240,18 +257,32 @@ public:
     void GetTableType(SymbolType& type) {
         type = m_table_type;
     }
+    int GetTableBaseAddr() {
+        return m_table_base_address;
+    }
+    int GetTableSpace() {
+        return m_table_address_length;
+    }
+    void SetAddress(int base_address) {
+        m_table_base_address = base_address;
+        m_table_address_length = 0;
+    }
     void PrintTable();
 private:
     vector<pair<string, SymbolTableTerm>> m_symbol_table;
     string m_table_name;
     string m_previous_level_name;
     SymbolType m_table_type;
-    //compile_errcode GetTerm(string name, SymbolTableTerm* term_ptr);
+    int m_table_base_address;
+    int m_table_address_length;
     compile_errcode GetTerm(string name, vector<pair<string, SymbolTableTerm>>::iterator& iter);
 };
 
 class SymbolTableTree {
 public:
+    SymbolTableTree() {
+        m_tree_address_length = 0;
+    }
     ~SymbolTableTree();
     compile_errcode CreateTable(string table_name, SymbolType type, string previous_level_name);
     bool Find(string name, bool only_this_level);
@@ -265,9 +296,11 @@ public:
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }
+    void UpgradeAddress();
     void PrintTree();
 private:
     vector<pair<string, SymbolTable>> m_table_tree;
     string current_table_name;
+    int m_tree_address_length;
 };
 #endif // _C0_COMPILE_SYMBOL_H_

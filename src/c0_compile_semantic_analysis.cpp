@@ -1412,6 +1412,7 @@ compile_errcode FunctionDefinition::Action() {
             }
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    symbol_table_tree->UpgradeAddress();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
                     SymbolTableTerm term(m_identifier_name, FUNCTION, m_type);
@@ -1511,6 +1512,7 @@ compile_errcode Program::Action() {
     if ((ret = m_variable_declaration.Action()) == COMPILE_OK) {
         m_variable_declaration.LogOutput();
     }
+    symbol_table_tree->UpgradeAddress();
     while (true) {
         handle_correct_queue->SetCacheLocate();
         if ((ret = m_function_definition.Action()) == COMPILE_OK) {

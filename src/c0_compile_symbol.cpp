@@ -55,6 +55,8 @@ void SymbolTableTerm::PrintTerm() {
     fprintf(fp_symbol, "{\n name: %s\n", m_name.c_str());
     fprintf(fp_symbol, " kind: %s\n", symbol_kind_string[m_kind]);
     fprintf(fp_symbol, " type: %s\n", symbol_type_string[m_type]);
+    if (m_kind != FUNCTION)
+        fprintf(fp_symbol, " addr: 0x%04x\n", m_absolute_address);
     switch (m_kind) {
         case CONST: {
             if (m_type == INT)
@@ -90,8 +92,18 @@ compile_errcode SymbolTable::Insert(SymbolTableTerm& term) {
     if (this->Find(name)) {
         return REPEAT_DEFINITION_IDENTIFIER;
     } else {
-        // m_symbol_table.insert(map<string, SymbolTableTerm>::value_type(name, term));
+        SymbolKind kind = term.GetKind();
+        term.SetAddress(m_table_address_length, m_table_base_address);
         pair<string, SymbolTableTerm> pair_term(name, term);
+        switch (kind) {
+            case FUNCTION:break;
+            case ARRAY: {
+                int number = term.GetArrayInformation();
+                m_table_address_length += 4*number;
+                break;
+            }
+            default: m_table_address_length += 4;
+        }
         m_symbol_table.push_back(pair_term);
         return COMPILE_OK;
     }
@@ -134,9 +146,10 @@ SymbolTableTree::~SymbolTableTree() {
 
 compile_errcode SymbolTableTree::CreateTable(string table_name, SymbolType type, string previous_level) {
     auto table = SymbolTable(table_name, type, previous_level);
+    table.SetAddress(m_tree_address_length);
     pair<string, SymbolTable> pair_term(table_name, table);
     m_table_tree.push_back(pair_term);
-    // m_table_tree.insert(map<string, SymbolTable>::value_type(table_name, table));
+    return COMPILE_OK;
 }
 
 compile_errcode SymbolTableTree::Insert(SymbolTableTerm& term) {
@@ -219,4 +232,17 @@ compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
     iter->second.GetTableType(type);
     return COMPILE_OK;
 }
+
+void SymbolTableTree::UpgradeAddress() {
+    string current_table_name = this->GetCurrentTableName();
+    auto iter = m_table_tree.begin();
+    for (; iter != m_table_tree.end(); ++iter) {
+        if (iter->first == current_table_name)
+            break;
+    }
+    if (iter != m_table_tree.end()) {  // there is at least a table in tree
+        m_tree_address_length += iter->second.GetTableSpace();
+    }
+}
+
 SymbolTableTree* symbol_table_tree;

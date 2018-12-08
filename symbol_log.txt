@@ -5,47 +5,56 @@ function type: VOID
  name: a11
  kind: VARIABLE
  type: INT
+ addr: 0x0000
 }
 {
  name: _a43
  kind: VARIABLE
  type: INT
+ addr: 0x0004
 }
 {
  name: b5
  kind: VARIABLE
  type: INT
+ addr: 0x0008
 }
 {
  name: a9
  kind: VARIABLE
  type: CHAR
+ addr: 0x000c
 }
 {
  name: a031
  kind: VARIABLE
  type: CHAR
+ addr: 0x0010
 }
 {
  name: a
  kind: VARIABLE
  type: CHAR
+ addr: 0x0014
 }
 {
  name: a3213
  kind: VARIABLE
  type: INT
+ addr: 0x0018
 }
 {
  name: aer
  kind: ARRAY
  type: INT
+ addr: 0x001c
  array length: 12
 }
 {
  name: kl
  kind: ARRAY
  type: CHAR
+ addr: 0x004c
  array length: 32
 }
 {
@@ -86,6 +95,7 @@ function type: VOID
  name: c
  kind: PARAMETER
  type: CHAR
+ addr: 0x00cc
 }
 -------------------------------------------------
 -------------------------------------------------
@@ -95,16 +105,19 @@ function type: VOID
  name: a
  kind: PARAMETER
  type: INT
+ addr: 0x00d0
 }
 {
  name: c
  kind: PARAMETER
  type: INT
+ addr: 0x00d4
 }
 {
  name: asd
  kind: CONST
  type: INT
+ addr: 0x00d8
  const int value: 4
 }
 -------------------------------------------------
@@ -115,18 +128,21 @@ function type: VOID
  name: b5
  kind: CONST
  type: INT
+ addr: 0x00dc
  const int value: 3
 }
 {
  name: aer
  kind: ARRAY
  type: INT
+ addr: 0x00e0
  array length: 15
 }
 {
  name: aer1
  kind: ARRAY
  type: INT
+ addr: 0x011c
  array length: 31
 }
 -------------------------------------------------
@@ -137,6 +153,7 @@ function type: INT
  name: c
  kind: CONST
  type: CHAR
+ addr: 0x0198
  const char value: c
 }
 -------------------------------------------------
