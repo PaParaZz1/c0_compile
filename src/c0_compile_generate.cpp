@@ -5,6 +5,7 @@
 #include "c0_compile_lexical_analysis.hpp"
 #include "c0_compile_gramma.hpp"
 #include "c0_compile_pcode.hpp"
+#define EMPTY_STR (string(""))
 
 using std::string;
 using std::cout;
@@ -98,7 +99,7 @@ compile_errcode Factor::Generate(string& factor_string) {
             if (name == L_SQUARE_BRACKET_SYM) {
                 string array_addr;
                 symbol_table_tree->GetAddressString(m_identifier_name, array_addr);
-                temp = pcode_generator->TempNameGenerator();
+                temp = pcode_generator->GetNextTemp();
                 handle_correct_queue->NextSymbol();
                 m_expression.Generate(expression_string);
                 Pcode pcode(ADD, temp, array_addr, expression_string);
@@ -149,7 +150,7 @@ compile_errcode Term::Generate(string& term_string) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                temp = pcode_generator->TempNameGenerator();
+                temp = pcode_generator->GetNextTemp();
                 m_factor->Generate(factor_string2);
                 Pcode pcode(pcode_type, temp, factor_string1, factor_string2);
                 pcode_generator->Insert(pcode);
@@ -198,7 +199,7 @@ compile_errcode Expression::Generate(string& expression_string) {
                     break;
                 } else {
                     m_term.Generate(term_string2);
-                    temp = pcode_generator->TempNameGenerator();
+                    temp = pcode_generator->GetNextTemp();
                     Pcode pcode(pcode_type, temp, term_string1, term_string2);
                     pcode_generator->Insert(pcode);
                     term_string1 = temp;
@@ -222,7 +223,7 @@ compile_errcode Expression::Generate(string& expression_string) {
             }
             case 2: {
                 m_term.Generate(term_string2);
-                temp = pcode_generator->TempNameGenerator();
+                temp = pcode_generator->GetNextTemp();
                 Pcode pcode(pcode_type, temp, term_string1, term_string2);
                 pcode_generator->Insert(pcode);
                 term_string1 = temp;
@@ -446,12 +447,15 @@ compile_errcode VariableDeclaration::Generate() {
 compile_errcode InputStatement::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string temp_input;
+    string identifier_string;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == SCANF_SYM) {
                     state = 1;
+                    temp_input = pcode_generator->GetNextTemp();
                     break;
                 } else {
                     return NOT_MATCH;
@@ -468,6 +472,12 @@ compile_errcode InputStatement::Generate() {
             case 2: {
                 if (name == IDENTIFIER_SYM) {
                     state = 3;
+                    string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    symbol_table_tree->GetAddressString(identifier_name, identifier_string);
+                    Pcode pcode_input(INPUT, temp_input, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_input);
+                    Pcode pcode_assign(ASSIGN, identifier_string, temp_input, EMPTY_STR);
+                    pcode_generator->Insert(pcode_assign);
                     break;
                 } else {
                     return NOT_MATCH;
@@ -543,13 +553,15 @@ compile_errcode ReturnStatement::Generate(SymbolType& function_type, string funt
 compile_errcode OutputStatement::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
-    SymbolType expression_type;
+    string temp_output;
+    string expression_string;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == PRINTF_SYM) {
                     state = 1;
+                    temp_output = pcode_generator->GetNextTemp();
                     break;
                 } else {
                     return NOT_MATCH;
@@ -565,11 +577,16 @@ compile_errcode OutputStatement::Generate() {
             }
             case 2: {
                 if (name == STRING_SYM) {
-                    string str("This is a string");
-                    GRAMMA_LOG(str);
+                    string content = handle_correct_queue->GetCurrentValue<string>();
+                    Pcode pcode_output(OUTPUT, content, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_output);
                     state = 3;
                     break;
-                } else if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                    Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
+                    pcode_generator->Insert(pcode_assign);
+                    Pcode pcode_output(OUTPUT, temp_output, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_output);
                     state = 5;
                     break;
                 } else {
@@ -588,7 +605,11 @@ compile_errcode OutputStatement::Generate() {
                 }
             }
             case 4: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                    Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
+                    pcode_generator->Insert(pcode_assign);
+                    Pcode pcode_output(OUTPUT, temp_output, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_output);
                     state = 5;
                     break;
                 } else {
@@ -643,7 +664,7 @@ compile_errcode AssignStatement::Generate() {
             case 2: {
                 m_expression.Generate(expression_string);
                 right = expression_string;
-                Pcode pcode(ASSIGN, left, right, string(""));
+                Pcode pcode(ASSIGN, left, right, EMPTY_STR);
                 pcode_generator->Insert(pcode);
                 state = 3;
                 break;
@@ -651,7 +672,7 @@ compile_errcode AssignStatement::Generate() {
             case 3: return COMPILE_OK;
             case 11: {
                 m_expression.Generate(expression_string);
-                temp = pcode_generator->TempNameGenerator();
+                temp = pcode_generator->GetNextTemp();
                 Pcode pcode(ADD, temp, left, expression_string);
                 pcode_generator->Insert(pcode);
                 left = temp;
@@ -778,7 +799,7 @@ compile_errcode ConditionStatement::Generate() {
                 }
             }
             case 5: {
-                Pcode pcode(LABEL, m_bottom_label, string(""), string(""));
+                Pcode pcode(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode);
                 goto CORRECT_IF;
             }
@@ -805,7 +826,7 @@ compile_errcode WhileLoopStatement::Generate() {
                 if (name == WHILE_SYM) {
                     state = 1;
                     m_top_label = pcode_generator->GetNextLabel();
-                    Pcode pcode(LABEL, m_top_label, string(""), string(""));
+                    Pcode pcode(LABEL, m_top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     break;
                 } else {
@@ -845,9 +866,9 @@ compile_errcode WhileLoopStatement::Generate() {
                 }
             }
             case 5: {
-                Pcode pcode_jump(JUMP, m_top_label, string(""), string(""));
+                Pcode pcode_jump(JUMP, m_top_label, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode_jump);
-                Pcode pcode_label(LABEL, m_bottom_label, string(""), string(""));
+                Pcode pcode_label(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode_label);
                 goto CORRECT_WHILE;
             }
@@ -908,7 +929,7 @@ compile_errcode SwitchChildStatement::Generate(string compare_string, string jum
             case 3: {
                 if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
                     state = 4;
-                    Pcode jump_out_switch(JUMP, jump_label, string(""), string(""));
+                    Pcode jump_out_switch(JUMP, jump_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(jump_out_switch);
                     break;
                 } else {
@@ -934,8 +955,8 @@ compile_errcode SwitchTable::Generate(string compare_string, string& jump_label)
     string next_case_label("");
     jump_label = pcode_generator->GetNextLabel();
     while (true) {
-        if (next_case_label != string("")) {
-            Pcode pcode_label(LABEL, next_case_label, string(""), string(""));
+        if (next_case_label != EMPTY_STR) {
+            Pcode pcode_label(LABEL, next_case_label, EMPTY_STR, EMPTY_STR);
             pcode_generator->Insert(pcode_label);
         }
         if ((ret = m_switch_child_statement.Generate(compare_string, jump_label, next_case_label)) == COMPILE_OK) {
@@ -1057,7 +1078,7 @@ compile_errcode SwitchStatement::Generate() {
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
                     state = 8;
-                    Pcode pcode(LABEL, m_bottom_label, string(""), string(""));
+                    Pcode pcode(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     break;
                 } else {
@@ -1116,8 +1137,6 @@ compile_errcode Statement::Generate() {
         name = handle_correct_queue->GetCurrentName();
         if (name == SEMICOLON_SYM) {
             handle_correct_queue->NextSymbol();
-            string str("This is a empty statement");
-            GRAMMA_LOG(str);
             return COMPILE_OK;
         } else {
             return NOT_MATCH;

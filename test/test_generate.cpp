@@ -31,5 +31,10 @@ void main() {
         case 4: c=4;
         default:c=0;
     }
+    scanf(b,c);
+    scanf(c);
+    printf(a3[2]+a);
+    printf("adada");
+    printf("orqwqroo", c);
     return;
 }

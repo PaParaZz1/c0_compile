@@ -66,20 +66,14 @@ public:
     void PrintSinglePcode(Pcode& pcode) {
         fprintf(m_fp, "%s\n", pcode.ToString().c_str());
     }
-    void AddTempCount() {
-        m_temp_count++;
-    }
     void PrintAllPcode();
-    string TempNameGenerator() {
-        AddTempCount();
+    string GetNextTemp() {
+        m_temp_count++;
         string str = string("t") + std::to_string(m_temp_count);
         return str;
     }
-    void AddLabelCount() {
-        m_label_count++;
-    }
     string GetNextLabel() {
-        this->AddLabelCount();
+        m_label_count++;
         string label = string("label") + std::to_string(m_label_count);
         return label;
     }
