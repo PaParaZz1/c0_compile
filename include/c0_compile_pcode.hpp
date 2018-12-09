@@ -6,6 +6,8 @@ using std::string;
 using std::vector;
 #define FOREACH_FUNC_PCODE(FUNC) \
         FUNC(ADD) \
+        FUNC(SUB) \
+        FUNC(MUL) \
         FUNC(DIV) \
         FUNC(ASSIGN) \
         FUNC(CALL) \
@@ -20,6 +22,7 @@ using std::vector;
         FUNC(JUMP) \
         FUNC(INPUT) \
         FUNC(OUTPUT) \
+        FUNC(PARA) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -48,9 +51,7 @@ class PcodeGenerator {
 public:
     explicit PcodeGenerator(const char* pcode_file_name) {
         m_fp = fopen(pcode_file_name, "w");
-    }
-    void PrintPcode(Pcode& pcode) {
-        fprintf(m_fp, "%s\n", pcode.ToString().c_str());
+        m_temp_count = 0;
     }
     void Insert(Pcode& pcode) {
         m_pcode_queue.push_back(pcode);
@@ -58,8 +59,17 @@ public:
     int PcodeLen() {
         return m_pcode_queue.size();
     }
+    void PrintSinglePcode(Pcode& pcode) {
+        fprintf(m_fp, "%s\n", pcode.ToString().c_str());
+    }
+    void PrintAllPcode();
+    string TempNameGenerator() {
+        m_temp_count++;
+        return string("t") + std::to_string(m_temp_count);
+    }
 private:
     FILE* m_fp;
+    int m_temp_count;
     vector<Pcode> m_pcode_queue;
 };
 

@@ -56,7 +56,7 @@ void SymbolTableTerm::PrintTerm() {
     fprintf(fp_symbol, " kind: %s\n", symbol_kind_string[m_kind]);
     fprintf(fp_symbol, " type: %s\n", symbol_type_string[m_type]);
     if (m_kind != FUNCTION)
-        fprintf(fp_symbol, " addr: 0x%04x\n", m_absolute_address);
+        fprintf(fp_symbol, " relative addr: 0x%04x\n", m_relative_address);
     switch (m_kind) {
         case CONST: {
             if (m_type == INT)
@@ -141,6 +141,28 @@ compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
     }
 }
 
+compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
+    int ret = COMPILE_OK;
+    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+        return ret;
+    } else {
+        kind = iter->second.GetKind();
+        return COMPILE_OK;
+    }
+}
+
+compile_errcode SymbolTable::GetAddress(string name, int& addr) {
+    int ret = COMPILE_OK;
+    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+        return ret;
+    } else {
+        addr = iter->second.GetRelativeAddr();
+        return COMPILE_OK;
+    }
+}
+
 SymbolTableTree::~SymbolTableTree() {
 }
 
@@ -218,6 +240,25 @@ compile_errcode SymbolTableTree::GetTermType(string name, SymbolType& type) {
     return ret;
 }
 
+compile_errcode SymbolTableTree::GetTermKind(string name, SymbolKind& kind) {
+    int ret = COMPILE_OK;
+    string current_table_name = this->GetCurrentTableName();
+    do {
+        auto iter = m_table_tree.begin();
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == current_table_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetTermKind(name, kind)) != COMPILE_OK) {
+            current_table_name = iter->second.GetPreviousTableName();
+        } else {
+            return COMPILE_OK;
+        }
+    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    return ret;
+}
+
 compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
     string current_table_name = this->GetCurrentTableName();
     auto iter = m_table_tree.begin();
@@ -243,6 +284,33 @@ void SymbolTableTree::UpgradeAddress() {
     if (iter != m_table_tree.end()) {  // there is at least a table in tree
         m_tree_address_length += iter->second.GetTableSpace();
     }
+}
+
+compile_errcode SymbolTableTree::GetAddressString(string name, string& address_string) {
+    string current_table_name = this->GetCurrentTableName();
+    auto iter = m_table_tree.begin();
+    int addr;
+    int ret = COMPILE_OK;
+    do {
+        auto iter = m_table_tree.begin();
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == current_table_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetAddress(name, addr)) != COMPILE_OK) {
+            current_table_name = iter->second.GetPreviousTableName();
+        } else {
+            if (current_table_name != string("global")) {
+                address_string = string("sp") + std::to_string(addr);
+            } else {
+                int base_addr = 0;
+                address_string = std::to_string(addr + base_addr);
+            }
+            return COMPILE_OK;
+        }
+    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    return COMPILE_OK;
 }
 
 SymbolTableTree* symbol_table_tree;

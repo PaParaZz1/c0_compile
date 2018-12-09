@@ -36,6 +36,7 @@ public:
     virtual compile_errcode Parse() = 0;
     virtual void LogOutput() = 0;
     virtual compile_errcode Action() = 0;
+    virtual compile_errcode Generate() = 0;
 };
 
 
@@ -49,6 +50,8 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(SymbolType& term_type);
+    compile_errcode Generate() {}
+    compile_errcode Generate(string& term_string);
 private:
     Factor* m_factor;
 };
@@ -62,6 +65,8 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(SymbolType& expression_type);
+    compile_errcode Generate() {}
+    compile_errcode Generate(string& expression_string);
 private:
     Term m_term;
 };
@@ -74,6 +79,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Expression m_expression;
 };
@@ -87,6 +93,8 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(SymbolType& factor_type);
+    compile_errcode Generate() {}
+    compile_errcode Generate(string& factor_string);
 private:
     Expression m_expression;
     ValueArgumentList m_value_argument_list;
@@ -103,6 +111,8 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(int& argument_number);
+    compile_errcode Generate() {}
+    compile_errcode Generate(int& argument_number);
 private:
     string m_identifier_name;
     SymbolName m_type;
@@ -116,6 +126,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Expression m_expression;
 };
@@ -129,6 +140,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
@@ -142,6 +154,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
@@ -155,6 +168,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Statement* m_statement_ptr;
 };
@@ -167,6 +181,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     SwitchChildStatement m_switch_child_statement;
 };
@@ -179,6 +194,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Statement* m_statement_ptr;
 };
@@ -191,6 +207,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Expression m_expression;
     SwitchTable m_switch_table;
@@ -205,6 +222,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     ValueArgumentList m_value_argument_list;
 };
@@ -217,6 +235,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     SymbolName m_type;
     string m_identifier_name;
@@ -231,6 +250,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     ConstantDefinition m_constant_definition;
 };
@@ -243,6 +263,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     SymbolName m_type;
     string m_identifier_name;
@@ -258,6 +279,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     VariableDefinition m_variable_definition;
 };
@@ -270,6 +292,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Expression m_expression;
 };
@@ -282,6 +305,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 };
 
 class ReturnStatement : AnalysisInterface {
@@ -293,6 +317,8 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(SymbolType& function_type, string funtion_name);
+    compile_errcode Generate() {}
+    compile_errcode Generate(SymbolType& function_type, string funtion_name);
 private:
     Expression m_expression;
 };
@@ -305,6 +331,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Expression m_expression;
 };
@@ -318,6 +345,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     OutputStatement m_output_statement;
     InputStatement m_input_statement;
@@ -338,6 +366,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     Statement m_statement;
 };
@@ -350,6 +379,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;
@@ -364,6 +394,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     ArgumentList m_argument_list;
     CompoundStatement m_compound_statement;
@@ -381,6 +412,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     CompoundStatement m_compound_statement;
 };
@@ -393,6 +425,7 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
+    compile_errcode Generate();
 private:
     ConstantDeclaration m_constant_declaration;
     VariableDeclaration m_variable_declaration;

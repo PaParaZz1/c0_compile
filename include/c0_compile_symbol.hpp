@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <utility>
 // #include <boost/variant.hpp>
 
 #define FOREACH_FUNC_SYMBOL(FUNC) \
@@ -254,6 +255,8 @@ public:
         return m_previous_level_name;
     }
     compile_errcode GetTermType(string name, SymbolType& type);
+    compile_errcode GetTermKind(string name, SymbolKind& kind);
+    compile_errcode GetAddress(string name, int& addr);
     void GetTableType(SymbolType& type) {
         type = m_table_type;
     }
@@ -293,6 +296,8 @@ public:
     }
     compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
+    compile_errcode GetTermKind(string name, SymbolKind& kind);
+    compile_errcode GetAddressString(string name, string& address_string);
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }

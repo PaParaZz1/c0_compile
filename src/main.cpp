@@ -4,6 +4,7 @@
 #include "c0_compile_lexical_analysis.hpp"
 #include "c0_compile_gramma.hpp"
 #include "c0_compile_symbol.hpp"
+#include "c0_compile_pcode.hpp"
 
 using std::cout;
 using std::endl;
@@ -77,7 +78,9 @@ void TestSemanticAnalysis(const char* test_file_name) {
     }
     Symbol symbol;
     handle_symbol_queue = new SymbolQueue;
+    symbol_table_tree = new SymbolTableTree;
     Program program;
+    PcodeGenerator* pcode_generator = new PcodeGenerator("pcode.txt");
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
         if (ret != COMPILE_OK) {
@@ -91,15 +94,15 @@ void TestSemanticAnalysis(const char* test_file_name) {
     }
     cout << "push over" << endl;
     program.Parse();
-    symbol_table_tree = new SymbolTableTree;
     symbol_table_tree->CreateTable(string("global"), VOID, string("end"));
     symbol_table_tree->SetCurrentTableName(string("global"));
     handle_correct_queue = handle_symbol_queue;
     handle_correct_queue->Restart();
     program.Action();
     symbol_table_tree->PrintTree();
-    delete(symbol_table_tree);
 ERROR1:
+    delete(pcode_generator);
+    delete(symbol_table_tree);
     delete(handle_symbol_queue);
 }
 
