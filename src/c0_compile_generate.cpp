@@ -776,8 +776,10 @@ compile_errcode ConditionStatement::Generate() {
                 }
             }
             case 5: {
+                cout << "label"<<endl;
                 string label = pcode_generator->GetStackTopLabel();
                 Pcode pcode(LABEL, label, string(""), string(""));
+                pcode_generator->Insert(pcode);
                 goto CORRECT_IF;
             }
         }
