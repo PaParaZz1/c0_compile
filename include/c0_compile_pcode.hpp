@@ -86,7 +86,7 @@ public:
     string GetNextLabel() {
         this->AddLabelCount();
         string label = string("label") + std::to_string(m_label_count);
-        label_stack.push(label);
+        //label_stack.push(label);
         return label;
     }
     int m_temp_count;

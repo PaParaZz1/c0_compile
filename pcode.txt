@@ -62,3 +62,49 @@ t53	1	MUL	-2
 t54	0	ADD	t53
 sp16	t54	ASSIGN	
 label2		LABEL	
+t55	1	MUL	0
+t56	0	ADD	t55
+sp16	t56	ASSIGN	
+label3		LABEL	
+t57	1	MUL	4
+t58	0	ADD	t57
+t59	1	MUL	4
+t60	0	ADD	t59
+t61	1	MUL	1
+t62	t60	ADD	t61
+t58	t62	BLE	label4
+t63	1	MUL	sp16
+t64	0	ADD	t63
+t65	sp0	ADD	t64
+t66	1	MUL	1
+t67	0	ADD	t66
+t65	t67	ASSIGN	
+t68	1	MUL	sp16
+t69	0	ADD	t68
+t70	1	MUL	1
+t71	t69	ADD	t70
+sp16	t71	ASSIGN	
+label3		JUMP	
+label4		LABEL	
+t72	1	MUL	0
+t73	0	ADD	t72
+sp16	t73	ASSIGN	
+label5		LABEL	
+t74	1	MUL	4
+t75	0	ADD	t74
+t76	1	MUL	sp16
+t77	0	ADD	t76
+t75	t77	BLE	label6
+t78	1	MUL	sp16
+t79	0	ADD	t78
+t80	1	MUL	0
+t81	0	ADD	t80
+t79	t81	BNE	label7
+t82	1	MUL	sp16
+t83	0	ADD	t82
+t84	1	MUL	2
+t85	t83	ADD	t84
+sp16	t85	ASSIGN	
+label7		LABEL	
+label5		JUMP	
+label6		LABEL	

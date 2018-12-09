@@ -680,7 +680,7 @@ compile_errcode AssignStatement::Generate() {
     }
 }
 
-compile_errcode Condition::Generate() {
+compile_errcode Condition::Generate(string& jump_label) {
     int ret = COMPILE_OK;
     int state = 0;
     string left;
@@ -708,6 +708,7 @@ compile_errcode Condition::Generate() {
                     break;
                 } else {
                     string label = pcode_generator->GetNextLabel();
+                    jump_label = label;
                     Pcode pcode(BEQ, left, string("0"), label);
                     pcode_generator->Insert(pcode);
                     return COMPILE_OK;
@@ -716,6 +717,7 @@ compile_errcode Condition::Generate() {
             case 2: {
                 m_expression.Generate(right);
                 string label = pcode_generator->GetNextLabel();
+                jump_label = label;
                 Pcode pcode(pcode_type, left, right, label);
                 pcode_generator->Insert(pcode);
                 state = 3;
@@ -752,7 +754,7 @@ compile_errcode ConditionStatement::Generate() {
                 }
             }
             case 2: {
-                if ((ret = m_condition.Generate()) == COMPILE_OK) {
+                if ((ret = m_condition.Generate(m_bottom_label)) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -776,9 +778,7 @@ compile_errcode ConditionStatement::Generate() {
                 }
             }
             case 5: {
-                cout << "label"<<endl;
-                string label = pcode_generator->GetStackTopLabel();
-                Pcode pcode(LABEL, label, string(""), string(""));
+                Pcode pcode(LABEL, m_bottom_label, string(""), string(""));
                 pcode_generator->Insert(pcode);
                 goto CORRECT_IF;
             }
@@ -804,6 +804,9 @@ compile_errcode WhileLoopStatement::Generate() {
             case 0: {
                 if (name == WHILE_SYM) {
                     state = 1;
+                    m_top_label = pcode_generator->GetNextLabel();
+                    Pcode pcode(LABEL, m_top_label, string(""), string(""));
+                    pcode_generator->Insert(pcode);
                     break;
                 } else {
                     goto ERROR_WHILE;
@@ -818,7 +821,7 @@ compile_errcode WhileLoopStatement::Generate() {
                 }
             }
             case 2: {
-                if ((ret = m_condition.Generate()) == COMPILE_OK) {
+                if ((ret = m_condition.Generate(m_bottom_label)) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -841,7 +844,13 @@ compile_errcode WhileLoopStatement::Generate() {
                     goto ERROR_WHILE;
                 }
             }
-            case 5: goto CORRECT_WHILE;
+            case 5: {
+                Pcode pcode_jump(JUMP, m_top_label, string(""), string(""));
+                pcode_generator->Insert(pcode_jump);
+                Pcode pcode_label(LABEL, m_bottom_label, string(""), string(""));
+                pcode_generator->Insert(pcode_label);
+                goto CORRECT_WHILE;
+            }
         }
         if (state != 3 && state != 5)
             handle_correct_queue->NextSymbol();

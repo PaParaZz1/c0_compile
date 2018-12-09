@@ -126,7 +126,8 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate();
+    compile_errcode Generate() {}
+    compile_errcode Generate(string& jump_label);
 private:
     Expression m_expression;
 };
@@ -144,6 +145,7 @@ public:
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
+    string m_bottom_label;
 };
 
 class WhileLoopStatement : AnalysisInterface {
@@ -158,6 +160,8 @@ public:
 private:
     Condition m_condition;
     Statement* m_statement_ptr;
+    string m_top_label;
+    string m_bottom_label;
 };
 
 class SwitchChildStatement : AnalysisInterface {
