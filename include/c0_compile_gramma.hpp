@@ -172,7 +172,8 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate();
+    compile_errcode Generate() {}
+    compile_errcode Generate(string compare_string, string jump_label, string& next_case_label);
 private:
     Statement* m_statement_ptr;
 };
@@ -185,7 +186,8 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate();
+    compile_errcode Generate() {}
+    compile_errcode Generate(string compare_string, string& jump_label);
 private:
     SwitchChildStatement m_switch_child_statement;
 };
@@ -216,6 +218,7 @@ private:
     Expression m_expression;
     SwitchTable m_switch_table;
     Default m_default;
+    string m_bottom_label;
 };
 
 class FunctionCall : AnalysisInterface {

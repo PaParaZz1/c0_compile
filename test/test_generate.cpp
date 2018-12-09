@@ -24,5 +24,12 @@ void main() {
             c = c+2;
         }
     }
+    switch(a) {
+        case 0: c =1;
+        case 1: {c=1;b=2;}
+        case 2: c=2;
+        case 4: c=4;
+        default:c=0;
+    }
     return;
 }

@@ -108,3 +108,36 @@ sp16	t85	ASSIGN
 label7		LABEL	
 label5		JUMP	
 label6		LABEL	
+t86	1	MUL	4
+t87	0	ADD	t86
+t87	0	BNE	label9
+t88	1	MUL	1
+t89	0	ADD	t88
+sp16	t89	ASSIGN	
+label8		JUMP	
+label9		LABEL	
+t87	1	BNE	label10
+t90	1	MUL	1
+t91	0	ADD	t90
+sp16	t91	ASSIGN	
+t92	1	MUL	2
+t93	0	ADD	t92
+sp12	t93	ASSIGN	
+label8		JUMP	
+label10		LABEL	
+t87	2	BNE	label11
+t94	1	MUL	2
+t95	0	ADD	t94
+sp16	t95	ASSIGN	
+label8		JUMP	
+label11		LABEL	
+t87	4	BNE	label12
+t96	1	MUL	4
+t97	0	ADD	t96
+sp16	t97	ASSIGN	
+label8		JUMP	
+label12		LABEL	
+t98	1	MUL	0
+t99	0	ADD	t98
+sp16	t99	ASSIGN	
+label8		LABEL	

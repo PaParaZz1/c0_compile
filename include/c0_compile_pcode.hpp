@@ -78,22 +78,15 @@ public:
     void AddLabelCount() {
         m_label_count++;
     }
-    string GetStackTopLabel() {
-        string label = label_stack.top();
-        label_stack.pop();
-        return label;
-    }
     string GetNextLabel() {
         this->AddLabelCount();
         string label = string("label") + std::to_string(m_label_count);
-        //label_stack.push(label);
         return label;
     }
     int m_temp_count;
     int m_label_count;
 private:
     FILE* m_fp;
-    stack<string> label_stack;
     vector<Pcode> m_pcode_queue;
 };
 

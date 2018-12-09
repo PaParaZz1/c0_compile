@@ -863,10 +863,11 @@ compile_errcode WhileLoopStatement::Generate() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchChildStatement::Generate() {
+compile_errcode SwitchChildStatement::Generate(string compare_string, string jump_label, string& next_case_label) {
     int ret = COMPILE_OK;
     int state = 0;
     m_statement_ptr = new Statement;
+    string compare_const;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -880,6 +881,16 @@ compile_errcode SwitchChildStatement::Generate() {
             }
             case 1: {
                 if (name == INTERGER_SYM || name == CHARACTER_SYM) {
+                    next_case_label = pcode_generator->GetNextLabel();
+                    if (name == INTERGER_SYM) {
+                        int value = handle_correct_queue->GetCurrentValue<int>();
+                        compare_const = std::to_string(value);
+                    } else {
+                        int value = static_cast<int>(handle_correct_queue->GetCurrentValue<char>());
+                        compare_const = std::to_string(value);
+                    }
+                    Pcode pcode_cmp(BNE, compare_string, compare_const, next_case_label);
+                    pcode_generator->Insert(pcode_cmp);
                     state = 2;
                     break;
                 } else {
@@ -897,6 +908,8 @@ compile_errcode SwitchChildStatement::Generate() {
             case 3: {
                 if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
                     state = 4;
+                    Pcode jump_out_switch(JUMP, jump_label, string(""), string(""));
+                    pcode_generator->Insert(jump_out_switch);
                     break;
                 } else {
                     goto ERROR_SWITCH_CHILD;
@@ -915,11 +928,17 @@ compile_errcode SwitchChildStatement::Generate() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchTable::Generate() {
+compile_errcode SwitchTable::Generate(string compare_string, string& jump_label) {
     int ret = 0;
     int count = 0;
+    string next_case_label("");
+    jump_label = pcode_generator->GetNextLabel();
     while (true) {
-        if ((ret = m_switch_child_statement.Generate()) == COMPILE_OK) {
+        if (next_case_label != string("")) {
+            Pcode pcode_label(LABEL, next_case_label, string(""), string(""));
+            pcode_generator->Insert(pcode_label);
+        }
+        if ((ret = m_switch_child_statement.Generate(compare_string, jump_label, next_case_label)) == COMPILE_OK) {
             count++;
         } else {
             break;
@@ -971,9 +990,11 @@ compile_errcode Default::Generate() {
         handle_correct_queue->NextSymbol();
     }
 }
+
 compile_errcode SwitchStatement::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string expression_string;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -994,7 +1015,7 @@ compile_errcode SwitchStatement::Generate() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -1018,7 +1039,7 @@ compile_errcode SwitchStatement::Generate() {
                 }
             }
             case 5: {
-                if ((ret = m_switch_table.Generate()) == COMPILE_OK) {
+                if ((ret = m_switch_table.Generate(expression_string, m_bottom_label)) == COMPILE_OK) {
                     state = 6;
                     break;
                 } else {
@@ -1036,6 +1057,8 @@ compile_errcode SwitchStatement::Generate() {
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
                     state = 8;
+                    Pcode pcode(LABEL, m_bottom_label, string(""), string(""));
+                    pcode_generator->Insert(pcode);
                     break;
                 } else {
                     goto ERROR_SWITCH;
