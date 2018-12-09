@@ -2,8 +2,10 @@
 #define C0_COMPILE_PCODE_H_
 #include <string>
 #include <vector>
+#include <stack>
 using std::string;
 using std::vector;
+using std::stack;
 #define FOREACH_FUNC_PCODE(FUNC) \
         FUNC(ADD) \
         FUNC(SUB) \
@@ -52,6 +54,7 @@ public:
     explicit PcodeGenerator(const char* pcode_file_name) {
         m_fp = fopen(pcode_file_name, "w");
         m_temp_count = 0;
+        m_label_count = 0;
     }
     void Insert(Pcode& pcode) {
         m_pcode_queue.push_back(pcode);
@@ -67,9 +70,22 @@ public:
         m_temp_count++;
         return string("t") + std::to_string(m_temp_count);
     }
+    string GetStackTopLabel() {
+        string label = label_stack.top(); 
+        label_stack.pop();
+        return label;
+    }
+    string GetNextLabel() {
+        m_label_count++;
+        string label = string("label") + std::to_string(m_label_count);
+        label_stack.push(label);
+        return label;
+    }
 private:
     FILE* m_fp;
     int m_temp_count;
+    int m_label_count;
+    stack<string> label_stack;
     vector<Pcode> m_pcode_queue;
 };
 

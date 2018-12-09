@@ -334,6 +334,7 @@ public:
     compile_errcode Generate();
 private:
     Expression m_expression;
+    string m_identifier_name;
 };
 
 class StatementList;

@@ -327,7 +327,6 @@ compile_errcode ConstantDeclaration::Generate() {
         SymbolName name = handle_correct_queue->GetCurrentName();
         if (name == CONST_SYM) {
             if ((ret = m_constant_definition.Generate()) == COMPILE_OK) {
-                m_constant_definition.LogOutput();
                 correct_count++;
             } else {
                 return NOT_MATCH;
@@ -463,7 +462,6 @@ compile_errcode VariableDeclaration::Generate() {
                 return NOT_MATCH;
         }
         if ((ret = m_variable_definition.Generate()) == COMPILE_OK) {
-            m_variable_definition.LogOutput();
             correct_count++;
         } else {
             return NOT_MATCH;
@@ -644,48 +642,45 @@ compile_errcode OutputStatement::Generate() {
 compile_errcode AssignStatement::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
-    SymbolType expression_type;
-    SymbolType identifier_type;
-    SymbolKind identifier_kind;
+    string left;
+    string right;
+    string expression_string;
+    string temp;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
                     state = 1;
+                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     break;
-                } else {
-                    return NOT_MATCH;
                 }
             }
             case 1: {
                 if (name == ASSIGN_SYM) {
                     state = 2;
+                    symbol_table_tree->GetAddressString(m_identifier_name, left);
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
                     state = 11;
                     break;
-                } else {
-                    return NOT_MATCH;
                 }
             }
             case 2: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    state = 3;
-                    break;
-                } else {
-                    return NOT_MATCH;
-                }
+                m_expression.Generate(expression_string);
+                right = expression_string;
+                Pcode pcode(ASSIGN, left, right, string(""));
+                pcode_generator->Insert(pcode);
+                state = 3;
+                break;
             }
             case 3: return COMPILE_OK;
             case 11: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    m_expression.LogOutput();
-                    state = 12;
-                    break;
-                } else {
-                    return NOT_MATCH;
-                }
+                m_expression.Generate(expression_string);
+                temp = pcode_generator->TempNameGenerator();
+                Pcode pcode(ADD, temp, left, expression_string);
+                pcode_generator->Insert(pcode);
+                left = temp;
             }
             case 12: {
                 if (name == R_SQUARE_BRACKET_SYM) {
@@ -712,34 +707,43 @@ compile_errcode AssignStatement::Generate() {
 compile_errcode Condition::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string left;
+    string right;
+    PcodeType pcode_type = BEQ;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    m_expression.LogOutput();
-                    state = 1;
-                    break;
-                } else {
-                    return NOT_MATCH;
-                }
+                m_expression.Generate(left);
+                state = 1;
+                break;
             }
             case 1: {
                 if (IsRelationalOpeartor(name)) {
+                    switch (name) {
+                        case EQUAL_SYM: pcode_type = BNE; break;
+                        case NOT_EQUAL_SYM: pcode_type = BEQ; break;
+                        case SMALL_SYM: pcode_type = BGE; break;
+                        case SMALL_EQUAL_SYM: pcode_type = BGT; break;
+                        case LARGE_SYM: pcode_type = BLE; break;
+                        case LARGE_EQUAL_SYM: pcode_type = BLT; break;
+                    }
                     state = 2;
                     break;
                 } else {
+                    string label = pcode_generator->GetNextLabel();
+                    Pcode pcode(BEQ, left, string("0"), label);
+                    pcode_generator->Insert(pcode);
                     return COMPILE_OK;
                 }
             }
             case 2: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    m_expression.LogOutput();
-                    state = 3;
-                    break;
-                } else {
-                    return NOT_MATCH;
-                }
+                m_expression.Generate(right);
+                string label = pcode_generator->GetNextLabel();
+                Pcode pcode(pcode_type, left, right, label);
+                pcode_generator->Insert(pcode);
+                state = 3;
+                break;
             }
             case 3: return COMPILE_OK;
         }
@@ -773,7 +777,6 @@ compile_errcode ConditionStatement::Generate() {
             }
             case 2: {
                 if ((ret = m_condition.Generate()) == COMPILE_OK) {
-                    m_condition.LogOutput();
                     state = 3;
                     break;
                 } else {
@@ -790,14 +793,17 @@ compile_errcode ConditionStatement::Generate() {
             }
             case 4: {
                 if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
-                    m_statement_ptr->LogOutput();
                     state = 5;
                     break;
                 } else {
                     goto ERROR_IF;
                 }
             }
-            case 5: goto CORRECT_IF;
+            case 5: {
+                string label = pcode_generator->GetStackTopLabel();
+                Pcode pcode(LABEL, label, string(""), string(""));
+                goto CORRECT_IF;
+            }
         }
         if (state != 3 && state != 5)
             handle_correct_queue->NextSymbol();
@@ -835,7 +841,6 @@ compile_errcode WhileLoopStatement::Generate() {
             }
             case 2: {
                 if ((ret = m_condition.Generate()) == COMPILE_OK) {
-                    m_condition.LogOutput();
                     state = 3;
                     break;
                 } else {
@@ -852,7 +857,6 @@ compile_errcode WhileLoopStatement::Generate() {
             }
             case 4: {
                 if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
-                    m_statement_ptr->LogOutput();
                     state = 5;
                     break;
                 } else {
@@ -905,7 +909,6 @@ compile_errcode SwitchChildStatement::Generate() {
             }
             case 3: {
                 if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
-                    m_statement_ptr->LogOutput();
                     state = 4;
                     break;
                 } else {
@@ -930,7 +933,6 @@ compile_errcode SwitchTable::Generate() {
     int count = 0;
     while (true) {
         if ((ret = m_switch_child_statement.Generate()) == COMPILE_OK) {
-            m_switch_child_statement.LogOutput();
             count++;
         } else {
             break;
@@ -970,7 +972,6 @@ compile_errcode Default::Generate() {
                 } else {
                     m_statement_ptr = new Statement;
                     if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
-                        m_statement_ptr->LogOutput();
                         delete(m_statement_ptr);
                         return COMPILE_OK;
                     } else {
@@ -1007,7 +1008,6 @@ compile_errcode SwitchStatement::Generate() {
             }
             case 2: {
                 if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    m_expression.LogOutput();
                     state = 3;
                     break;
                 } else {
@@ -1032,7 +1032,6 @@ compile_errcode SwitchStatement::Generate() {
             }
             case 5: {
                 if ((ret = m_switch_table.Generate()) == COMPILE_OK) {
-                    m_switch_table.LogOutput();
                     state = 6;
                     break;
                 } else {
@@ -1041,7 +1040,6 @@ compile_errcode SwitchStatement::Generate() {
             }
             case 6: {
                 if ((ret = m_default.Generate()) == COMPILE_OK) {
-                    m_default.LogOutput();
                     state = 7;
                     break;
                 } else {
@@ -1076,7 +1074,6 @@ compile_errcode Statement::Generate() {
         handle_correct_queue->NextSymbol();
         m_statement_list_ptr = new StatementList;
         if ((ret = m_statement_list_ptr->Generate()) == COMPILE_OK) {
-            m_statement_list_ptr->LogOutput();
             delete(m_statement_list_ptr);
             name = handle_correct_queue->GetCurrentName();
             if (name == R_CURLY_BRACKET_SYM) {
@@ -1090,28 +1087,20 @@ compile_errcode Statement::Generate() {
             NOT_MATCH;
         }
     } else if ((ret = m_output_statement.Generate()) == COMPILE_OK) {
-        m_output_statement.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_input_statement.Generate()) == COMPILE_OK) {
-        m_input_statement.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Generate(function_type, funtion_name)) == COMPILE_OK) {
-        m_return_statement.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_assign_statement.Generate()) == COMPILE_OK) {
-        m_assign_statement.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_function_call.Generate()) == COMPILE_OK) {
-        m_function_call.LogOutput();
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_condition_statement.Generate()) == COMPILE_OK) {
-        m_condition_statement.LogOutput();
         goto NO_SEMICOLON;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_while_loop_statement.Generate()) == COMPILE_OK) {
-        m_while_loop_statement.LogOutput();
         goto NO_SEMICOLON;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_switch_statement.Generate()) == COMPILE_OK) {
-        m_switch_statement.LogOutput();
         goto NO_SEMICOLON;
     } else {
         name = handle_correct_queue->GetCurrentName();
@@ -1142,7 +1131,6 @@ compile_errcode StatementList::Generate() {
     while (true) {
         handle_correct_queue->SetCacheLocate();
         if ((ret = m_statement.Generate()) == COMPILE_OK) {
-            m_statement.LogOutput();
         } else {
             handle_correct_queue->SetCurrentLocate();
             return COMPILE_OK;
@@ -1155,11 +1143,9 @@ compile_errcode CompoundStatement::Generate() {
     SymbolName name = handle_correct_queue->GetCurrentName();
     if (name == CONST_SYM) {
         if ((ret = m_constant_declaration.Generate()) == COMPILE_OK) {
-            m_constant_declaration.LogOutput();
         }
     }
     if ((ret = m_variable_declaration.Generate()) == COMPILE_OK) {
-        m_variable_declaration.LogOutput();
     }
     m_statement_list.Generate();
     return COMPILE_OK;
@@ -1348,7 +1334,6 @@ compile_errcode FunctionDefinition::Generate() {
             }
             case 3: {
                 if ((ret = m_argument_list.Generate(m_argument_number)) == COMPILE_OK) {
-                    m_argument_list.LogOutput();
                     state = 4;
                     break;
                 } else {
@@ -1373,7 +1358,6 @@ compile_errcode FunctionDefinition::Generate() {
             }
             case 6: {
                 if ((ret = m_compound_statement.Generate()) == COMPILE_OK) {
-                    m_compound_statement.LogOutput();
                     state = 7;
                     break;
                 } else {
@@ -1449,7 +1433,6 @@ compile_errcode MainFunction::Generate() {
             }
             case 5: {
                 if ((ret = m_compound_statement.Generate()) == COMPILE_OK) {
-                    m_compound_statement.LogOutput();
                     state = 6;
                     break;
                 } else {
@@ -1476,24 +1459,20 @@ compile_errcode Program::Generate() {
     SymbolName name = handle_correct_queue->GetCurrentName();
     if (name == CONST_SYM) {
         if ((ret = m_constant_declaration.Generate()) == COMPILE_OK) {
-            m_constant_declaration.LogOutput();
         }
     }
     if ((ret = m_variable_declaration.Generate()) == COMPILE_OK) {
-        m_variable_declaration.LogOutput();
     }
     symbol_table_tree->UpgradeAddress();
     while (true) {
         handle_correct_queue->SetCacheLocate();
         if ((ret = m_function_definition.Generate()) == COMPILE_OK) {
-            m_function_definition.LogOutput();
         } else {
             handle_correct_queue->SetCurrentLocate();
             break;
         }
     }
     if ((ret = m_main_function.Generate()) == COMPILE_OK) {
-        m_main_function.LogOutput();
     }
     return ret;
 }
