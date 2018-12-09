@@ -224,6 +224,13 @@ public:
     int GetArrayInformation() {
         return m_other_information.array_length;
     }
+    int GetValueInformation() {
+        if (m_type == CHAR) {
+            return static_cast<int>(m_other_information.char_value);
+        } else {
+            return m_other_information.int_value;
+        }
+    }
     void PrintTerm();
 private:
     string m_name;
@@ -256,6 +263,7 @@ public:
     }
     compile_errcode GetTermType(string name, SymbolType& type);
     compile_errcode GetTermKind(string name, SymbolKind& kind);
+    compile_errcode GetTermIntValue(string name, int& value);
     compile_errcode GetAddress(string name, int& addr);
     void GetTableType(SymbolType& type) {
         type = m_table_type;
@@ -297,6 +305,7 @@ public:
     compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
     compile_errcode GetTermKind(string name, SymbolKind& kind);
+    compile_errcode GetTermIntValue(string name, int& value);
     compile_errcode GetAddressString(string name, string& address_string);
     void SetCurrentTableName(string name) {
         current_table_name = name;

@@ -12,6 +12,7 @@ using std::endl;
 extern SymbolQueue* handle_symbol_queue;
 extern SymbolQueue* handle_correct_queue;
 extern SymbolTableTree* symbol_table_tree;
+extern PcodeGenerator* pcode_generator;
 
 void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
@@ -80,7 +81,7 @@ void TestSemanticAnalysis(const char* test_file_name) {
     handle_symbol_queue = new SymbolQueue;
     symbol_table_tree = new SymbolTableTree;
     Program program;
-    PcodeGenerator* pcode_generator = new PcodeGenerator("pcode.txt");
+    pcode_generator = new PcodeGenerator("pcode.txt");
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
         if (ret != COMPILE_OK) {
@@ -106,13 +107,63 @@ ERROR1:
     delete(handle_symbol_queue);
 }
 
+void TestGenerate(const char* test_file_name) {
+    int ret = COMPILE_OK;
+    LexicalAnalysis lexical_analysis(test_file_name);
+    if (!lexical_analysis.CheckFile()) {
+        std::cerr << "bad file" << endl;
+        return;
+    }
+    Symbol symbol;
+    handle_symbol_queue = new SymbolQueue;
+    symbol_table_tree = new SymbolTableTree;
+    Program program;
+    pcode_generator = new PcodeGenerator("pcode.txt");
+    // lexical analysis
+    while (true) {
+        ret = lexical_analysis.GetSym(symbol);
+        if (ret != COMPILE_OK) {
+            std::cerr << "lexical analysis error, please run TestLexicalAnalysis to check" << endl;
+            goto ERROR2;
+        }
+        handle_symbol_queue->PushSymbol(symbol);
+        SymbolName name = symbol.GetName();
+        if (name == EOF_SYM)
+            break;
+    }
+    cout << "lexical analysis OK" << endl;
+    // gramma analysis
+    if ((ret = program.Parse()) != COMPILE_OK) {
+        std::cerr << "gramma analysis error" << endl;
+        goto ERROR2;
+    }
+    cout << "gramma analysis OK" << endl;
+    // symbol table and semantic check
+    symbol_table_tree->CreateTable(string("global"), VOID, string("end"));
+    symbol_table_tree->SetCurrentTableName(string("global"));
+    handle_correct_queue = handle_symbol_queue;
+    handle_correct_queue->Restart();
+    program.Action();
+    symbol_table_tree->PrintTree();
+    cout << "symbol table and semantic check OK" << endl;
+    // pcode generate
+    handle_correct_queue->Restart();
+    program.Generate();
+    pcode_generator->PrintAllPcode();
+ERROR2:
+    delete(pcode_generator);
+    delete(symbol_table_tree);
+    delete(handle_symbol_queue);
+}
+
 int main(int argc, char** argv) {
     if (argc != 2) {
         std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
     } else {
         //TestLexicalAnalysis(argv[1]);
-       // TestGrammaAnalysis(argv[1]);
-        TestSemanticAnalysis(argv[1]);
+        //TestGrammaAnalysis(argv[1]);
+        //TestSemanticAnalysis(argv[1]);
+        TestGenerate(argv[1]);
     }
     return 0;
 }

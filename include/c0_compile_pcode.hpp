@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <iostream>
 using std::string;
 using std::vector;
 using std::stack;
@@ -65,26 +66,33 @@ public:
     void PrintSinglePcode(Pcode& pcode) {
         fprintf(m_fp, "%s\n", pcode.ToString().c_str());
     }
+    void AddTempCount() {
+        m_temp_count++;
+    }
     void PrintAllPcode();
     string TempNameGenerator() {
-        m_temp_count++;
-        return string("t") + std::to_string(m_temp_count);
+        AddTempCount();
+        string str = string("t") + std::to_string(m_temp_count);
+        return str;
+    }
+    void AddLabelCount() {
+        m_label_count++;
     }
     string GetStackTopLabel() {
-        string label = label_stack.top(); 
+        string label = label_stack.top();
         label_stack.pop();
         return label;
     }
     string GetNextLabel() {
-        m_label_count++;
+        this->AddLabelCount();
         string label = string("label") + std::to_string(m_label_count);
         label_stack.push(label);
         return label;
     }
-private:
-    FILE* m_fp;
     int m_temp_count;
     int m_label_count;
+private:
+    FILE* m_fp;
     stack<string> label_stack;
     vector<Pcode> m_pcode_queue;
 };

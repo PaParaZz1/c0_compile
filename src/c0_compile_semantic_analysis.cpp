@@ -1447,6 +1447,9 @@ compile_errcode MainFunction::Action() {
             }
             case 1: {
                 if (name == MAIN_SYM) {
+                    string previous_table_name = symbol_table_tree->GetCurrentTableName();
+                    symbol_table_tree->CreateTable(string("main"), VOID, previous_table_name);
+                    symbol_table_tree->SetCurrentTableName(string("main"));
                     state = 2;
                     break;
                 } else {

@@ -104,10 +104,12 @@ compile_errcode Factor::Generate(string& factor_string) {
                 Pcode pcode(ADD, temp, array_addr, expression_string);
                 pcode_generator->Insert(pcode);
                 factor_string = temp;
+                break;
             } else if (name == L_CIRCLE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
                 m_value_argument_list.Generate();
                 //TODO Pcode pcode(JUMP);
+                break;
             } else {
                 handle_correct_queue->SetCurrentLocate();
                 SymbolKind kind; 
@@ -115,13 +117,9 @@ compile_errcode Factor::Generate(string& factor_string) {
                 symbol_table_tree->GetTermKind(m_identifier_name, kind);
                 symbol_table_tree->GetTermType(m_identifier_name, type);
                 if (kind == CONST) {
-                    if (type == INT) {
-                        int value = handle_correct_queue->GetCurrentValue<int>();
-                        factor_string = std::to_string(value);
-                    } else if (type == CHAR) {
-                        int value = static_cast<int>(handle_correct_queue->GetCurrentValue<char>());
-                        factor_string = std::to_string(value);
-                    }
+                    int value;
+                    symbol_table_tree->GetTermIntValue(m_identifier_name, value);
+                    factor_string = std::to_string(value);
                 } else {
                     symbol_table_tree->GetAddressString(m_identifier_name, factor_string);
                 }
@@ -170,6 +168,7 @@ compile_errcode Term::Generate(string& term_string) {
                     break;
                 } else {
                     delete(m_factor);
+                    term_string = factor_string1;
                     return COMPILE_OK;
                 }
             }
@@ -217,6 +216,7 @@ compile_errcode Expression::Generate(string& expression_string) {
                     state = 2;
                     break;
                 } else {
+                    expression_string = term_string1;
                     return COMPILE_OK;
                 }
             }
@@ -285,20 +285,6 @@ compile_errcode ConstantDefinition::Generate() {
             case 4: {
                 if (name == INTERGER_SYM || name == CHARACTER_SYM) {
                     state = 5;
-                    if (m_type == INT_SYM && name != INTERGER_SYM) {
-                        break;
-                    }
-                    if (m_type == CHAR_SYM && name != CHARACTER_SYM) {
-                        break;
-                    }
-                    if (m_valid) {
-                        SymbolTableTerm term(m_identifier_name, CONST, m_type);
-                        if (name == INTERGER_SYM)
-                            term.SetConstInformation<int>(handle_correct_queue->GetCurrentValue<int>());
-                        else if (name == CHARACTER_SYM)
-                            term.SetConstInformation<char>(handle_correct_queue->GetCurrentValue<char>());
-                        symbol_table_tree->Insert(term);
-                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -376,17 +362,9 @@ compile_errcode VariableDefinition::Generate() {
                     break;
                 } else if (name == COMMA_SYM) {
                     state = 1;
-                    if (m_valid) {
-                        SymbolTableTerm term(m_identifier_name, VARIABLE, m_type);
-                        symbol_table_tree->Insert(term);
-                    }
                     break;
                 } else if (name == SEMICOLON_SYM) {
                     state = 3;
-                    if (m_valid) {
-                        SymbolTableTerm term(m_identifier_name, VARIABLE, m_type);
-                        symbol_table_tree->Insert(term);
-                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -408,11 +386,6 @@ compile_errcode VariableDefinition::Generate() {
             case 12: {
                 if (name == R_SQUARE_BRACKET_SYM) {
                     state = 13;
-                    if (m_valid) {
-                        SymbolTableTerm term(m_identifier_name, ARRAY, m_type);
-                        term.SetArrayInformation(m_array_length);
-                        symbol_table_tree->Insert(term);
-                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -539,8 +512,6 @@ compile_errcode ReturnStatement::Generate(SymbolType& function_type, string funt
                     state = 2;
                     break;
                 } else if (name == SEMICOLON_SYM) {
-                    if (function_type != VOID) {
-                    }
                     return COMPILE_OK;
                 } else {
                     return NOT_MATCH;
@@ -654,6 +625,8 @@ compile_errcode AssignStatement::Generate() {
                     state = 1;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     break;
+                } else {
+                    return NOT_MATCH;
                 }
             }
             case 1: {
@@ -662,6 +635,7 @@ compile_errcode AssignStatement::Generate() {
                     symbol_table_tree->GetAddressString(m_identifier_name, left);
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
+                    symbol_table_tree->GetAddressString(m_identifier_name, left);
                     state = 11;
                     break;
                 }
@@ -681,6 +655,8 @@ compile_errcode AssignStatement::Generate() {
                 Pcode pcode(ADD, temp, left, expression_string);
                 pcode_generator->Insert(pcode);
                 left = temp;
+                state = 12;
+                break;
             }
             case 12: {
                 if (name == R_SQUARE_BRACKET_SYM) {
@@ -1120,7 +1096,7 @@ compile_errcode Statement::Generate() {
             return COMPILE_OK;
         } else {
             fprintf(stderr, "expected a ':' in the end of statement\n");
-            return COMPILE_OK;
+            return NOT_MATCH;
         }
     NO_SEMICOLON:
         return COMPILE_OK;
@@ -1173,9 +1149,6 @@ compile_errcode ArgumentList::Generate(int& argument_number) {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
                     argument_number++;
-                    m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    SymbolTableTerm term(m_identifier_name, PARAMETER, m_type);
-                    symbol_table_tree->Insert(term);
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1306,18 +1279,6 @@ compile_errcode FunctionDefinition::Generate() {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, false)) {
-                        m_valid = false;
-                        m_identifier_name = "error_" + m_identifier_name + "_error";
-                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
-                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
-                    } else {
-                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
-                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
-                        m_valid = true;
-                    }
                     state = 2;
                     break;
                 } else {
@@ -1366,12 +1327,6 @@ compile_errcode FunctionDefinition::Generate() {
             }
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
-                    symbol_table_tree->UpgradeAddress();
-                    string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
-                    symbol_table_tree->SetCurrentTableName(previous_table_name);
-                    SymbolTableTerm term(m_identifier_name, FUNCTION, m_type);
-                    term.SetFuncInformation(m_argument_number);
-                    symbol_table_tree->Insert(term);
                     state = 8;
                     break;
                 } else {
@@ -1458,12 +1413,9 @@ compile_errcode Program::Generate() {
     int ret = COMPILE_OK;
     SymbolName name = handle_correct_queue->GetCurrentName();
     if (name == CONST_SYM) {
-        if ((ret = m_constant_declaration.Generate()) == COMPILE_OK) {
-        }
+        m_constant_declaration.Generate();
     }
-    if ((ret = m_variable_declaration.Generate()) == COMPILE_OK) {
-    }
-    symbol_table_tree->UpgradeAddress();
+    m_variable_declaration.Generate();
     while (true) {
         handle_correct_queue->SetCacheLocate();
         if ((ret = m_function_definition.Generate()) == COMPILE_OK) {
@@ -1472,7 +1424,6 @@ compile_errcode Program::Generate() {
             break;
         }
     }
-    if ((ret = m_main_function.Generate()) == COMPILE_OK) {
-    }
+    m_main_function.Generate();
     return ret;
 }

@@ -152,6 +152,17 @@ compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
     }
 }
 
+compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
+    int ret = COMPILE_OK;
+    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+        return ret;
+    } else {
+        value = iter->second.GetValueInformation();
+        return COMPILE_OK;
+    }
+}
+
 compile_errcode SymbolTable::GetAddress(string name, int& addr) {
     int ret = COMPILE_OK;
     vector<pair<string, SymbolTableTerm>>::iterator iter;
@@ -251,6 +262,25 @@ compile_errcode SymbolTableTree::GetTermKind(string name, SymbolKind& kind) {
             }
         }
         if ((ret = iter->second.GetTermKind(name, kind)) != COMPILE_OK) {
+            current_table_name = iter->second.GetPreviousTableName();
+        } else {
+            return COMPILE_OK;
+        }
+    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    return ret;
+}
+
+compile_errcode SymbolTableTree::GetTermIntValue(string name, int& value) {
+    int ret = COMPILE_OK;
+    string current_table_name = this->GetCurrentTableName();
+    do {
+        auto iter = m_table_tree.begin();
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == current_table_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetTermIntValue(name, value)) != COMPILE_OK) {
             current_table_name = iter->second.GetPreviousTableName();
         } else {
             return COMPILE_OK;
