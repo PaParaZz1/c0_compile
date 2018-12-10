@@ -8,3 +8,4 @@
  - gramma log: gramma_log.txt
  - symbol log: symbol_log.txt
  - error: semantic_error.txt
+ - pcode: pcode.txt

@@ -21,7 +21,7 @@ const char* symbol_type_string[] = {
 };
 
 FILE* fp_symbol = fopen("symbol_log.txt", "w");
-//FILE* fp_symbol = stdout;
+// FILE* fp_symbol = stdout;
 
 map<string, SymbolName> keyword = {
     {"while", WHILE_SYM},
@@ -343,4 +343,45 @@ compile_errcode SymbolTableTree::GetAddressString(string name, string& address_s
     return COMPILE_OK;
 }
 
+void FunctionTableTerm::PrintTerm() {
+    fprintf(fp_symbol, "--------------------------------------");
+    fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\n",
+    m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length);
+}
+void FunctionTable::InsertTerm(string func_name,
+                               string top_label,
+                               string bottom_label,
+                               int argument_number,
+                               int return_value_number) {
+    FunctionTableTerm term(func_name, top_label, bottom_label, argument_number, return_value_number);
+    m_func_table.push_back(term);
+    m_current_term_ptr++;
+}
+
+bool FunctionTable::Find(string func_name) {
+    for (FunctionTableTerm term: m_func_table) {
+        string tmp;
+        term.GetName(tmp);
+        if (tmp == func_name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void FunctionTable::GetCurrentTermTopLabel(string& top_label) {
+    m_func_table[m_current_term_ptr].GetTopLabel(top_label);
+}
+
+void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
+    m_func_table[m_current_term_ptr].GetBottomLabel(bottom_label);
+}
+
+void FunctionTable::PrintAllTerm() {
+    for (FunctionTableTerm term: m_func_table) {
+        term.PrintTerm();
+    }
+}
+
 SymbolTableTree* symbol_table_tree;
+FunctionTable* handle_func_table;

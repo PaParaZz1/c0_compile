@@ -78,8 +78,8 @@ typedef enum _SymbolName {
 
 extern const char* symbol_name_string[];
 
-extern map<string, SymbolName> keyword; 
-namespace c0_compile{
+extern map<string, SymbolName> keyword;
+namespace c0_compile {
 class SymbolValue {
 public:
     SymbolValue() {}
@@ -317,4 +317,50 @@ private:
     string current_table_name;
     int m_tree_address_length;
 };
+
+class FunctionTableTerm {
+public:
+    FunctionTableTerm(string func_name,
+                      string top_label,
+                      string bottom_label,
+                      int argument_number,
+                      int return_value_number) :
+    m_func_name(func_name), m_top_label(top_label), m_bottom_label(bottom_label) {
+        m_argument_space_length = 4 * argument_number;
+        m_return_value_space_length = 4 * return_value_number;
+    }
+    void GetTopLabel(string& top_label) {
+        top_label = m_top_label;
+    }
+    void GetBottomLabel(string& bottom_label) {
+        bottom_label = m_bottom_label;
+    }
+    void GetName(string& name) {
+        name = m_func_name;
+    }
+    void PrintTerm();
+private:
+    string m_func_name;
+    string m_top_label;
+    string m_bottom_label;
+    int m_argument_space_length;
+    int m_return_value_space_length;
+    int m_func_variable_space_length;
+};
+
+class FunctionTable {
+public:
+    FunctionTable() {
+        m_current_term_ptr = -1;
+    }
+    void InsertTerm(string func_name, string top_label, string bottom_label, int argument_number, int return_value_number);
+    bool Find(string func_name);
+    void GetCurrentTermTopLabel(string& top_label);
+    void GetCurrentTermBottomLabel(string& bottom_label);
+    void PrintAllTerm();
+private:
+    vector<FunctionTableTerm> m_func_table;
+    int m_current_term_ptr;
+};
+
 #endif // _C0_COMPILE_SYMBOL_H_

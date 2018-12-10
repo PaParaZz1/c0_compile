@@ -13,6 +13,7 @@ extern SymbolQueue* handle_symbol_queue;
 extern SymbolQueue* handle_correct_queue;
 extern SymbolTableTree* symbol_table_tree;
 extern PcodeGenerator* pcode_generator;
+extern FunctionTable* handle_func_table;
 
 void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
@@ -119,6 +120,7 @@ void TestGenerate(const char* test_file_name) {
     symbol_table_tree = new SymbolTableTree;
     Program program;
     pcode_generator = new PcodeGenerator("pcode.txt");
+    handle_func_table = new FunctionTable;
     // lexical analysis
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
@@ -150,7 +152,9 @@ void TestGenerate(const char* test_file_name) {
     handle_correct_queue->Restart();
     program.Generate();
     pcode_generator->PrintAllPcode();
+    handle_func_table->PrintAllTerm();
 ERROR2:
+    delete(handle_func_table);
     delete(pcode_generator);
     delete(symbol_table_tree);
     delete(handle_symbol_queue);

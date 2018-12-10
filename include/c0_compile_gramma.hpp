@@ -324,8 +324,7 @@ public:
     }
     compile_errcode Action() {}
     compile_errcode Action(SymbolType& function_type, string funtion_name);
-    compile_errcode Generate() {}
-    compile_errcode Generate(SymbolType& function_type, string funtion_name);
+    compile_errcode Generate();
 private:
     Expression m_expression;
 };

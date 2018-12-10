@@ -15,6 +15,7 @@ extern SymbolTableTree* symbol_table_tree;
 extern SymbolQueue* handle_symbol_queue;
 extern SymbolQueue* handle_correct_queue;
 extern PcodeGenerator* pcode_generator;
+extern FunctionTable* handle_func_table;
 
 inline bool IsAddOperation(SymbolName name) {
     return (name == ADD_SYM) || (name == SUB_SYM);
@@ -500,12 +501,12 @@ compile_errcode InputStatement::Generate() {
     }
 }
 
-compile_errcode ReturnStatement::Generate(SymbolType& function_type, string funtion_name) {
+compile_errcode ReturnStatement::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
     int line_number = handle_correct_queue->GetCurrentLine();
     int character_number = handle_correct_queue->GetCurrentCharacter();
-    SymbolType expression_type;
+    string expression_string;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -528,7 +529,7 @@ compile_errcode ReturnStatement::Generate(SymbolType& function_type, string funt
                 }
             }
             case 2: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     state = 3;
                     break;
                 } else {
@@ -1098,7 +1099,6 @@ compile_errcode Statement::Generate() {
     int ret = COMPILE_OK;
     SymbolType function_type;
     ret = symbol_table_tree->GetCurrentTableType(function_type);
-    string funtion_name = symbol_table_tree->GetCurrentTableName();
     SymbolName name = handle_correct_queue->GetCurrentName();
     handle_correct_queue->SetCacheLocate();
     if (name == L_CURLY_BRACKET_SYM) {
@@ -1121,7 +1121,7 @@ compile_errcode Statement::Generate() {
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_input_statement.Generate()) == COMPILE_OK) {
         goto SEMICOLON_CHECK;
-    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Generate(function_type, funtion_name)) == COMPILE_OK) {
+    } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_return_statement.Generate()) == COMPILE_OK) {
         goto SEMICOLON_CHECK;
     } else if (handle_correct_queue->SetCurrentLocate(), (ret = m_assign_statement.Generate()) == COMPILE_OK) {
         goto SEMICOLON_CHECK;
@@ -1315,6 +1315,9 @@ compile_errcode FunctionCall::Generate() {
 compile_errcode FunctionDefinition::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    int return_value_number = 0;
+    string top_label, bottom_label;
+    m_argument_number = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         int line_number = handle_correct_queue->GetCurrentLine();
@@ -1324,6 +1327,11 @@ compile_errcode FunctionDefinition::Generate() {
                 if (name == VOID_SYM || name == INT_SYM || name == CHAR_SYM) {
                     state = 1;
                     m_type = name;
+                    if (name == INT_SYM || name == CHAR_SYM) {
+                        return_value_number = 1;
+                    } else {
+                        return_value_number = 0;
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1364,6 +1372,9 @@ compile_errcode FunctionDefinition::Generate() {
             }
             case 5: {
                 if (name == L_CURLY_BRACKET_SYM) {
+                    top_label = pcode_generator->GetNextLabel();
+                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_top_label);
                     state = 6;
                     break;
                 } else {
@@ -1380,6 +1391,10 @@ compile_errcode FunctionDefinition::Generate() {
             }
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    bottom_label = pcode_generator->GetNextLabel();
+                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_bottom_label);
+                    handle_func_table->InsertTerm(m_identifier_name, top_label, bottom_label, m_argument_number, return_value_number);
                     state = 8;
                     break;
                 } else {
@@ -1396,6 +1411,7 @@ compile_errcode FunctionDefinition::Generate() {
 compile_errcode MainFunction::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string top_label, bottom_label;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -1433,6 +1449,9 @@ compile_errcode MainFunction::Generate() {
             }
             case 4: {
                 if (name == L_CURLY_BRACKET_SYM) {
+                    top_label = pcode_generator->GetNextLabel();
+                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_top_label);
                     state = 5;
                     break;
                 } else {
@@ -1449,6 +1468,10 @@ compile_errcode MainFunction::Generate() {
             }
             case 6: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    bottom_label = pcode_generator->GetNextLabel();
+                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_bottom_label);
+                    handle_func_table->InsertTerm(string("main"), top_label, bottom_label, 0, 0);
                     state = 7;
                     break;
                 } else {
