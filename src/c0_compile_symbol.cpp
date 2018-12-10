@@ -350,10 +350,9 @@ void FunctionTableTerm::PrintTerm() {
 }
 void FunctionTable::InsertTerm(string func_name,
                                string top_label,
-                               string bottom_label,
                                int argument_number,
                                int return_value_number) {
-    FunctionTableTerm term(func_name, top_label, bottom_label, argument_number, return_value_number);
+    FunctionTableTerm term(func_name, top_label, argument_number, return_value_number);
     m_func_table.push_back(term);
     m_current_term_ptr++;
 }

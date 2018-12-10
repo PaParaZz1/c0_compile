@@ -322,10 +322,9 @@ class FunctionTableTerm {
 public:
     FunctionTableTerm(string func_name,
                       string top_label,
-                      string bottom_label,
                       int argument_number,
                       int return_value_number) :
-    m_func_name(func_name), m_top_label(top_label), m_bottom_label(bottom_label) {
+    m_func_name(func_name), m_top_label(top_label) {
         m_argument_space_length = 4 * argument_number;
         m_return_value_space_length = 4 * return_value_number;
     }
@@ -353,7 +352,7 @@ public:
     FunctionTable() {
         m_current_term_ptr = -1;
     }
-    void InsertTerm(string func_name, string top_label, string bottom_label, int argument_number, int return_value_number);
+    void InsertTerm(string func_name, string top_label, int argument_number, int return_value_number);
     bool Find(string func_name);
     void GetTermTopLabel(string term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);

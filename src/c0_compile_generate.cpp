@@ -114,6 +114,9 @@ compile_errcode Factor::Generate(string& factor_string) {
                 handle_func_table->GetTermTopLabel(m_identifier_name, func_top);
                 Pcode pcode(JUMP, func_top, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode);
+                factor_string = pcode_generator->GetNextTemp();
+                Pcode pcode_load_return_value(ASSIGN, factor_string, "V0", EMPTY_STR);
+                pcode_generator->Insert(pcode_load_return_value);
                 break;
             } else {
                 handle_correct_queue->SetCurrentLocate();
@@ -1241,13 +1244,19 @@ compile_errcode ArgumentList::Generate(int& argument_number) {
 compile_errcode ValueArgumentList::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string expression_string;
+    string argument_temp;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
-                } else if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                    pcode_generator->ZeroArgumentCount();
+                    argument_temp = pcode_generator->GetNextArgument();
+                    Pcode pcode(ASSIGN, argument_temp, expression_string, EMPTY_STR);
+                    pcode_generator->Insert(pcode);
                     state = 1;
                     break;
                 } else {
@@ -1264,6 +1273,9 @@ compile_errcode ValueArgumentList::Generate() {
             }
             case 2: {
                 if ((ret = m_expression.Generate()) == COMPILE_OK) {
+                    argument_temp = pcode_generator->GetNextArgument();
+                    Pcode pcode(ASSIGN, argument_temp, expression_string, EMPTY_STR);
+                    pcode_generator->Insert(pcode);
                     state = 1;
                     break;
                 } else {
@@ -1390,6 +1402,7 @@ compile_errcode FunctionDefinition::Generate() {
                     top_label = pcode_generator->GetNextLabel();
                     Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_top_label);
+                    handle_func_table->InsertTerm(m_identifier_name, top_label, m_argument_number, return_value_number);
                     state = 6;
                     break;
                 } else {
@@ -1409,7 +1422,6 @@ compile_errcode FunctionDefinition::Generate() {
                     bottom_label = pcode_generator->GetNextLabel();
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
-                    handle_func_table->InsertTerm(m_identifier_name, top_label, bottom_label, m_argument_number, return_value_number);
                     state = 8;
                     break;
                 } else {
@@ -1486,7 +1498,7 @@ compile_errcode MainFunction::Generate() {
                     bottom_label = pcode_generator->GetNextLabel();
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
-                    handle_func_table->InsertTerm(string("main"), top_label, bottom_label, 0, 0);
+                    handle_func_table->InsertTerm(string("main"), top_label, 0, 0);
                     state = 7;
                     break;
                 } else {

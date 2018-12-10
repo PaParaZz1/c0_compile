@@ -56,6 +56,7 @@ public:
         m_fp = fopen(pcode_file_name, "w");
         m_temp_count = 0;
         m_label_count = 0;
+        m_argument_count = 0;
     }
     void Insert(Pcode& pcode) {
         m_pcode_queue.push_back(pcode);
@@ -77,9 +78,18 @@ public:
         string label = string("label") + std::to_string(m_label_count);
         return label;
     }
+    void ZeroArgumentCount() {
+      m_argument_count = 0;
+    }
+    string GetNextArgument() {
+        m_argument_count++;
+        string argument = string("argument") + std::to_string(m_argument_count);
+        return argument;
+    }
+private:
     int m_temp_count;
     int m_label_count;
-private:
+    int m_argument_count;
     FILE* m_fp;
     vector<Pcode> m_pcode_queue;
 };
