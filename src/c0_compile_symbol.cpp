@@ -377,6 +377,17 @@ void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
     m_func_table[m_current_term_ptr].GetBottomLabel(bottom_label);
 }
 
+void FunctionTable::GetTermTopLabel(string term_name, string& top_label) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == term_name) {
+            iter->GetTopLabel(top_label);
+        }
+    }
+}
+
 void FunctionTable::PrintAllTerm() {
     for (FunctionTableTerm term: m_func_table) {
         term.PrintTerm();

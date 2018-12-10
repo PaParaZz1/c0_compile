@@ -355,6 +355,7 @@ public:
     }
     void InsertTerm(string func_name, string top_label, string bottom_label, int argument_number, int return_value_number);
     bool Find(string func_name);
+    void GetTermTopLabel(string term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);
     void GetCurrentTermBottomLabel(string& bottom_label);
     void PrintAllTerm();

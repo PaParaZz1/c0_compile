@@ -1,3 +1,12 @@
+int fibo(int n) {
+    if (n==0) {
+        return(1);
+    }
+    if(n==1) {
+        return(1);
+    }
+    return (n-1);
+}
 void main() {
     const int a = 4;
     const char a1='a',a2='b';

@@ -110,7 +110,10 @@ compile_errcode Factor::Generate(string& factor_string) {
             } else if (name == L_CIRCLE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
                 m_value_argument_list.Generate();
-                //TODO Pcode pcode(JUMP);
+                string func_top;
+                handle_func_table->GetTermTopLabel(m_identifier_name, func_top);
+                Pcode pcode(JUMP, func_top, EMPTY_STR, EMPTY_STR);
+                pcode_generator->Insert(pcode);
                 break;
             } else {
                 handle_correct_queue->SetCurrentLocate();
@@ -523,6 +526,8 @@ compile_errcode ReturnStatement::Generate() {
                     state = 2;
                     break;
                 } else if (name == SEMICOLON_SYM) {
+                    Pcode pcode_return(JUMP, string("RA"), EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_return);
                     return COMPILE_OK;
                 } else {
                     return NOT_MATCH;
@@ -538,6 +543,10 @@ compile_errcode ReturnStatement::Generate() {
             }
             case 3: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
+                    Pcode pcode_assign(ASSIGN, string("V0"), expression_string, EMPTY_STR);
+                    pcode_generator->Insert(pcode_assign);
+                    Pcode pcode_return(JUMP, string("RA"), EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode_return);
                     state = 4;
                     break;
                 } else {
@@ -1270,11 +1279,15 @@ compile_errcode ValueArgumentList::Generate() {
 compile_errcode FunctionCall::Generate() {
     int ret = COMPILE_OK;
     int state = 0;
+    string func_top;
+    string identifier_name;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
+                    identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    handle_func_table->GetTermTopLabel(identifier_name, func_top);
                     state = 1;
                     break;
                 } else {
@@ -1299,6 +1312,8 @@ compile_errcode FunctionCall::Generate() {
             }
             case 3: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
+                    Pcode pcode(JUMP, func_top, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode);
                     state = 4;
                     break;
                 } else {
