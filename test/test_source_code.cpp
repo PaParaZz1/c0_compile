@@ -38,8 +38,8 @@ void main() {
     printf("    ");
     printf("sum of 100:%d", sum);
     printf("    ");
-    _print();
     printf("    ");
+    _print();
     i = 0;
     test_int1 = 10;
     test_d = 'n';
@@ -50,5 +50,5 @@ void main() {
     }
     printf("    ");
     printf("end");
-    return (0);
+    return;
 }

@@ -137,6 +137,7 @@ void TestGenerate(const char* test_file_name) {
     // gramma analysis
     if ((ret = program.Parse()) != COMPILE_OK) {
         std::cerr << "gramma analysis error" << endl;
+        std::cerr << "ret:" << ret << endl;
         goto ERROR2;
     }
     cout << "gramma analysis OK" << endl;
@@ -145,7 +146,11 @@ void TestGenerate(const char* test_file_name) {
     symbol_table_tree->SetCurrentTableName(string("global"));
     handle_correct_queue = handle_symbol_queue;
     handle_correct_queue->Restart();
-    program.Action();
+    if ((ret = program.Action()) != COMPILE_OK) {
+        std::cerr << "semantic check error" << endl;
+        std::cerr << "ret:" << ret << endl;
+        goto ERROR2;
+    }
     symbol_table_tree->PrintTree();
     cout << "symbol table and semantic check OK" << endl;
     // pcode generate

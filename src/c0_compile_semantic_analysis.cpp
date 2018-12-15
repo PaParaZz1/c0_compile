@@ -42,7 +42,7 @@ inline int SymbolTypeMap(SymbolType& item) {
     switch (item) {
         case CHAR: return 1;
         case INT: return 2;
-        default: fprintf(stderr, "inlvaid symbol type");
+        default: fprintf(stderr, "invalid symbol type\n");
     }
     return -2;
 }
@@ -51,7 +51,7 @@ inline SymbolType SymbolTypeInverseMap(int map_value) {
     switch (map_value) {
         case 1: return CHAR;
         case 2: return INT;
-        default: fprintf(stderr, "inlvaid symbol type");
+        default: fprintf(stderr, "invalid symbol type\n");
     }
     return VOID;
 }
@@ -708,7 +708,7 @@ compile_errcode AssignStatement::Action() {
             }
             case 3: return COMPILE_OK;
             case 11: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 12;
                     break;
@@ -741,11 +741,12 @@ compile_errcode AssignStatement::Action() {
 compile_errcode Condition::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 1;
                     break;
@@ -762,7 +763,7 @@ compile_errcode Condition::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 3;
                     break;
@@ -1015,6 +1016,7 @@ compile_errcode Default::Action() {
 compile_errcode SwitchStatement::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -1035,7 +1037,7 @@ compile_errcode SwitchStatement::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     m_expression.LogOutput();
                     state = 3;
                     break;
@@ -1249,13 +1251,14 @@ compile_errcode ArgumentList::Action(int& argument_number) {
 compile_errcode ValueArgumentList::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
-                } else if ((ret = m_expression.Action()) == COMPILE_OK) {
+                } else if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 1;
                     break;
                 } else {
@@ -1271,7 +1274,7 @@ compile_errcode ValueArgumentList::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Action()) == COMPILE_OK) {
+                if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 1;
                     break;
                 } else {
@@ -1379,6 +1382,12 @@ compile_errcode FunctionDefinition::Action() {
             case 3: {
                 if ((ret = m_argument_list.Action(m_argument_number)) == COMPILE_OK) {
                     m_argument_list.LogOutput();
+                    string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
+                    symbol_table_tree->SetCurrentTableName(previous_table_name);
+                    SymbolTableTerm term(m_identifier_name, FUNCTION, m_type);
+                    term.SetFuncInformation(m_argument_number);
+                    symbol_table_tree->Insert(term);
+                    symbol_table_tree->SetCurrentTableName(m_identifier_name);
                     state = 4;
                     break;
                 } else {
@@ -1415,9 +1424,6 @@ compile_errcode FunctionDefinition::Action() {
                     symbol_table_tree->UpgradeAddress();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
-                    SymbolTableTerm term(m_identifier_name, FUNCTION, m_type);
-                    term.SetFuncInformation(m_argument_number);
-                    symbol_table_tree->Insert(term);
                     state = 8;
                     break;
                 } else {

@@ -2,162 +2,143 @@
 function global's symbol table
 function type: VOID
 {
- name: a11
- kind: VARIABLE
- type: INT
- addr: 0x0000
-}
-{
- name: _a43
- kind: VARIABLE
- type: INT
- addr: 0x0004
-}
-{
- name: b5
- kind: VARIABLE
- type: INT
- addr: 0x0008
-}
-{
- name: a9
- kind: VARIABLE
+ name: name
+ kind: CONST
  type: CHAR
- addr: 0x000c
+ relative addr: 0x0000
+ const char value: n
 }
 {
- name: a031
- kind: VARIABLE
- type: CHAR
- addr: 0x0010
+ name: date
+ kind: CONST
+ type: INT
+ relative addr: 0x0004
+ const int value: 20181111
 }
 {
- name: a
- kind: VARIABLE
- type: CHAR
- addr: 0x0014
-}
-{
- name: a3213
+ name: test_int1
  kind: VARIABLE
  type: INT
- addr: 0x0018
+ relative addr: 0x0008
 }
 {
- name: aer
- kind: ARRAY
+ name: test_int2
+ kind: VARIABLE
  type: INT
- addr: 0x001c
- array length: 12
+ relative addr: 0x000c
 }
 {
- name: kl
- kind: ARRAY
- type: CHAR
- addr: 0x004c
- array length: 32
+ name: test_int3
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0010
 }
 {
- name: func1
+ name: _print
  kind: FUNCTION
  type: VOID
+ function parameter number: 0
+}
+{
+ name: fibonacci
+ kind: FUNCTION
+ type: INT
  function parameter number: 1
 }
-{
- name: func2
- kind: FUNCTION
- type: VOID
- function parameter number: 2
-}
-{
- name: error_func1_error
- kind: FUNCTION
- type: VOID
- function parameter number: 0
-}
-{
- name: fun3
- kind: FUNCTION
- type: INT
- function parameter number: 0
-}
-{
- name: func3
- kind: FUNCTION
- type: INT
- function parameter number: 0
-}
 -------------------------------------------------
 -------------------------------------------------
-function func1's symbol table
+function _print's symbol table
 function type: VOID
-{
- name: c
- kind: PARAMETER
- type: CHAR
- addr: 0x00cc
-}
 -------------------------------------------------
 -------------------------------------------------
-function func2's symbol table
-function type: VOID
-{
- name: a
- kind: PARAMETER
- type: INT
- addr: 0x00d0
-}
-{
- name: c
- kind: PARAMETER
- type: INT
- addr: 0x00d4
-}
-{
- name: asd
- kind: CONST
- type: INT
- addr: 0x00d8
- const int value: 4
-}
--------------------------------------------------
--------------------------------------------------
-function error_func1_error's symbol table
-function type: VOID
-{
- name: b5
- kind: CONST
- type: INT
- addr: 0x00dc
- const int value: 3
-}
-{
- name: aer
- kind: ARRAY
- type: INT
- addr: 0x00e0
- array length: 15
-}
-{
- name: aer1
- kind: ARRAY
- type: INT
- addr: 0x011c
- array length: 31
-}
--------------------------------------------------
--------------------------------------------------
-function fun3's symbol table
+function fibonacci's symbol table
 function type: INT
 {
- name: c
- kind: CONST
- type: CHAR
- addr: 0x0198
- const char value: c
+ name: n
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
 }
 -------------------------------------------------
 -------------------------------------------------
-function func3's symbol table
-function type: INT
+function main's symbol table
+function type: VOID
+{
+ name: n
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: 10
+}
+{
+ name: c1
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0004
+ const char value: a
+}
+{
+ name: fibonacci_ans
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0008
+}
+{
+ name: test_c
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x000c
+}
+{
+ name: test_d
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x0010
+}
+{
+ name: c
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x0014
+}
+{
+ name: i
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0018
+}
+{
+ name: sum
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x001c
+}
+{
+ name: array
+ kind: ARRAY
+ type: CHAR
+ relative addr: 0x0020
+ array length: 10
+}
 -------------------------------------------------
+--------------------------------------
+function
+name: _print
+top label: label1
+bottom label: 
+argument space: 0
+return value space: 0
+--------------------------------------
+function
+name: fibonacci
+top label: label3
+bottom label: 
+argument space: 4
+return value space: 4
+--------------------------------------
+function
+name: main
+top label: label8
+bottom label: 
+argument space: 0
+return value space: 0

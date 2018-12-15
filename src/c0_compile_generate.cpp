@@ -46,7 +46,7 @@ inline int SymbolTypeMap(SymbolType& item) {
     switch (item) {
         case CHAR: return 1;
         case INT: return 2;
-        default: fprintf(stderr, "inlvaid symbol type");
+        default: fprintf(stderr, "invalid symbol type\n");
     }
     return -2;
 }
@@ -55,7 +55,7 @@ inline SymbolType SymbolTypeInverseMap(int map_value) {
     switch (map_value) {
         case 1: return CHAR;
         case 2: return INT;
-        default: fprintf(stderr, "inlvaid symbol type");
+        default: fprintf(stderr, "invalid symbol type\n");
     }
     return VOID;
 }
@@ -672,6 +672,8 @@ compile_errcode AssignStatement::Generate() {
                     symbol_table_tree->GetAddressString(m_identifier_name, left);
                     state = 11;
                     break;
+                } else {
+                    return NOT_MATCH;
                 }
             }
             case 2: {

@@ -344,7 +344,7 @@ compile_errcode SymbolTableTree::GetAddressString(string name, string& address_s
 }
 
 void FunctionTableTerm::PrintTerm() {
-    fprintf(fp_symbol, "--------------------------------------");
+    fprintf(fp_symbol, "--------------------------------------\n");
     fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\n",
     m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length);
 }
