@@ -53,10 +53,14 @@ private:
 class PcodeGenerator {
 public:
     explicit PcodeGenerator(const char* pcode_file_name) {
-        m_fp = fopen(pcode_file_name, "w");
+        m_fp_pcode = fopen(pcode_file_name, "w");
         m_temp_count = 0;
         m_label_count = 0;
         m_argument_count = 0;
+    }
+    ~PcodeGenerator() {
+        if (!m_fp_pcode)
+            fclose(m_fp_pcode);
     }
     void Insert(Pcode& pcode) {
         m_pcode_queue.push_back(pcode);
@@ -65,7 +69,7 @@ public:
         return m_pcode_queue.size();
     }
     void PrintSinglePcode(Pcode& pcode) {
-        fprintf(m_fp, "%s\n", pcode.ToString().c_str());
+        fprintf(m_fp_pcode, "%s\n", pcode.ToString().c_str());
     }
     void PrintAllPcode();
     string GetNextTemp() {
@@ -86,12 +90,12 @@ public:
         string argument = string("argument") + std::to_string(m_argument_count);
         return argument;
     }
+    void CopyPcode(vector<Pcode>& target_queue);
 private:
     int m_temp_count;
     int m_label_count;
     int m_argument_count;
-    FILE* m_fp;
+    FILE* m_fp_pcode;
     vector<Pcode> m_pcode_queue;
 };
-
 #endif // C0_COMPILE_PCODE_H_

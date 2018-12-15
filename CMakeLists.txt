@@ -17,6 +17,7 @@ SET(ALL_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_semantic_analysis.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_pcode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_generate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/c0_compile_mips.cpp
 )
 
 ADD_EXECUTABLE(compile_test

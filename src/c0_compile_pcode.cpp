@@ -16,3 +16,10 @@ void PcodeGenerator::PrintAllPcode() {
     }
     printf("generated pcode count: %d\n", count);
 }
+
+void PcodeGenerator::CopyPcode(vector<Pcode>& target_queue) {
+    auto iter = m_pcode_queue.begin();
+    for (; iter != m_pcode_queue.end(); ++iter) {
+        target_queue.push_back(*iter);
+    }
+}
