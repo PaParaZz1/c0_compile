@@ -54,12 +54,12 @@ label7		LABEL
 label8		LABEL	
 t32	1	MUL	0
 t33	0	ADD	t32
-sp24	t33	ASSIGN	
+fp24	t33	ASSIGN	
 t34	1	MUL	0
 t35	0	ADD	t34
-sp28	t35	ASSIGN	
+fp28	t35	ASSIGN	
 t36		INPUT	
-sp12	t36	ASSIGN	
+fp12	t36	ASSIGN	
 t38	1	MUL	10
 t39	0	ADD	t38
 argument1	t39	ASSIGN	
@@ -67,62 +67,62 @@ label3		CALL
 t40	V0	ASSIGN	
 t37	1	MUL	t40
 t41	0	ADD	t37
-sp8	t41	ASSIGN	
+fp8	t41	ASSIGN	
 fibonacci_ans:%d	string	OUTPUT	
-t43	1	MUL	sp8
+t43	1	MUL	fp8
 t44	0	ADD	t43
 t42	t44	ASSIGN	
 t42	int_expression	OUTPUT	
-t45	1	MUL	sp12
+t45	1	MUL	fp12
 t46	0	ADD	t45
 t46	97	BNE	label10
 t47	1	MUL	100
 t48	0	ADD	t47
-sp20	t48	ASSIGN	
+fp20	t48	ASSIGN	
 label9		JUMP	
 label10		LABEL	
 t46	98	BNE	label11
 t49	1	MUL	99
 t50	0	ADD	t49
-sp20	t50	ASSIGN	
+fp20	t50	ASSIGN	
 label9		JUMP	
 label11		LABEL	
 t46	99	BNE	label12
 t51	1	MUL	98
 t52	0	ADD	t51
-sp20	t52	ASSIGN	
+fp20	t52	ASSIGN	
 label9		JUMP	
 label12		LABEL	
 t53	1	MUL	120
 t54	0	ADD	t53
-sp20	t54	ASSIGN	
+fp20	t54	ASSIGN	
 label9		LABEL	
 %c	string	OUTPUT	
-t56	1	MUL	sp20
+t56	1	MUL	fp20
 t57	0	ADD	t56
 t55	t57	ASSIGN	
 t55	int_expression	OUTPUT	
 label13		LABEL	
-t58	1	MUL	sp24
+t58	1	MUL	fp24
 t59	0	ADD	t58
 t60	1	MUL	100
 t61	0	ADD	t60
 t59	t61	BGE	label14
-t62	1	MUL	sp28
+t62	1	MUL	fp28
 t63	0	ADD	t62
-t64	1	MUL	sp24
+t64	1	MUL	fp24
 t65	t63	ADD	t64
-sp28	t65	ASSIGN	
-t66	1	MUL	sp24
+fp28	t65	ASSIGN	
+t66	1	MUL	fp24
 t67	0	ADD	t66
 t68	1	MUL	1
 t69	t67	ADD	t68
-sp24	t69	ASSIGN	
+fp24	t69	ASSIGN	
 label13		JUMP	
 label14		LABEL	
     	string	OUTPUT	
 sum of 100:%d	string	OUTPUT	
-t72	1	MUL	sp28
+t72	1	MUL	fp28
 t73	0	ADD	t72
 t71	t73	ASSIGN	
 t71	int_expression	OUTPUT	
@@ -131,38 +131,38 @@ t71	int_expression	OUTPUT
 label1		CALL	
 t76	1	MUL	0
 t77	0	ADD	t76
-sp24	t77	ASSIGN	
+fp24	t77	ASSIGN	
 t78	1	MUL	10
 t79	0	ADD	t78
-8	t79	ASSIGN	
+g8	t79	ASSIGN	
 t80	1	MUL	110
 t81	0	ADD	t80
-sp16	t81	ASSIGN	
+fp16	t81	ASSIGN	
 label15		LABEL	
-t82	1	MUL	sp24
+t82	1	MUL	fp24
 t83	0	ADD	t82
-t84	1	MUL	8
+t84	1	MUL	g8
 t85	0	ADD	t84
 t83	t85	BGE	label16
-t86	1	MUL	sp24
+t86	1	MUL	fp24
 t87	0	ADD	t86
-t88	sp32	ADD	t87
-t89	1	MUL	sp16
+t88	fp32	ADD	t87
+t89	1	MUL	fp16
 t90	0	ADD	t89
 t88	t90	ASSIGN	
 %c	string	OUTPUT	
-t94	1	MUL	sp24
+t94	1	MUL	fp24
 t95	0	ADD	t94
-t93	sp32	ADD	t95
+t93	fp32	ADD	t95
 t92	1	MUL	t93
 t96	0	ADD	t92
 t91	t96	ASSIGN	
 t91	int_expression	OUTPUT	
-t97	1	MUL	sp24
+t97	1	MUL	fp24
 t98	0	ADD	t97
 t99	1	MUL	1
 t100	t98	ADD	t99
-sp24	t100	ASSIGN	
+fp24	t100	ASSIGN	
 label15		JUMP	
 label16		LABEL	
     	string	OUTPUT	

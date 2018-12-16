@@ -120,7 +120,7 @@ void SymbolTable::PrintTable() {
     fprintf(fp_symbol, "-------------------------------------------------\n");
 }
 
-compile_errcode SymbolTable::GetTerm(string name, vector<pair<string, SymbolTableTerm>>::iterator& iter) {
+compile_errcode SymbolTable::GetTerm(string name, vector<pair<string, SymbolTableTerm> >::iterator& iter) {
     iter = m_symbol_table.begin();
     for (; iter != m_symbol_table.end(); ++iter) {
         if (iter->first == name) {
@@ -132,7 +132,7 @@ compile_errcode SymbolTable::GetTerm(string name, vector<pair<string, SymbolTabl
 
 compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    vector<pair<string, SymbolTableTerm> >::iterator iter;
     if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
         return ret;
     } else {
@@ -143,7 +143,7 @@ compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
 
 compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    vector<pair<string, SymbolTableTerm> >::iterator iter;
     if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
         return ret;
     } else {
@@ -154,7 +154,7 @@ compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
 
 compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    vector<pair<string, SymbolTableTerm> >::iterator iter;
     if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
         return ret;
     } else {
@@ -165,7 +165,7 @@ compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
 
 compile_errcode SymbolTable::GetAddress(string name, int& addr) {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm>>::iterator iter;
+    vector<pair<string, SymbolTableTerm> >::iterator iter;
     if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
         return ret;
     } else {
@@ -332,10 +332,10 @@ compile_errcode SymbolTableTree::GetAddressString(string name, string& address_s
             current_table_name = iter->second.GetPreviousTableName();
         } else {
             if (current_table_name != string("global")) {
-                address_string = string("sp") + std::to_string(addr);
+                address_string = string("fp") + std::to_string(addr);
             } else {
                 int base_addr = 0;
-                address_string = std::to_string(addr + base_addr);
+                address_string = string("g") + std::to_string(addr + base_addr);
             }
             return COMPILE_OK;
         }

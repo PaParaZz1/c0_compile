@@ -15,6 +15,7 @@ public:
         m_fp_mips = fopen(file_name, "w");
         m_pcode_queue.assign(source_queue.begin(), source_queue.end());
         m_relative_addr = 0;
+        m_global = 0x2ffc;
     }
     ~MipsGenerator() {
         if (!m_fp_mips)
@@ -24,16 +25,21 @@ public:
 private:
     int m_sp;
     int m_fp;
+    int m_global;
     FILE* m_fp_mips;
     vector<Pcode> m_pcode_queue;
     unordered_map<string, int> m_temp2address;
     int m_relative_addr;
     compile_errcode FindRelativeAddr(string temp_name, int& addr);
-    void GenerateStore(string temp_name);
-    void GenerateLoad(string target, string source);
+    void GenerateStore(string temp_name, string type);
+    void GenerateLoad(string target, string source, string type);
     void ExtractString();
     void TranslateADD(Pcode& item);
     void TranslateSUB(Pcode& item);
+    void TranslateMUL(Pcode& item);
+    void TranslateBNE(Pcode& item);
+    void TranslateASSIGN(Pcode& item);
+    void TranslateJUMP(Pcode& item);
     void Output2File(string str) {
         fprintf(m_fp_mips, "%s\n", str.c_str());
     }
