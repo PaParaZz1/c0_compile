@@ -66,6 +66,9 @@ void MipsGenerator::TranslateADD(Pcode& item) {
 }
 
 void MipsGenerator::TranslateSUB(Pcode& item) {
+    string num1 = item.GetNum1();
+    string num2 = item.GetNum2();
+    string num3 = item.GetNum3();
 
 }
 
