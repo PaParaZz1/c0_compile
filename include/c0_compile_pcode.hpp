@@ -29,6 +29,10 @@ using std::stack;
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
+
+#define STRING string("string")
+#define INT_EXPRESSION string("int_expression")
+#define CHAR_EXPRESSION string("char_expression")
         
 typedef enum _PcodeType {
     FOREACH_FUNC_PCODE(GENERATE_ENUM)
@@ -41,6 +45,18 @@ public:
     Pcode(PcodeType op, string num1, string num2, string num3) : m_op(op), m_num1(num1), m_num2(num2), m_num3(num3) {}
     string ToString() {
         return m_num1 + string("\t") + m_num2 + string("\t") + string(pcode_string[m_op]) + string("\t") + m_num3;
+    }
+    PcodeType GetOP() {
+        return m_op;
+    }
+    string GetNum1() {
+        return m_num1;
+    }
+    string GetNum2() {
+        return m_num2;
+    }
+    string GetNum3() {
+        return m_num3;
     }
 private:
     // num1 : num2 op num3

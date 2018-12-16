@@ -591,14 +591,17 @@ compile_errcode OutputStatement::Generate() {
             case 2: {
                 if (name == STRING_SYM) {
                     string content = handle_correct_queue->GetCurrentValue<string>();
-                    Pcode pcode_output(OUTPUT, content, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_output(OUTPUT, content, STRING, EMPTY_STR);
                     pcode_generator->Insert(pcode_output);
                     state = 3;
                     break;
                 } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
-                    Pcode pcode_output(OUTPUT, temp_output, EMPTY_STR, EMPTY_STR);
+                    //string expression_type = expression_string == INT ? INT_EXPRESSION :
+                      //                       expression_string == CHAR ? CHAR_EXPRESSION : string("GG");
+                    string expression_type = INT_EXPRESSION; // TODO
+                    Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
                     pcode_generator->Insert(pcode_output);
                     state = 5;
                     break;
@@ -621,7 +624,8 @@ compile_errcode OutputStatement::Generate() {
                 if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
-                    Pcode pcode_output(OUTPUT, temp_output, EMPTY_STR, EMPTY_STR);
+                    string expression_type = INT_EXPRESSION; // TODO
+                    Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
                     pcode_generator->Insert(pcode_output);
                     state = 5;
                     break;
