@@ -280,6 +280,9 @@ public:
         m_table_base_address = base_address;
         m_table_address_length = 0;
     }
+    int GetSpaceLength() {
+        return m_table_address_length;
+    }
     void PrintTable();
 private:
     vector<pair<string, SymbolTableTerm> > m_symbol_table;
@@ -312,6 +315,7 @@ public:
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }
+    void GetTableSpaceLength(string name, int& length);
     void UpgradeAddress();
     void PrintTree();
 private:

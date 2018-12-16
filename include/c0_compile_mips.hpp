@@ -34,9 +34,8 @@ private:
     void GenerateStore(string temp_name, string type);
     void GenerateLoad(string target, string source, string type);
     void ExtractString();
-    void TranslateADD(Pcode& item);
-    void TranslateSUB(Pcode& item);
-    void TranslateMUL(Pcode& item);
+    void TranslateADDType(Pcode& item);
+    void TranslateMULType(Pcode& item);
     void TranslateBType(Pcode& item);
     void TranslateASSIGN(Pcode& item);
     void TranslateCall(Pcode& item);

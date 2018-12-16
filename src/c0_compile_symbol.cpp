@@ -343,6 +343,15 @@ compile_errcode SymbolTableTree::GetAddressString(string name, string& address_s
     return COMPILE_OK;
 }
 
+void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
+    auto iter = m_table_tree.begin();
+    for (; iter != m_table_tree.end(); ++iter) {
+        if (iter->first == name) {
+            length = iter->second.GetSpaceLength();
+        }
+    }
+}
+
 void FunctionTableTerm::PrintTerm() {
     fprintf(fp_symbol, "--------------------------------------\n");
     fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\n",
