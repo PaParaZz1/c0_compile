@@ -37,9 +37,12 @@ private:
     void TranslateADD(Pcode& item);
     void TranslateSUB(Pcode& item);
     void TranslateMUL(Pcode& item);
-    void TranslateBNE(Pcode& item);
+    void TranslateBType(Pcode& item);
     void TranslateASSIGN(Pcode& item);
+    void TranslateCall(Pcode& item);
     void TranslateJUMP(Pcode& item);
+    void TranslateInput(Pcode& item);
+    void TranslateOutput(Pcode& item);
     void Output2File(string str) {
         fprintf(m_fp_mips, "%s\n", str.c_str());
     }

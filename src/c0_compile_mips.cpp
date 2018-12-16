@@ -128,6 +128,48 @@ void MipsGenerator::TranslateMUL(Pcode& item) {
     GenerateStore(num1, TMP);
 }
 
+void MipsGenerator::TranslateInput(Pcode& item) {
+    string num1 = item.GetNum1();
+    string num2 = item.GetNum2();
+    if (num2 == string("int")) {
+        Output2File(string("li $v0 5"));
+    } else if (num2 == string("char")) {
+        Output2File(string("li $v0 12"));
+    } else {
+        fprintf(stderr, "invalid input type\n");
+    }
+    Output2File(string("move $v0 " + NUM1));
+    GenerateStore(num1, TMP);
+}
+
+void MipsGenerator::TranslateOutput(Pcode& item) {
+    string output_type = item.GetNum2();
+    if (output_type == STRING) {
+        string name = item.GetNum1();
+        Output2File(string("li $v0 4"));
+        Output2File(string("la $a0 ") + name);
+        Output2File(string("syscall"));
+    } else if (output_type == INT_EXPRESSION) {
+        string temp_name = item.GetNum1();
+        GenerateLoad(OUT_REG, temp_name, TMP);
+        Output2File(string("li $v0 1"));
+        Output2File(string("move $a0 ") + OUT_REG);
+        Output2File(string("syscall"));
+    } else if (output_type == CHAR_EXPRESSION) {
+        string temp_name = item.GetNum1();
+        GenerateLoad(OUT_REG, temp_name, TMP);
+        Output2File(string("li $v0 11"));
+        Output2File(string("move $a0 ") + OUT_REG);
+        Output2File(string("syscall"));
+    } else {
+        fprintf(stderr, "undefined output behaviour\n");
+    }
+}
+
+void MipsGenerator::TranslateCall(Pcode& item) {
+
+}
+
 void MipsGenerator::TranslateASSIGN(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
@@ -159,13 +201,24 @@ void MipsGenerator::TranslateJUMP(Pcode& item) {
     }
 }
 
-void MipsGenerator::TranslateBNE(Pcode& item) {
+void MipsGenerator::TranslateBType(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
+    PcodeType op = item.GetOP();
     GenerateLoad(NUM1, num1, TMP);
     GenerateLoad(NUM2, num2, TMP);
-    Output2File(string("bne ") + NUM1 + string(" ") + NUM2 + string(" ") + num3);
+    switch (op) {
+        case BNE: Output2File(string("bne ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        case BEQ: Output2File(string("beq ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        case BLE: Output2File(string("ble ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        case BLT: Output2File(string("blt ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        case BGE: Output2File(string("bge ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        case BGT: Output2File(string("bgt ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
+        default: {
+            fprintf(stderr, "invalid b type\n");         
+        }
+    }
 }
 
 void MipsGenerator::Translate() {
@@ -175,27 +228,11 @@ void MipsGenerator::Translate() {
         switch (iter->GetOP()) {
             case LABEL: Output2File(iter->GetNum1() + string(":")); break;
             case OUTPUT: {
-                string output_type = iter->GetNum2();
-                if (output_type == STRING) {
-                    string name = iter->GetNum1();
-                    Output2File(string("li $v0 4"));
-                    Output2File(string("la $a0 ") + name);
-                    Output2File(string("syscall"));
-                } else if (output_type == INT_EXPRESSION) {
-                    string output_content = iter->GetNum1();
-                    //TODO
-                    Output2File(string("li $v0 1"));
-                    Output2File(string("move $a0 ") + OUT_REG);
-                    Output2File(string("syscall"));
-                } else if (output_type == CHAR_EXPRESSION) {
-                    string output_content = iter->GetNum1();
-                    //TODO
-                    Output2File(string("li $v0 11"));
-                    Output2File(string("move $a0 ") + OUT_REG);
-                    Output2File(string("syscall"));
-                } else {
-                    fprintf(stderr, "undefined output behaviour\n");
-                }
+                TranslateOutput(*iter);
+                break;
+            }
+            case INPUT: {
+                TranslateInput(*iter);
                 break;
             }
             case ADD: {
@@ -214,8 +251,17 @@ void MipsGenerator::Translate() {
                 TranslateASSIGN(*iter);
                 break;
             }
+            case BEQ:
+            case BLT:
+            case BLE:
+            case BGT:
+            case BGE:
             case BNE: {
-                TranslateBNE(*iter);          
+                TranslateBType(*iter);          
+                break;
+            }
+            case CALL: {
+                TranslateCall(*iter);
                 break;
             }
             case FUNC_BOTTOM: {

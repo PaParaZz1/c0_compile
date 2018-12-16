@@ -476,7 +476,17 @@ compile_errcode InputStatement::Generate() {
                     state = 3;
                     string identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     symbol_table_tree->GetAddressString(identifier_name, identifier_string);
-                    Pcode pcode_input(INPUT, temp_input, EMPTY_STR, EMPTY_STR);
+                    SymbolType input_type;
+                    string input_type_string;
+                    symbol_table_tree->GetTermType(identifier_name, input_type);
+                    if (input_type == INT) {
+                        input_type_string = string("int");
+                    } else if (input_type == CHAR) {
+                        input_type_string = string("char");
+                    } else {
+                        input_type_string = EMPTY_STR;
+                    }
+                    Pcode pcode_input(INPUT, temp_input, input_type_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_input);
                     Pcode pcode_assign(ASSIGN, identifier_string, temp_input, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
