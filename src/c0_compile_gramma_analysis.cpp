@@ -94,6 +94,10 @@ compile_errcode Factor::Parse() {
                 return NOT_MATCH;
             }
         }
+        default: {
+            fprintf(stderr, "invalid symbol in factor parse\n");
+            return NOT_MATCH;
+        }
     }
     handle_symbol_queue->NextSymbol();
     return COMPILE_OK;
@@ -878,7 +882,7 @@ compile_errcode SwitchStatement::Parse() {
                 }
             }
             case 1: {
-                if (name = L_CIRCLE_BRACKET_SYM) {
+                if (name == L_CIRCLE_BRACKET_SYM) {
                     state = 2;
                     break;
                 } else {

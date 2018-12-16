@@ -68,6 +68,10 @@ inline SymbolType Name2Type(SymbolName name) {
         case (INT_SYM): return INT;
         case (CHAR_SYM): return CHAR;
         case (VOID_SYM): return VOID;
+        default: {
+            fprintf(stderr, "invalid enum content in func Name2Type\n");
+            return VOID;
+        }
     }
 }
 
@@ -168,6 +172,10 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
             } else {
                 return NOT_MATCH;
             }
+        }
+        default: {
+            fprintf(stderr, "invalid enum content in func factor action\n");
+            return NOT_MATCH;
         }
     }
     handle_correct_queue->NextSymbol();
@@ -1029,7 +1037,7 @@ compile_errcode SwitchStatement::Action() {
                 }
             }
             case 1: {
-                if (name = L_CIRCLE_BRACKET_SYM) {
+                if (name == L_CIRCLE_BRACKET_SYM) {
                     state = 2;
                     break;
                 } else {

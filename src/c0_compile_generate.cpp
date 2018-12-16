@@ -67,15 +67,6 @@ inline SymbolType MaxDataType(SymbolType& item1, SymbolType& item2) {
     return SymbolTypeInverseMap(max_value);
 }
 
-inline SymbolType Name2Type(SymbolName name) {
-    switch (name) {
-        case (INT_SYM): return INT;
-        case (CHAR_SYM): return CHAR;
-        case (VOID_SYM): return VOID;
-    }
-}
-
-
 compile_errcode Factor::Generate(string& factor_string) {
     int ret = COMPILE_OK;
     string expression_string;
@@ -112,7 +103,7 @@ compile_errcode Factor::Generate(string& factor_string) {
                 m_value_argument_list.Generate();
                 string func_top;
                 handle_func_table->GetTermTopLabel(m_identifier_name, func_top);
-                Pcode pcode(JUMP, func_top, EMPTY_STR, EMPTY_STR);
+                Pcode pcode(CALL, func_top, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode);
                 factor_string = pcode_generator->GetNextTemp();
                 Pcode pcode_load_return_value(ASSIGN, factor_string, "V0", EMPTY_STR);
@@ -138,6 +129,10 @@ compile_errcode Factor::Generate(string& factor_string) {
             handle_correct_queue->NextSymbol();
             m_expression.Generate(factor_string);
             break;
+        }
+        default: {
+            fprintf(stderr, "invalid enum content in factor generate\n");
+            return NOT_MATCH;
         }
     }
     handle_correct_queue->NextSymbol();
@@ -743,6 +738,9 @@ compile_errcode Condition::Generate(string& jump_label) {
                         case SMALL_EQUAL_SYM: pcode_type = BGT; break;
                         case LARGE_SYM: pcode_type = BLE; break;
                         case LARGE_EQUAL_SYM: pcode_type = BLT; break;
+                        default: {
+                            fprintf(stderr, "invalid enum content about relational operator in func condition generate\n"); 
+                        }
                     }
                     state = 2;
                     break;
@@ -1047,7 +1045,7 @@ compile_errcode SwitchStatement::Generate() {
                 }
             }
             case 1: {
-                if (name = L_CIRCLE_BRACKET_SYM) {
+                if (name == L_CIRCLE_BRACKET_SYM) {
                     state = 2;
                     break;
                 } else {
@@ -1330,7 +1328,7 @@ compile_errcode FunctionCall::Generate() {
             }
             case 3: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
-                    Pcode pcode(JUMP, func_top, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode(CALL, func_top, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     state = 4;
                     break;
@@ -1427,7 +1425,9 @@ compile_errcode FunctionDefinition::Generate() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     bottom_label = pcode_generator->GetNextLabel();
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_func_bottom(FUNC_BOTTOM, EMPTY_STR, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
+                    pcode_generator->Insert(pcode_func_bottom);
                     state = 8;
                     break;
                 } else {

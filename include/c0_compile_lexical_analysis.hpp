@@ -16,7 +16,7 @@ namespace c0_compile {
     }
 
     inline bool isalpha(char ch) {
-        return ch == '_' || ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
+        return ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
     }
 }
 

@@ -48,9 +48,15 @@ public:
         string str("This is a term");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action() {}
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Action(SymbolType& term_type);
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string& term_string);
 private:
     Factor* m_factor;
@@ -63,9 +69,15 @@ public:
         string str("This is a expression");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action() {}
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Action(SymbolType& expression_type);
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string& expression_string);
 private:
     Term m_term;
@@ -91,9 +103,15 @@ public:
         string str("This is a factor");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action() {}
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Action(SymbolType& factor_type);
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string& factor_string);
 private:
     Expression m_expression;
@@ -109,9 +127,15 @@ public:
         string str("This is a argument list");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action() {}
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Action(int& argument_number);
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(int& argument_number);
 private:
     string m_identifier_name;
@@ -126,7 +150,10 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string& jump_label);
 private:
     Expression m_expression;
@@ -172,7 +199,10 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string compare_string, string jump_label, string& next_case_label);
 private:
     Statement* m_statement_ptr;
@@ -186,7 +216,10 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate() {}
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Generate(string compare_string, string& jump_label);
 private:
     SwitchChildStatement m_switch_child_statement;
@@ -322,7 +355,10 @@ public:
         string str("This is a return statement");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action() {}
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
     compile_errcode Action(SymbolType& function_type, string funtion_name);
     compile_errcode Generate();
 private:

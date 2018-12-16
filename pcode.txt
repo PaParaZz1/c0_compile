@@ -1,6 +1,7 @@
 label1		LABEL	
-hello world		OUTPUT	
+hello world	string	OUTPUT	
 label2		LABEL	
+		FUNC_BOTTOM	
 label3		LABEL	
 t2	1	MUL	10
 t3	0	ADD	t2
@@ -32,7 +33,7 @@ t20	0	ADD	t19
 t21	1	MUL	1
 t22	t20	SUB	t21
 argument1	t22	ASSIGN	
-label3		JUMP	
+label3		CALL	
 t23	V0	ASSIGN	
 t18	1	MUL	t23
 t24	0	ADD	t18
@@ -41,7 +42,7 @@ t27	0	ADD	t26
 t28	1	MUL	2
 t29	t27	SUB	t28
 argument1	t29	ASSIGN	
-label3		JUMP	
+label3		CALL	
 t30	V0	ASSIGN	
 t25	1	MUL	t30
 t31	t24	ADD	t25
@@ -49,6 +50,7 @@ V0	t31	ASSIGN
 RA		JUMP	
 label6		LABEL	
 label7		LABEL	
+		FUNC_BOTTOM	
 label8		LABEL	
 t32	1	MUL	0
 t33	0	ADD	t32
@@ -61,16 +63,16 @@ sp12	t36	ASSIGN
 t38	1	MUL	10
 t39	0	ADD	t38
 argument1	t39	ASSIGN	
-label3		JUMP	
+label3		CALL	
 t40	V0	ASSIGN	
 t37	1	MUL	t40
 t41	0	ADD	t37
 sp8	t41	ASSIGN	
-fibonacci_ans:%d		OUTPUT	
+fibonacci_ans:%d	string	OUTPUT	
 t43	1	MUL	sp8
 t44	0	ADD	t43
 t42	t44	ASSIGN	
-t42		OUTPUT	
+t42	int_expression	OUTPUT	
 t45	1	MUL	sp12
 t46	0	ADD	t45
 t46	97	BNE	label10
@@ -95,11 +97,11 @@ t53	1	MUL	120
 t54	0	ADD	t53
 sp20	t54	ASSIGN	
 label9		LABEL	
-%c		OUTPUT	
+%c	string	OUTPUT	
 t56	1	MUL	sp20
 t57	0	ADD	t56
 t55	t57	ASSIGN	
-t55		OUTPUT	
+t55	int_expression	OUTPUT	
 label13		LABEL	
 t58	1	MUL	sp24
 t59	0	ADD	t58
@@ -118,15 +120,15 @@ t69	t67	ADD	t68
 sp24	t69	ASSIGN	
 label13		JUMP	
 label14		LABEL	
-    		OUTPUT	
-sum of 100:%d		OUTPUT	
+    	string	OUTPUT	
+sum of 100:%d	string	OUTPUT	
 t72	1	MUL	sp28
 t73	0	ADD	t72
 t71	t73	ASSIGN	
-t71		OUTPUT	
-    		OUTPUT	
-    		OUTPUT	
-label1		JUMP	
+t71	int_expression	OUTPUT	
+    	string	OUTPUT	
+    	string	OUTPUT	
+label1		CALL	
 t76	1	MUL	0
 t77	0	ADD	t76
 sp24	t77	ASSIGN	
@@ -148,14 +150,14 @@ t88	sp32	ADD	t87
 t89	1	MUL	sp16
 t90	0	ADD	t89
 t88	t90	ASSIGN	
-%c		OUTPUT	
+%c	string	OUTPUT	
 t94	1	MUL	sp24
 t95	0	ADD	t94
 t93	sp32	ADD	t95
 t92	1	MUL	t93
 t96	0	ADD	t92
 t91	t96	ASSIGN	
-t91		OUTPUT	
+t91	int_expression	OUTPUT	
 t97	1	MUL	sp24
 t98	0	ADD	t97
 t99	1	MUL	1
@@ -163,7 +165,7 @@ t100	t98	ADD	t99
 sp24	t100	ASSIGN	
 label15		JUMP	
 label16		LABEL	
-    		OUTPUT	
-end		OUTPUT	
+    	string	OUTPUT	
+end	string	OUTPUT	
 RA		JUMP	
 label17		LABEL	

@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include "c0_compile_utils.hpp"
 // #include <boost/variant.hpp>
 
 #define FOREACH_FUNC_SYMBOL(FUNC) \
@@ -210,6 +211,7 @@ public:
     template<typename T>
     compile_errcode SetConstInformation(T value) {
         memcpy(&m_other_information, &value, sizeof(T));
+        return COMPILE_OK;
     }
     void SetArrayInformation(int value) {
         m_other_information.array_length = value;
@@ -280,13 +282,13 @@ public:
     }
     void PrintTable();
 private:
-    vector<pair<string, SymbolTableTerm>> m_symbol_table;
+    vector<pair<string, SymbolTableTerm> > m_symbol_table;
     string m_table_name;
     string m_previous_level_name;
     SymbolType m_table_type;
     int m_table_base_address;
     int m_table_address_length;
-    compile_errcode GetTerm(string name, vector<pair<string, SymbolTableTerm>>::iterator& iter);
+    compile_errcode GetTerm(string name, vector<pair<string, SymbolTableTerm> >::iterator& iter);
 };
 
 class SymbolTableTree {
@@ -313,7 +315,7 @@ public:
     void UpgradeAddress();
     void PrintTree();
 private:
-    vector<pair<string, SymbolTable>> m_table_tree;
+    vector<pair<string, SymbolTable> > m_table_tree;
     string current_table_name;
     int m_tree_address_length;
 };

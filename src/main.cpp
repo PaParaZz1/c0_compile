@@ -5,6 +5,7 @@
 #include "c0_compile_gramma.hpp"
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_pcode.hpp"
+#include "c0_compile_mips.hpp"
 
 using std::cout;
 using std::endl;
@@ -108,6 +109,12 @@ ERROR1:
     delete(handle_symbol_queue);
 }
 
+void MipsGenerate(vector<Pcode>& source_queue) {
+    handle_mips_generator = new MipsGenerator("mips.txt", source_queue);
+    handle_mips_generator->Translate();
+    delete(handle_mips_generator);
+}
+
 void TestGenerate(const char* test_file_name) {
     int ret = COMPILE_OK;
     LexicalAnalysis lexical_analysis(test_file_name);
@@ -121,6 +128,7 @@ void TestGenerate(const char* test_file_name) {
     Program program;
     pcode_generator = new PcodeGenerator("pcode.txt");
     handle_func_table = new FunctionTable;
+    vector<Pcode> pcode_copy;
     // lexical analysis
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
@@ -158,6 +166,11 @@ void TestGenerate(const char* test_file_name) {
     program.Generate();
     pcode_generator->PrintAllPcode();
     handle_func_table->PrintAllTerm();
+    cout << "generate pcode OK" << endl;
+    // mips generate
+    pcode_generator->CopyPcode(pcode_copy);
+    MipsGenerate(pcode_copy);
+    cout << "generate mips OK\nend!!!" << endl;
 ERROR2:
     delete(handle_func_table);
     delete(pcode_generator);

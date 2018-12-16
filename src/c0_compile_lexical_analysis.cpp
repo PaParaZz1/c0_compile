@@ -349,8 +349,10 @@ SymbolName SymbolQueue::GetCurrentName() {
 }
 
 compile_errcode SymbolQueue::NextSymbol() {
-    if (m_current_locate < this->GetLen())
+    if (m_current_locate < this->GetLen()) {
         m_current_locate++;
+        return COMPILE_OK;
+    }
     else
         return -2;
 }
