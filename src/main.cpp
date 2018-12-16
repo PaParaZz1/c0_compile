@@ -170,7 +170,7 @@ void TestGenerate(const char* test_file_name) {
     // mips generate
     pcode_generator->CopyPcode(pcode_copy);
     MipsGenerate(pcode_copy);
-    cout << "generate mips OK\nend!!!" << endl;
+    cout << "generate mips OK\ncompile OK" << endl;
 ERROR2:
     delete(handle_func_table);
     delete(pcode_generator);
