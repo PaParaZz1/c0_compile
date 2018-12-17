@@ -347,7 +347,7 @@ void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
     auto iter = m_table_tree.begin();
     for (; iter != m_table_tree.end(); ++iter) {
         if (iter->first == name) {
-            length = iter->second.GetSpaceLength();
+            length = iter->second.GetTableSpace();
         }
     }
 }

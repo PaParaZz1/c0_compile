@@ -10,6 +10,7 @@ using std::cout;
 using std::endl;
 
 extern SymbolTableTree* symbol_table_tree;
+extern FunctionTable* handle_func_table;
 extern SymbolQueue* handle_symbol_queue;
 SymbolQueue* handle_correct_queue = handle_symbol_queue;
 
@@ -1343,15 +1344,21 @@ compile_errcode FunctionCall::Action() {
 compile_errcode FunctionDefinition::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    int return_value_number = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         int line_number = handle_correct_queue->GetCurrentLine();
         int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
-                if (name == VOID_SYM || name == INT_SYM || name == CHAR_SYM) {
+                if (IsValidFunctionType(name)) {
                     state = 1;
                     m_type = name;
+                    if (IsValidVariableType(name)) {
+                        return_value_number = 1;        
+                    } else {
+                        return_value_number = 0;
+                    }
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1429,6 +1436,9 @@ compile_errcode FunctionDefinition::Action() {
             }
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    int space_length = 0;
+                    symbol_table_tree->GetTableSpaceLength(m_identifier_name, space_length);
+                    handle_func_table->InsertTerm(m_identifier_name, space_length，m_argument_number, return_value_number);
                     symbol_table_tree->UpgradeAddress();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);

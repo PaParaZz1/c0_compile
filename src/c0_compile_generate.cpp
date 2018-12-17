@@ -1416,7 +1416,7 @@ compile_errcode FunctionDefinition::Generate() {
                     top_label = pcode_generator->GetNextLabel();
                     Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_top_label);
-                    handle_func_table->InsertTerm(m_identifier_name, top_label, m_argument_number, return_value_number);
+                    //handle_func_table->InsertTerm(m_identifier_name, top_label, m_argument_number, return_value_number);
                     state = 6;
                     break;
                 } else {
@@ -1514,7 +1514,7 @@ compile_errcode MainFunction::Generate() {
                     bottom_label = pcode_generator->GetNextLabel();
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
-                    handle_func_table->InsertTerm(string("main"), top_label, 0, 0);
+                    //handle_func_table->InsertTerm(string("main"), top_label, 0, 0);
                     state = 7;
                     break;
                 } else {
