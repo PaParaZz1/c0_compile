@@ -307,8 +307,10 @@ public:
     compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
     compile_errcode GetTermKind(string name, SymbolKind& kind);
+    compile_errcode GetTermKind(string cur_func_name, string name, SymbolKind& kind);
     compile_errcode GetTermIntValue(string name, int& value);
-    compile_errcode GetAddressString(string name, string& address_string);
+    compile_errcode GetAddressStringInterface(string name, string& address_string);
+    compile_errcode GetAddressStringInterface(string current_table_name, string name, string& address_string);
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }
@@ -319,6 +321,7 @@ private:
     vector<pair<string, SymbolTable> > m_table_tree;
     string current_table_name;
     int m_tree_address_length;
+    compile_errcode GetAddressString(string current_table_name, string name, string& address_string);
 };
 
 class FunctionTableTerm {

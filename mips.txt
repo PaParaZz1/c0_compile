@@ -15,7 +15,7 @@ syscall
 label2:
 label3:
 li $t1 1
-li $t2 10
+lw $t2 0($fp)
 mul $t0 $t1 $t2
 sw $t0 0($sp)
 lw $t1 0($sp)
@@ -43,7 +43,7 @@ move $v0 $t1
 jr $ra
 label4:
 li $t1 1
-li $t2 10
+lw $t2 0($fp)
 mul $t0 $t1 $t2
 sw $t0 24($sp)
 lw $t1 24($sp)
@@ -71,7 +71,7 @@ move $v0 $t1
 jr $ra
 label5:
 li $t1 1
-li $t2 10
+lw $t2 0($fp)
 mul $t0 $t1 $t2
 sw $t0 48($sp)
 lw $t1 48($sp)
@@ -88,7 +88,7 @@ lw $t0 52($sp)
 lw $t1 60($sp)
 blt $t0 $t1 label6
 li $t1 1
-li $t2 10
+lw $t2 0($fp)
 mul $t0 $t1 $t2
 sw $t0 64($sp)
 lw $t1 64($sp)
@@ -98,50 +98,78 @@ li $t1 1
 li $t2 1
 mul $t0 $t1 $t2
 sw $t0 72($sp)
-lw $t1 32766($sp)
+lw $t1 68($sp)
+lw $t2 72($sp)
+sub$t0 $t1 $t2
+sw $t0 76($sp)
+lw $t1 76($sp)
 move $t0 $t1
 sw $t0 12284($0)
-lw $t1 32766($sp)
-move $t0 $t1
-sw $t0 76($sp)
-li $t1 1
-lw $t2 76($sp)
-mul $t0 $t1 $t2
+addi $sp $sp -8
+sw $ra 0($sp)
+sw $fp 4($sp)
+move $fp $sp
+addi $sp $sp -100
+jal label3
+addi $sp $sp 100
+lw $fp 4($sp)
+lw $ra 0($sp)
+addi $sp $sp 12
+move $t0 $V0
 sw $t0 80($sp)
-lw $t1 80($sp)
-addi $t0 $t1 0
-sw $t0 84($sp)
 li $t1 1
-li $t2 10
+lw $t2 80($sp)
 mul $t0 $t1 $t2
-sw $t0 88($sp)
-lw $t1 88($sp)
+sw $t0 84($sp)
+lw $t1 84($sp)
 addi $t0 $t1 0
+sw $t0 88($sp)
+li $t1 1
+lw $t2 0($fp)
+mul $t0 $t1 $t2
 sw $t0 92($sp)
+lw $t1 92($sp)
+addi $t0 $t1 0
+sw $t0 96($sp)
 li $t1 1
 li $t2 2
 mul $t0 $t1 $t2
-sw $t0 96($sp)
-lw $t1 32766($sp)
+sw $t0 100($sp)
+lw $t1 96($sp)
+lw $t2 100($sp)
+sub$t0 $t1 $t2
+sw $t0 104($sp)
+lw $t1 104($sp)
 move $t0 $t1
 sw $t0 12284($0)
-lw $t1 32766($sp)
-move $t0 $t1
-sw $t0 100($sp)
-li $t1 1
-lw $t2 100($sp)
-mul $t0 $t1 $t2
-sw $t0 104($sp)
-lw $t1 84($sp)
-lw $t2 104($sp)
-add $t0 $t1 $t2
+addi $sp $sp -8
+sw $ra 0($sp)
+sw $fp 4($sp)
+move $fp $sp
+addi $sp $sp -100
+jal label3
+addi $sp $sp 100
+lw $fp 4($sp)
+lw $ra 0($sp)
+addi $sp $sp 12
+move $t0 $V0
 sw $t0 108($sp)
-lw $t1 108($sp)
+li $t1 1
+lw $t2 108($sp)
+mul $t0 $t1 $t2
+sw $t0 112($sp)
+lw $t1 88($sp)
+lw $t2 112($sp)
+add$t0 $t1 $t2
+sw $t0 116($sp)
+lw $t1 116($sp)
 move $v0 $t1
 jr $ra
 label6:
 label7:
 label8:
+label9:
+label10:
 li $t1 1
 li $t2 0
 mul $t0 $t1 $t2
@@ -151,7 +179,7 @@ addi $t0 $t1 0
 sw $t0 4($sp)
 lw $t1 4($sp)
 move $t0 $t1
-sw $t0 24($0)
+sw $t0 16($0)
 li $t1 1
 li $t2 0
 mul $t0 $t1 $t2
@@ -161,15 +189,14 @@ addi $t0 $t1 0
 sw $t0 12($sp)
 lw $t1 12($sp)
 move $t0 $t1
-sw $t0 28($0)
-li $v0 12
+sw $t0 20($0)
 move $v0 $t0
 sw $t0 16($sp)
 lw $t1 16($sp)
 move $t0 $t1
-sw $t0 12($0)
+sw $t0 4($0)
 li $t1 1
-li $t2 10
+li $t2 0
 mul $t0 $t1 $t2
 sw $t0 20($sp)
 lw $t1 20($sp)
@@ -178,8 +205,17 @@ sw $t0 24($sp)
 lw $t1 24($sp)
 move $t0 $t1
 sw $t0 12284($0)
-lw $t1 32766($sp)
-move $t0 $t1
+addi $sp $sp -8
+sw $ra 0($sp)
+sw $fp 4($sp)
+move $fp $sp
+addi $sp $sp -100
+jal label3
+addi $sp $sp 100
+lw $fp 4($sp)
+lw $ra 0($sp)
+addi $sp $sp 12
+move $t0 $V0
 sw $t0 28($sp)
 li $t1 1
 lw $t2 28($sp)
@@ -190,12 +226,12 @@ addi $t0 $t1 0
 sw $t0 36($sp)
 lw $t1 36($sp)
 move $t0 $t1
-sw $t0 8($0)
+sw $t0 0($0)
 li $v0 4
 la $a0 fibonacci_ans:%d
 syscall
 li $t1 1
-lw $t2 8($fp)
+lw $t2 0($fp)
 mul $t0 $t1 $t2
 sw $t0 40($sp)
 lw $t1 40($sp)
@@ -209,7 +245,7 @@ li $v0 1
 move $a0 $s1
 syscall
 li $t1 1
-lw $t2 12($fp)
+lw $t2 4($fp)
 mul $t0 $t1 $t2
 sw $t0 52($sp)
 lw $t1 52($sp)
@@ -217,7 +253,7 @@ addi $t0 $t1 0
 sw $t0 56($sp)
 lw $t0 56($sp)
 lw $t1 56($sp)
-bne $t0 $t1 label10
+bne $t0 $t1 label12
 li $t1 1
 li $t2 100
 mul $t0 $t1 $t2
@@ -227,12 +263,12 @@ addi $t0 $t1 0
 sw $t0 64($sp)
 lw $t1 64($sp)
 move $t0 $t1
-sw $t0 20($0)
-j label9
-label10:
+sw $t0 12($0)
+j label11
+label12:
 lw $t0 56($sp)
 lw $t1 56($sp)
-bne $t0 $t1 label11
+bne $t0 $t1 label13
 li $t1 1
 li $t2 99
 mul $t0 $t1 $t2
@@ -242,12 +278,12 @@ addi $t0 $t1 0
 sw $t0 72($sp)
 lw $t1 72($sp)
 move $t0 $t1
-sw $t0 20($0)
-j label9
-label11:
+sw $t0 12($0)
+j label11
+label13:
 lw $t0 56($sp)
 lw $t1 56($sp)
-bne $t0 $t1 label12
+bne $t0 $t1 label14
 li $t1 1
 li $t2 98
 mul $t0 $t1 $t2
@@ -257,9 +293,9 @@ addi $t0 $t1 0
 sw $t0 80($sp)
 lw $t1 80($sp)
 move $t0 $t1
-sw $t0 20($0)
-j label9
-label12:
+sw $t0 12($0)
+j label11
+label14:
 li $t1 1
 li $t2 120
 mul $t0 $t1 $t2
@@ -269,13 +305,13 @@ addi $t0 $t1 0
 sw $t0 88($sp)
 lw $t1 88($sp)
 move $t0 $t1
-sw $t0 20($0)
-label9:
+sw $t0 12($0)
+label11:
 li $v0 4
 la $a0 %c
 syscall
 li $t1 1
-lw $t2 20($fp)
+lw $t2 12($fp)
 mul $t0 $t1 $t2
 sw $t0 92($sp)
 lw $t1 92($sp)
@@ -288,9 +324,9 @@ lw $s1 100($sp)
 li $v0 1
 move $a0 $s1
 syscall
-label13:
+label15:
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 104($sp)
 lw $t1 104($sp)
@@ -305,27 +341,27 @@ addi $t0 $t1 0
 sw $t0 116($sp)
 lw $t0 108($sp)
 lw $t1 116($sp)
-bge $t0 $t1 label14
+bge $t0 $t1 label16
 li $t1 1
-lw $t2 28($fp)
+lw $t2 20($fp)
 mul $t0 $t1 $t2
 sw $t0 120($sp)
 lw $t1 120($sp)
 addi $t0 $t1 0
 sw $t0 124($sp)
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 128($sp)
 lw $t1 124($sp)
 lw $t2 128($sp)
-add $t0 $t1 $t2
+add$t0 $t1 $t2
 sw $t0 132($sp)
 lw $t1 132($sp)
 move $t0 $t1
-sw $t0 28($0)
+sw $t0 20($0)
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 136($sp)
 lw $t1 136($sp)
@@ -337,13 +373,13 @@ mul $t0 $t1 $t2
 sw $t0 144($sp)
 lw $t1 140($sp)
 lw $t2 144($sp)
-add $t0 $t1 $t2
+add$t0 $t1 $t2
 sw $t0 148($sp)
 lw $t1 148($sp)
 move $t0 $t1
-sw $t0 24($0)
-j label13
-label14:
+sw $t0 16($0)
+j label15
+label16:
 li $v0 4
 la $a0     
 syscall
@@ -351,7 +387,7 @@ li $v0 4
 la $a0 sum of 100:%d
 syscall
 li $t1 1
-lw $t2 28($fp)
+lw $t2 20($fp)
 mul $t0 $t1 $t2
 sw $t0 152($sp)
 lw $t1 152($sp)
@@ -370,6 +406,16 @@ syscall
 li $v0 4
 la $a0     
 syscall
+addi $sp $sp -8
+sw $ra 0($sp)
+sw $fp 4($sp)
+move $fp $sp
+addi $sp $sp -100
+jal label1
+addi $sp $sp 100
+lw $fp 4($sp)
+lw $ra 0($sp)
+addi $sp $sp 12
 li $t1 1
 li $t2 0
 mul $t0 $t1 $t2
@@ -379,7 +425,7 @@ addi $t0 $t1 0
 sw $t0 168($sp)
 lw $t1 168($sp)
 move $t0 $t1
-sw $t0 24($0)
+sw $t0 16($0)
 li $t1 1
 li $t2 10
 mul $t0 $t1 $t2
@@ -389,7 +435,7 @@ addi $t0 $t1 0
 sw $t0 176($sp)
 lw $t1 176($sp)
 move $t0 $t1
-sw $t0 12292($0)
+sw $t0 12284($0)
 li $t1 1
 li $t2 110
 mul $t0 $t1 $t2
@@ -399,17 +445,17 @@ addi $t0 $t1 0
 sw $t0 184($sp)
 lw $t1 184($sp)
 move $t0 $t1
-sw $t0 16($0)
-label15:
+sw $t0 8($0)
+label17:
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 188($sp)
 lw $t1 188($sp)
 addi $t0 $t1 0
 sw $t0 192($sp)
 li $t1 1
-lw $t2 12292($0)
+lw $t2 12284($0)
 mul $t0 $t1 $t2
 sw $t0 196($sp)
 lw $t1 196($sp)
@@ -417,19 +463,19 @@ addi $t0 $t1 0
 sw $t0 200($sp)
 lw $t0 192($sp)
 lw $t1 200($sp)
-bge $t0 $t1 label16
+bge $t0 $t1 label18
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 204($sp)
 lw $t1 204($sp)
 addi $t0 $t1 0
 sw $t0 208($sp)
 lw $t1 208($sp)
-addi $t0 $t1 fp32
+addi $t0 $t1 fp24
 sw $t0 212($sp)
 li $t1 1
-lw $t2 16($fp)
+lw $t2 8($fp)
 mul $t0 $t1 $t2
 sw $t0 216($sp)
 lw $t1 216($sp)
@@ -442,14 +488,14 @@ li $v0 4
 la $a0 %c
 syscall
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 228($sp)
 lw $t1 228($sp)
 addi $t0 $t1 0
 sw $t0 232($sp)
 lw $t1 232($sp)
-addi $t0 $t1 fp32
+addi $t0 $t1 fp24
 sw $t0 236($sp)
 li $t1 1
 lw $t2 236($sp)
@@ -466,7 +512,7 @@ li $v0 1
 move $a0 $s1
 syscall
 li $t1 1
-lw $t2 24($fp)
+lw $t2 16($fp)
 mul $t0 $t1 $t2
 sw $t0 252($sp)
 lw $t1 252($sp)
@@ -478,13 +524,13 @@ mul $t0 $t1 $t2
 sw $t0 260($sp)
 lw $t1 256($sp)
 lw $t2 260($sp)
-add $t0 $t1 $t2
+add$t0 $t1 $t2
 sw $t0 264($sp)
 lw $t1 264($sp)
 move $t0 $t1
-sw $t0 24($0)
-j label15
-label16:
+sw $t0 16($0)
+j label17
+label18:
 li $v0 4
 la $a0     
 syscall
@@ -492,4 +538,4 @@ li $v0 4
 la $a0 end
 syscall
 jr $ra
-label17:
+label19:

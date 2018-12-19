@@ -60,7 +60,7 @@ function type: VOID
 function fibonacci's symbol table
 function type: INT
 {
- name: n1
+ name: n
  kind: PARAMETER
  type: INT
  relative addr: 0x0000

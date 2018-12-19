@@ -17,6 +17,8 @@ extern SymbolQueue* handle_correct_queue;
 extern PcodeGenerator* pcode_generator;
 extern FunctionTable* handle_func_table;
 
+string current_func_name("global");
+
 inline bool IsAddOperation(SymbolName name) {
     return (name == ADD_SYM) || (name == SUB_SYM);
 }
@@ -90,7 +92,7 @@ compile_errcode Factor::Generate(string& factor_string) {
             name = handle_correct_queue->GetCurrentName();
             if (name == L_SQUARE_BRACKET_SYM) {
                 string array_addr;
-                symbol_table_tree->GetAddressString(m_identifier_name, array_addr);
+                symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, array_addr);
                 temp = pcode_generator->GetNextTemp();
                 handle_correct_queue->NextSymbol();
                 m_expression.Generate(expression_string);
@@ -113,14 +115,14 @@ compile_errcode Factor::Generate(string& factor_string) {
                 handle_correct_queue->SetCurrentLocate();
                 SymbolKind kind; 
                 SymbolType type;
-                symbol_table_tree->GetTermKind(m_identifier_name, kind);
+                symbol_table_tree->GetTermKind(current_func_name, m_identifier_name, kind);
                 symbol_table_tree->GetTermType(m_identifier_name, type);
                 if (kind == CONST) {
                     int value;
                     symbol_table_tree->GetTermIntValue(m_identifier_name, value);
                     factor_string = std::to_string(value);
                 } else {
-                    symbol_table_tree->GetAddressString(m_identifier_name, factor_string);
+                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, factor_string);
                 }
                 break;
             }
@@ -475,7 +477,7 @@ compile_errcode InputStatement::Generate() {
                 if (name == IDENTIFIER_SYM) {
                     state = 3;
                     string identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    symbol_table_tree->GetAddressString(identifier_name, identifier_string);
+                    symbol_table_tree->GetAddressStringInterface(current_func_name, identifier_name, identifier_string);
                     SymbolType input_type;
                     string input_type_string;
                     symbol_table_tree->GetTermType(identifier_name, input_type);
@@ -675,10 +677,10 @@ compile_errcode AssignStatement::Generate() {
             case 1: {
                 if (name == ASSIGN_SYM) {
                     state = 2;
-                    symbol_table_tree->GetAddressString(m_identifier_name, left);
+                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, left);
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
-                    symbol_table_tree->GetAddressString(m_identifier_name, left);
+                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, left);
                     state = 11;
                     break;
                 } else {
@@ -1381,6 +1383,7 @@ compile_errcode FunctionDefinition::Generate() {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    current_func_name = m_identifier_name;
                     state = 2;
                     break;
                 } else {
@@ -1468,6 +1471,7 @@ compile_errcode MainFunction::Generate() {
             }
             case 1: {
                 if (name == MAIN_SYM) {
+                    current_func_name = string("main");
                     state = 2;
                     break;
                 } else {

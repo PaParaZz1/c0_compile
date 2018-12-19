@@ -3,7 +3,7 @@ hello world	string	OUTPUT
 label2		LABEL	
 		FUNC_BOTTOM	
 label3		LABEL	
-t2	1	MUL	10
+t2	1	MUL	fp0
 t3	0	ADD	t2
 t4	1	MUL	0
 t5	0	ADD	t4
@@ -13,7 +13,7 @@ t7	0	ADD	t6
 V0	t7	ASSIGN	
 RA		JUMP	
 label4		LABEL	
-t8	1	MUL	10
+t8	1	MUL	fp0
 t9	0	ADD	t8
 t10	1	MUL	1
 t11	0	ADD	t10
@@ -23,12 +23,12 @@ t13	0	ADD	t12
 V0	t13	ASSIGN	
 RA		JUMP	
 label5		LABEL	
-t14	1	MUL	10
+t14	1	MUL	fp0
 t15	0	ADD	t14
 t16	1	MUL	2
 t17	0	ADD	t16
 t15	t17	BLT	label6
-t19	1	MUL	10
+t19	1	MUL	fp0
 t20	0	ADD	t19
 t21	1	MUL	1
 t22	t20	SUB	t21
@@ -37,7 +37,7 @@ label3		CALL
 t23	V0	ASSIGN	
 t18	1	MUL	t23
 t24	0	ADD	t18
-t26	1	MUL	10
+t26	1	MUL	fp0
 t27	0	ADD	t26
 t28	1	MUL	2
 t29	t27	SUB	t28
@@ -52,77 +52,80 @@ label6		LABEL
 label7		LABEL	
 		FUNC_BOTTOM	
 label8		LABEL	
+label9		LABEL	
+		FUNC_BOTTOM	
+label10		LABEL	
 t32	1	MUL	0
 t33	0	ADD	t32
-fp24	t33	ASSIGN	
+fp16	t33	ASSIGN	
 t34	1	MUL	0
 t35	0	ADD	t34
-fp28	t35	ASSIGN	
-t36	char	INPUT	
-fp12	t36	ASSIGN	
-t38	1	MUL	10
+fp20	t35	ASSIGN	
+t36		INPUT	
+fp4	t36	ASSIGN	
+t38	1	MUL	0
 t39	0	ADD	t38
 argument1	t39	ASSIGN	
 label3		CALL	
 t40	V0	ASSIGN	
 t37	1	MUL	t40
 t41	0	ADD	t37
-fp8	t41	ASSIGN	
+fp0	t41	ASSIGN	
 fibonacci_ans:%d	string	OUTPUT	
-t43	1	MUL	fp8
+t43	1	MUL	fp0
 t44	0	ADD	t43
 t42	t44	ASSIGN	
 t42	int_expression	OUTPUT	
-t45	1	MUL	fp12
+t45	1	MUL	fp4
 t46	0	ADD	t45
-t46	97	BNE	label10
+t46	97	BNE	label12
 t47	1	MUL	100
 t48	0	ADD	t47
-fp20	t48	ASSIGN	
-label9		JUMP	
-label10		LABEL	
-t46	98	BNE	label11
+fp12	t48	ASSIGN	
+label11		JUMP	
+label12		LABEL	
+t46	98	BNE	label13
 t49	1	MUL	99
 t50	0	ADD	t49
-fp20	t50	ASSIGN	
-label9		JUMP	
-label11		LABEL	
-t46	99	BNE	label12
+fp12	t50	ASSIGN	
+label11		JUMP	
+label13		LABEL	
+t46	99	BNE	label14
 t51	1	MUL	98
 t52	0	ADD	t51
-fp20	t52	ASSIGN	
-label9		JUMP	
-label12		LABEL	
+fp12	t52	ASSIGN	
+label11		JUMP	
+label14		LABEL	
 t53	1	MUL	120
 t54	0	ADD	t53
-fp20	t54	ASSIGN	
-label9		LABEL	
+fp12	t54	ASSIGN	
+label11		LABEL	
 %c	string	OUTPUT	
-t56	1	MUL	fp20
+t56	1	MUL	fp12
 t57	0	ADD	t56
 t55	t57	ASSIGN	
 t55	int_expression	OUTPUT	
-label13		LABEL	
-t58	1	MUL	fp24
+label15		LABEL	
+t58	1	MUL	fp16
 t59	0	ADD	t58
 t60	1	MUL	100
 t61	0	ADD	t60
-t59	t61	BGE	label14
-t62	1	MUL	fp28
+t59	t61	BGE	label16
+t62	1	MUL	fp20
 t63	0	ADD	t62
-t64	1	MUL	fp24
+t64	1	MUL	fp16
 t65	t63	ADD	t64
-fp28	t65	ASSIGN	
-t66	1	MUL	fp24
+fp20	t65	ASSIGN	
+t66	1	MUL	fp16
 t67	0	ADD	t66
 t68	1	MUL	1
 t69	t67	ADD	t68
-fp24	t69	ASSIGN	
-label13		JUMP	
-label14		LABEL	
+fp16	t69	ASSIGN	
+label15		JUMP	
+label16		LABEL	
     	string	OUTPUT	
 sum of 100:%d	string	OUTPUT	
-t72	1	MUL	fp28
+t72	1	MUL	fp20
 t73	0	ADD	t72
 t71	t73	ASSIGN	
 t71	int_expression	OUTPUT	
@@ -131,41 +134,41 @@ t71	int_expression	OUTPUT
 label1		CALL	
 t76	1	MUL	0
 t77	0	ADD	t76
-fp24	t77	ASSIGN	
+fp16	t77	ASSIGN	
 t78	1	MUL	10
 t79	0	ADD	t78
-g8	t79	ASSIGN	
+g0	t79	ASSIGN	
 t80	1	MUL	110
 t81	0	ADD	t80
-fp16	t81	ASSIGN	
-label15		LABEL	
-t82	1	MUL	fp24
+fp8	t81	ASSIGN	
+label17		LABEL	
+t82	1	MUL	fp16
 t83	0	ADD	t82
-t84	1	MUL	g8
+t84	1	MUL	g0
 t85	0	ADD	t84
-t83	t85	BGE	label16
-t86	1	MUL	fp24
+t83	t85	BGE	label18
+t86	1	MUL	fp16
 t87	0	ADD	t86
-t88	fp32	ADD	t87
-t89	1	MUL	fp16
+t88	fp24	ADD	t87
+t89	1	MUL	fp8
 t90	0	ADD	t89
 t88	t90	ASSIGN	
 %c	string	OUTPUT	
-t94	1	MUL	fp24
+t94	1	MUL	fp16
 t95	0	ADD	t94
-t93	fp32	ADD	t95
+t93	fp24	ADD	t95
 t92	1	MUL	t93
 t96	0	ADD	t92
 t91	t96	ASSIGN	
 t91	int_expression	OUTPUT	
-t97	1	MUL	fp24
+t97	1	MUL	fp16
 t98	0	ADD	t97
 t99	1	MUL	1
 t100	t98	ADD	t99
-fp24	t100	ASSIGN	
-label15		JUMP	
-label16		LABEL	
+fp16	t100	ASSIGN	
+label17		JUMP	
+label18		LABEL	
     	string	OUTPUT	
 end	string	OUTPUT	
 RA		JUMP	
-label17		LABEL	
+label19		LABEL	

@@ -153,6 +153,18 @@ compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
     }
 }
 
+compile_errcode SymbolTableTree::GetTermKind(string cur_func_name, string name, SymbolKind& kind) {
+    int ret = COMPILE_OK;
+    auto iter = m_table_tree.begin(); 
+    for (; iter != m_table_tree.end(); ++iter) {
+        if (iter->first == cur_func_name) {
+            iter->second.GetTermKind(name, kind);
+            return ret;
+        }
+    }
+    return -3;
+}
+
 compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
     int ret = COMPILE_OK;
     vector<pair<string, SymbolTableTerm> >::iterator iter;
@@ -317,8 +329,7 @@ void SymbolTableTree::UpgradeAddress() {
     }
 }
 
-compile_errcode SymbolTableTree::GetAddressString(string name, string& address_string) {
-    string current_table_name = this->GetCurrentTableName();
+compile_errcode SymbolTableTree::GetAddressString(string current_table_name, string name, string& address_string) {
     auto iter = m_table_tree.begin();
     int addr;
     int ret = COMPILE_OK;
@@ -342,6 +353,16 @@ compile_errcode SymbolTableTree::GetAddressString(string name, string& address_s
         }
     } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
     return COMPILE_OK;
+}
+
+compile_errcode SymbolTableTree::GetAddressStringInterface(string name, string& address_string) {
+    string current_table_name = this->GetCurrentTableName();
+    return this->GetAddressString(current_table_name, name, address_string);
+}
+
+compile_errcode SymbolTableTree::GetAddressStringInterface(string current_table_name, string name, string& address_string) {
+    return this->GetAddressString(current_table_name, name, address_string);
+
 }
 
 void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
