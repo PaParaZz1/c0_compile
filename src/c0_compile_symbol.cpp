@@ -96,6 +96,7 @@ compile_errcode SymbolTable::Insert(SymbolTableTerm& term) {
         term.SetAddress(m_table_address_length, m_table_base_address);
         pair<string, SymbolTableTerm> pair_term(name, term);
         switch (kind) {
+            case CONST:
             case FUNCTION:break;
             case ARRAY: {
                 int number = term.GetArrayInformation();
@@ -354,14 +355,14 @@ void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
 
 void FunctionTableTerm::PrintTerm() {
     fprintf(fp_symbol, "--------------------------------------\n");
-    fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\n",
-    m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length);
+    fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\nspace length: %d\n",
+    m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length, m_space_length);
 }
 void FunctionTable::InsertTerm(string func_name,
-                               string top_label,
+                               int space_length,
                                int argument_number,
                                int return_value_number) {
-    FunctionTableTerm term(func_name, top_label, argument_number, return_value_number);
+    FunctionTableTerm term(func_name, space_length, argument_number, return_value_number);
     m_func_table.push_back(term);
     m_current_term_ptr++;
 }
@@ -392,6 +393,17 @@ void FunctionTable::GetTermTopLabel(string term_name, string& top_label) {
         iter->GetName(tmp);
         if (tmp == term_name) {
             iter->GetTopLabel(top_label);
+        }
+    }
+}
+
+void FunctionTable::SetTermTopLabel(string func_name, string& top_level) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == func_name) {
+            iter->SetTopLabel(top_level);
         }
     }
 }

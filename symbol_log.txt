@@ -12,26 +12,26 @@ function type: VOID
  name: date
  kind: CONST
  type: INT
- relative addr: 0x0004
+ relative addr: 0x0000
  const int value: 20181111
 }
 {
  name: test_int1
  kind: VARIABLE
  type: INT
- relative addr: 0x0008
+ relative addr: 0x0000
 }
 {
  name: test_int2
  kind: VARIABLE
  type: INT
- relative addr: 0x000c
+ relative addr: 0x0004
 }
 {
  name: test_int3
  kind: VARIABLE
  type: INT
- relative addr: 0x0010
+ relative addr: 0x0008
 }
 {
  name: _print
@@ -45,6 +45,12 @@ function type: VOID
  type: INT
  function parameter number: 1
 }
+{
+ name: test
+ kind: FUNCTION
+ type: INT
+ function parameter number: 2
+}
 -------------------------------------------------
 -------------------------------------------------
 function _print's symbol table
@@ -54,10 +60,32 @@ function type: VOID
 function fibonacci's symbol table
 function type: INT
 {
- name: n
+ name: n1
  kind: PARAMETER
  type: INT
  relative addr: 0x0000
+}
+{
+ name: cfibo
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x0004
+}
+-------------------------------------------------
+-------------------------------------------------
+function test's symbol table
+function type: INT
+{
+ name: a
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: b
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0004
 }
 -------------------------------------------------
 -------------------------------------------------
@@ -74,50 +102,50 @@ function type: VOID
  name: c1
  kind: CONST
  type: CHAR
- relative addr: 0x0004
+ relative addr: 0x0000
  const char value: a
 }
 {
  name: fibonacci_ans
  kind: VARIABLE
  type: INT
- relative addr: 0x0008
+ relative addr: 0x0000
 }
 {
  name: test_c
  kind: VARIABLE
  type: CHAR
- relative addr: 0x000c
+ relative addr: 0x0004
 }
 {
  name: test_d
  kind: VARIABLE
  type: CHAR
- relative addr: 0x0010
+ relative addr: 0x0008
 }
 {
  name: c
  kind: VARIABLE
  type: CHAR
- relative addr: 0x0014
+ relative addr: 0x000c
 }
 {
  name: i
  kind: VARIABLE
  type: INT
- relative addr: 0x0018
+ relative addr: 0x0010
 }
 {
  name: sum
  kind: VARIABLE
  type: INT
- relative addr: 0x001c
+ relative addr: 0x0014
 }
 {
  name: array
  kind: ARRAY
  type: CHAR
- relative addr: 0x0020
+ relative addr: 0x0018
  array length: 10
 }
 -------------------------------------------------
@@ -128,6 +156,7 @@ top label: label1
 bottom label: 
 argument space: 0
 return value space: 0
+space length: 0
 --------------------------------------
 function
 name: fibonacci
@@ -135,10 +164,20 @@ top label: label3
 bottom label: 
 argument space: 4
 return value space: 4
+space length: 8
+--------------------------------------
+function
+name: test
+top label: label8
+bottom label: 
+argument space: 8
+return value space: 4
+space length: 8
 --------------------------------------
 function
 name: main
-top label: label8
+top label: label10
 bottom label: 
 argument space: 0
 return value space: 0
+space length: 64

@@ -10,6 +10,8 @@ This is a statement
 This is a compound statement
 This is a funtion definition
 This is a argument list
+This is a variable definition
+This is a variable declaration
 This is a term
 This is a expression
 This is a term
@@ -50,6 +52,9 @@ This is a return statement
 This is a statement
 This is a condition statement
 This is a statement
+This is a compound statement
+This is a funtion definition
+This is a argument list
 This is a compound statement
 This is a funtion definition
 This is a constant definition
@@ -188,6 +193,8 @@ This is a statement
 This is a compound statement
 This is a funtion definition
 This is a argument list
+This is a variable definition
+This is a variable declaration
 This is a term
 This is a expression
 This is a term
@@ -228,6 +235,9 @@ This is a return statement
 This is a statement
 This is a condition statement
 This is a statement
+This is a compound statement
+This is a funtion definition
+This is a argument list
 This is a compound statement
 This is a funtion definition
 This is a constant definition

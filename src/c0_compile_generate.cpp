@@ -1414,9 +1414,9 @@ compile_errcode FunctionDefinition::Generate() {
             case 5: {
                 if (name == L_CURLY_BRACKET_SYM) {
                     top_label = pcode_generator->GetNextLabel();
+                    handle_func_table->SetTermTopLabel(m_identifier_name, top_label);
                     Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_top_label);
-                    //handle_func_table->InsertTerm(m_identifier_name, top_label, m_argument_number, return_value_number);
                     state = 6;
                     break;
                 } else {
@@ -1493,6 +1493,7 @@ compile_errcode MainFunction::Generate() {
             case 4: {
                 if (name == L_CURLY_BRACKET_SYM) {
                     top_label = pcode_generator->GetNextLabel();
+                    handle_func_table->SetTermTopLabel(string("main"), top_label);
                     Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_top_label);
                     state = 5;
@@ -1514,7 +1515,6 @@ compile_errcode MainFunction::Generate() {
                     bottom_label = pcode_generator->GetNextLabel();
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
-                    //handle_func_table->InsertTerm(string("main"), top_label, 0, 0);
                     state = 7;
                     break;
                 } else {

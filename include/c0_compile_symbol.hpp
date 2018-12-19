@@ -280,9 +280,6 @@ public:
         m_table_base_address = base_address;
         m_table_address_length = 0;
     }
-    int GetSpaceLength() {
-        return m_table_address_length;
-    }
     void PrintTable();
 private:
     vector<pair<string, SymbolTableTerm> > m_symbol_table;
@@ -327,10 +324,10 @@ private:
 class FunctionTableTerm {
 public:
     FunctionTableTerm(string func_name,
-                      string top_label,
+                      int space_length,
                       int argument_number,
                       int return_value_number) :
-    m_func_name(func_name), m_top_label(top_label) {
+    m_func_name(func_name), m_space_length(space_length) {
         m_argument_space_length = 4 * argument_number;
         m_return_value_space_length = 4 * return_value_number;
     }
@@ -343,6 +340,9 @@ public:
     void GetName(string& name) {
         name = m_func_name;
     }
+    void SetTopLabel(const string& top_label) {
+        m_top_label = top_label;
+    }
     void PrintTerm();
 private:
     string m_func_name;
@@ -350,7 +350,7 @@ private:
     string m_bottom_label;
     int m_argument_space_length;
     int m_return_value_space_length;
-    int m_func_variable_space_length;
+    int m_space_length;
 };
 
 class FunctionTable {
@@ -358,12 +358,13 @@ public:
     FunctionTable() {
         m_current_term_ptr = -1;
     }
-    void InsertTerm(string func_name, string top_label, int argument_number, int return_value_number);
+    void InsertTerm(string func_name, int space_length, int argument_number, int return_value_number);
     bool Find(string func_name);
     void GetTermTopLabel(string term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);
     void GetCurrentTermBottomLabel(string& bottom_label);
     void PrintAllTerm();
+    void SetTermTopLabel(string func_name, string& top_label);
 private:
     vector<FunctionTableTerm> m_func_table;
     int m_current_term_ptr;

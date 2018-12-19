@@ -1438,7 +1438,7 @@ compile_errcode FunctionDefinition::Action() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     int space_length = 0;
                     symbol_table_tree->GetTableSpaceLength(m_identifier_name, space_length);
-                    handle_func_table->InsertTerm(m_identifier_name, space_length，m_argument_number, return_value_number);
+                    handle_func_table->InsertTerm(m_identifier_name, space_length, m_argument_number, return_value_number);
                     symbol_table_tree->UpgradeAddress();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
@@ -1515,6 +1515,9 @@ compile_errcode MainFunction::Action() {
             }
             case 6: {
                 if (name == R_CURLY_BRACKET_SYM) {
+                    int space_length = 0;
+                    symbol_table_tree->GetTableSpaceLength(string("main"), space_length);
+                    handle_func_table->InsertTerm(string("main"), space_length, 0, 0);
                     state = 7;
                     break;
                 } else {

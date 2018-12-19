@@ -4,13 +4,17 @@ int test_int1, test_int2, test_int3;
 void _print() {
     printf("hello world");
 }
-int fibonacci(int n) {
-    if (n == 0)
+int fibonacci(int n1) {
+    char cfibo;
+    if (n1 == 0)
         return (0);
-    if (n == 1)
+    if (n1 == 1)
         return (1);
-    if (n >= 2)
-        return (fibonacci(n-1) + fibonacci(n-2));
+    if (n1 >= 2)
+        return (fibonacci(n1-1) + fibonacci(n1-2));
+}
+int test(int a, int b ) {
+
 }
 void main() {
     const int n = 10;
