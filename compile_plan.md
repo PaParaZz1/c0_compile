@@ -10,3 +10,8 @@
 
 在函数调用时，调用时，先做现场保护，然后压参数，然后分配变量所需空间，然后跳转
 
+Callbegin + Para + Callend
+
+value optimization: another new function to calculate const and numbers in compile time
+
+optimize "mul 1 and add 0" in pcode result

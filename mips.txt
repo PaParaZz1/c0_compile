@@ -1,16 +1,12 @@
-hello world: .asciiz "hello world"
-fibonacci_ans:%d: .asciiz "fibonacci_ans:%d"
-%c: .asciiz "%c"
-    : .asciiz "    "
-sum of 100:%d: .asciiz "sum of 100:%d"
-    : .asciiz "    "
-    : .asciiz "    "
-%c: .asciiz "%c"
-    : .asciiz "    "
-end: .asciiz "end"
+str1: .asciiz "hello world"
+str2: .asciiz "fibonacci_ans:%d"
+str3: .asciiz "%c"
+str4: .asciiz "    "
+str5: .asciiz "sum of 100:%d"
+str6: .asciiz "end"
 label1:
 li $v0 4
-la $a0 hello world
+la $a0 str1
 syscall
 label2:
 label3:
@@ -228,7 +224,7 @@ lw $t1 36($sp)
 move $t0 $t1
 sw $t0 0($0)
 li $v0 4
-la $a0 fibonacci_ans:%d
+la $a0 str2
 syscall
 li $t1 1
 lw $t2 0($fp)
@@ -308,7 +304,7 @@ move $t0 $t1
 sw $t0 12($0)
 label11:
 li $v0 4
-la $a0 %c
+la $a0 str3
 syscall
 li $t1 1
 lw $t2 12($fp)
@@ -381,10 +377,10 @@ sw $t0 16($0)
 j label15
 label16:
 li $v0 4
-la $a0     
+la $a0 str4
 syscall
 li $v0 4
-la $a0 sum of 100:%d
+la $a0 str5
 syscall
 li $t1 1
 lw $t2 20($fp)
@@ -401,10 +397,10 @@ li $v0 1
 move $a0 $s1
 syscall
 li $v0 4
-la $a0     
+la $a0 str4
 syscall
 li $v0 4
-la $a0     
+la $a0 str4
 syscall
 addi $sp $sp -8
 sw $ra 0($sp)
@@ -485,7 +481,7 @@ lw $t1 220($sp)
 move $t0 $t1
 sw $t0 224($sp)
 li $v0 4
-la $a0 %c
+la $a0 str3
 syscall
 li $t1 1
 lw $t2 16($fp)
@@ -532,10 +528,10 @@ sw $t0 16($0)
 j label17
 label18:
 li $v0 4
-la $a0     
+la $a0 str4
 syscall
 li $v0 4
-la $a0 end
+la $a0 str6
 syscall
 jr $ra
 label19:

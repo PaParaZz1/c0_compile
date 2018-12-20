@@ -54,12 +54,23 @@ void MipsGenerator::GenerateLoad(string target, string source, string type) {
     }
 }
 
+void MipsGenerator::GetNextStringLabel(string& string_label) {
+    m_string_label_count++;
+    string_label = string("str") + std::to_string(m_string_label_count);
+}
+
 void MipsGenerator::ExtractString() {
     auto iter = m_pcode_queue.begin();
     for (; iter != m_pcode_queue.end(); ++iter) {
         if (iter->GetOP() == OUTPUT && iter->GetNum2() == STRING) {
             string content = iter->GetNum1();
-            Output2File(content + string(": .asciiz \"") + content + string("\""));
+            auto string_iter = m_string_map.find(content);
+            if (string_iter == m_string_map.end()){
+                string string_label;
+                this->GetNextStringLabel(string_label);
+                m_string_map[content] = string_label;
+                Output2File(string_label + string(": .asciiz \"") + content + string("\""));
+            }
         }
     }
 }
@@ -160,8 +171,15 @@ void MipsGenerator::TranslateOutput(Pcode& item) {
     string output_type = item.GetNum2();
     if (output_type == STRING) {
         string name = item.GetNum1();
+        string string_label;
+        auto iter = m_string_map.find(name);
+        if (iter != m_string_map.end()) {
+            string_label = iter->second;
+        } else {
+            fprintf(stderr, "undefined string label\n");
+        }
         Output2File(string("li $v0 4"));
-        Output2File(string("la $a0 ") + name);
+        Output2File(string("la $a0 ") + string_label);
         Output2File(string("syscall"));
     } else if (output_type == INT_EXPRESSION) {
         string temp_name = item.GetNum1();
