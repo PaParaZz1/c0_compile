@@ -663,7 +663,7 @@ compile_errcode AssignStatement::Generate() {
     string left;
     string right;
     string expression_string;
-    string temp1, temp2;
+    string array_offset("");
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -671,6 +671,7 @@ compile_errcode AssignStatement::Generate() {
                 if (name == IDENTIFIER_SYM) {
                     state = 1;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, left);
                     break;
                 } else {
                     return NOT_MATCH;
@@ -679,10 +680,8 @@ compile_errcode AssignStatement::Generate() {
             case 1: {
                 if (name == ASSIGN_SYM) {
                     state = 2;
-                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, left);
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
-                    symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, left);
                     state = 11;
                     break;
                 } else {
@@ -692,21 +691,20 @@ compile_errcode AssignStatement::Generate() {
             case 2: {
                 m_expression.Generate(expression_string);
                 right = expression_string;
-                Pcode pcode(ASSIGN, left, right, EMPTY_STR);
-                pcode_generator->Insert(pcode);
+                if (array_offset == string("")) {
+                    Pcode pcode(ASSIGN, left, right, EMPTY_STR);
+                    pcode_generator->Insert(pcode);
+                } else {
+                    Pcode pcode(ARRAY_ASSIGN, right, left, array_offset);
+                    pcode_generator->Insert(pcode);
+                }
                 state = 3;
                 break;
             }
             case 3: return COMPILE_OK;
             case 11: {
                 m_expression.Generate(expression_string);
-                temp1 = pcode_generator->GetNextTemp();
-                Pcode pcode_la(LOAD_ADDR, temp1, left, expression_string);
-                pcode_generator->Insert(pcode_la);
-                //temp2 = pcode_generator->GetNextTemp();
-                //Pcode pcode(ADD, temp2, temp1, expression_string);
-                //pcode_generator->Insert(pcode);
-                left = temp1;
+                array_offset = expression_string;
                 state = 12;
                 break;
             }
@@ -1275,9 +1273,8 @@ compile_errcode ValueArgumentList::Generate() {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
                 } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
-                    pcode_generator->ZeroArgumentCount();
-                    argument_temp = pcode_generator->GetNextArgument();
                     string parameter_address = "fp" + std::to_string(parameter_count*4);
+                    parameter_count++;
                     Pcode pcode(PARA, parameter_address, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     state = 1;
@@ -1295,9 +1292,10 @@ compile_errcode ValueArgumentList::Generate() {
                 }
             }
             case 2: {
-                if ((ret = m_expression.Generate()) == COMPILE_OK) {
-                    argument_temp = pcode_generator->GetNextArgument();
-                    Pcode pcode(ASSIGN, argument_temp, expression_string, EMPTY_STR);
+                if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                    string parameter_address = "fp" + std::to_string(parameter_count*4);
+                    parameter_count++;
+                    Pcode pcode(PARA, parameter_address, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     state = 1;
                     break;

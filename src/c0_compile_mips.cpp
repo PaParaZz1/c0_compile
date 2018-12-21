@@ -1,3 +1,4 @@
+#include <iostream>
 #include "c0_compile_utils.hpp"
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_pcode.hpp"
@@ -15,6 +16,8 @@
 #define FP string("fp")
 #define SP string("sp")
 
+using std::cout;
+using std::endl;
 extern FunctionTable* handle_func_table;
 extern SymbolTableTree* symbol_table_tree;
 MipsGenerator* handle_mips_generator;
@@ -39,6 +42,17 @@ void MipsGenerator::GenerateStore(string temp_name, string type) {
         Output2File(string("sw ") + NUM1 + " " + temp_name + string("($0)"));
     } else {
         Output2File(string("sw ") + NUM1 + " -" + temp_name + string("($fp)"));
+    }
+}
+
+void MipsGenerator::GenerateStore(const string& source, const string& offset, const string& base, const string& type) {
+    if (type == TMP) {
+        int store_offset = m_relative_addr;
+        m_temp2address[offset] = store_offset;
+        m_relative_addr += 4;
+        Output2File("sw " + source + " -" + std::to_string(store_offset) + "($sp)");
+    } else {
+        Output2File("sw " + source + " " + offset + "(" + base + ")");
     }
 }
 
@@ -252,16 +266,25 @@ void MipsGenerator::TranslateASSIGN(Pcode& item) {
 }
 
 void MipsGenerator::TranslateLoadAddr(Pcode& item) {
-    string target = item.GetNum1();
+    string source = item.GetNum1();
     string array_addr = item.GetNum2();
     string offset = item.GetNum3();
     size_t fp = array_addr.find(FP);
+    size_t g = array_addr.find(GLOBAL);
     if (fp != string::npos) {
         GenerateLoad(NUM1, offset, TMP);
         Output2File("sll " + NUM3 + " " + NUM1 + " 2");
         Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
-        Output2File("sub " + NUM1 + " $fp " + NUM3);
-        GenerateStore(target, TMP);
+        Output2File("sub " + NUM2 + " $fp " + NUM3);
+        GenerateLoad(NUM1, source, TMP);
+        GenerateStore(NUM1, "0", NUM2, GLOBAL);
+    } else if (g != string::npos) {
+        GenerateLoad(NUM1, offset, TMP);
+        Output2File("sll " + NUM3 + " " + NUM1 + " 2");
+        Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(g + 1));
+        Output2File("add " + NUM2 + " $0 " + NUM3);
+        GenerateLoad(NUM1, source, TMP);
+        GenerateStore(NUM1, 0, NUM2, GLOBAL);
     } else {
         fprintf(stderr, "not support this type array_address---%s\n", array_addr.c_str());
     }
@@ -300,8 +323,18 @@ void MipsGenerator::TranslateBType(Pcode& item) {
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
     PcodeType op = item.GetOP();
-    GenerateLoad(NUM1, num1, TMP);
-    GenerateLoad(NUM2, num2, TMP);
+    size_t t1 = num1.find(TMP);
+    size_t t2 = num2.find(TMP);
+    if (t1 != string::npos) {
+        GenerateLoad(NUM1, num1, TMP);
+    } else {
+        Output2File("li " + NUM1 + " " + num1);
+    }
+    if (t2 != string::npos) {
+        GenerateLoad(NUM2, num2, TMP);
+    } else {
+        Output2File("li " + NUM2 + " " + num2);
+    }
     switch (op) {
         case BNE: Output2File(string("bne ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
         case BEQ: Output2File(string("beq ") + NUM1 + string(" ") + NUM2 + string(" ") + num3); break;
@@ -376,7 +409,7 @@ void MipsGenerator::Translate() {
                 TranslateJUMP(*iter);
                 break;
             }
-            case LOAD_ADDR: {
+            case ARRAY_ASSIGN: {
                 TranslateLoadAddr(*iter);
                 break;
             }

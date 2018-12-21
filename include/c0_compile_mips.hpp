@@ -36,6 +36,7 @@ private:
     int m_relative_addr;
     compile_errcode FindRelativeAddr(string temp_name, int& addr);
     void GenerateStore(string temp_name, string type);
+    void GenerateStore(const string& source, const string& offset, const string& base, const string& type);
     void GenerateLoad(string target, string source, string type);
     void GetNextStringLabel(string& string_label);
     void ExtractString();

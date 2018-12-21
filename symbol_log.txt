@@ -96,7 +96,7 @@ function type: VOID
  kind: CONST
  type: INT
  relative addr: 0x0000
- const int value: 1
+ const int value: 7
 }
 {
  name: c1

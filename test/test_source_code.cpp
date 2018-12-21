@@ -17,7 +17,7 @@ int test(int a, int b ) {
 
 }
 void main() {
-    const int n = 1;
+    const int n = 7;
     const char c1 = 'a';
     int fibonacci_ans;
     char test_c, test_d, c;
@@ -46,7 +46,7 @@ void main() {
     _print();
     i = 0;
     test_int1 = 10;
-    test_d = 'n';
+    test_d = 'a';
     while (i < test_int1) {
         array[i] = test_d;
         printf("%c", array[i]);
