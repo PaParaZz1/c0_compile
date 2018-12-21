@@ -17,7 +17,7 @@ int test(int a, int b ) {
 
 }
 void main() {
-    const int n = 10;
+    const int n = 1;
     const char c1 = 'a';
     int fibonacci_ans;
     char test_c, test_d, c;

@@ -306,9 +306,10 @@ public:
     }
     compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
+    compile_errcode GetTermType(string current_table_name, string name, SymbolType& type);
     compile_errcode GetTermKind(string name, SymbolKind& kind);
-    compile_errcode GetTermKind(string cur_func_name, string name, SymbolKind& kind);
-    compile_errcode GetTermIntValue(string name, int& value);
+    compile_errcode GetTermKind(string current_table_name, string name, SymbolKind& kind);
+    compile_errcode GetTermIntValue(string current_table_name, string name, int& value);
     compile_errcode GetAddressStringInterface(string name, string& address_string);
     compile_errcode GetAddressStringInterface(string current_table_name, string name, string& address_string);
     void SetCurrentTableName(string name) {
@@ -334,20 +335,23 @@ public:
         m_argument_space_length = 4 * argument_number;
         m_return_value_space_length = 4 * return_value_number;
     }
-    void GetTopLabel(string& top_label) {
+    void GetTopLabel(string& top_label) const {
         top_label = m_top_label;
     }
-    void GetBottomLabel(string& bottom_label) {
+    void GetBottomLabel(string& bottom_label) const {
         bottom_label = m_bottom_label;
     }
-    void GetName(string& name) {
+    void GetName(string& name) const {
         name = m_func_name;
     }
-    void GetSpaceLength(int& space_length) {
+    void GetSpaceLength(int& space_length) const {
         space_length = m_space_length;
     }
     void SetTopLabel(const string& top_label) {
         m_top_label = top_label;
+    }
+    void SetBottomLabel(const string& bottom_label) {
+        m_bottom_label = bottom_label;
     }
     void PrintTerm();
 private:
@@ -366,12 +370,14 @@ public:
     }
     void InsertTerm(string func_name, int space_length, int argument_number, int return_value_number);
     bool Find(string func_name);
-    void GetTermTopLabel(string term_name, string& top_label);
+    void GetTermTopLabel(const string& term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);
+    void GetTermBottomLabel(const string& term_name, string& bottom_label);
     void GetCurrentTermBottomLabel(string& bottom_label);
     void GetTermSpaceLength(string func_name, int& space_length);
     void PrintAllTerm();
-    void SetTermTopLabel(string func_name, string& top_label);
+    void SetTermTopLabel(const string& func_name, const string& top_label);
+    void SetTermBottomLabel(const string& func_name, const string& bottom_label);
 private:
     vector<FunctionTableTerm> m_func_table;
     int m_current_term_ptr;

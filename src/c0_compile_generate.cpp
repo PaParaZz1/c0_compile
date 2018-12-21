@@ -121,7 +121,7 @@ compile_errcode Factor::Generate(string& factor_string) {
                 symbol_table_tree->GetTermType(m_identifier_name, type);
                 if (kind == CONST) {
                     int value;
-                    symbol_table_tree->GetTermIntValue(m_identifier_name, value);
+                    symbol_table_tree->GetTermIntValue(current_func_name, m_identifier_name, value);
                     factor_string = std::to_string(value);
                 } else {
                     symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, factor_string);
@@ -482,7 +482,7 @@ compile_errcode InputStatement::Generate() {
                     symbol_table_tree->GetAddressStringInterface(current_func_name, identifier_name, identifier_string);
                     SymbolType input_type;
                     string input_type_string;
-                    symbol_table_tree->GetTermType(identifier_name, input_type);
+                    symbol_table_tree->GetTermType(current_func_name, identifier_name, input_type);
                     if (input_type == INT) {
                         input_type_string = string("int");
                     } else if (input_type == CHAR) {
@@ -701,12 +701,12 @@ compile_errcode AssignStatement::Generate() {
             case 11: {
                 m_expression.Generate(expression_string);
                 temp1 = pcode_generator->GetNextTemp();
-                Pcode pcode_la(LOAD_ADDR, temp1, left, EMPTY_STR);
+                Pcode pcode_la(LOAD_ADDR, temp1, left, expression_string);
                 pcode_generator->Insert(pcode_la);
-                temp2 = pcode_generator->GetNextTemp();
-                Pcode pcode(ADD, temp2, temp1, expression_string);
-                pcode_generator->Insert(pcode);
-                left = temp2;
+                //temp2 = pcode_generator->GetNextTemp();
+                //Pcode pcode(ADD, temp2, temp1, expression_string);
+                //pcode_generator->Insert(pcode);
+                left = temp1;
                 state = 12;
                 break;
             }
@@ -1446,6 +1446,7 @@ compile_errcode FunctionDefinition::Generate() {
             case 7: {
                 if (name == R_CURLY_BRACKET_SYM) {
                     bottom_label = pcode_generator->GetNextLabel();
+                    handle_func_table->SetTermBottomLabel(current_func_name, bottom_label);
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     Pcode pcode_func_bottom(FUNC_BOTTOM, EMPTY_STR, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
@@ -1505,8 +1506,8 @@ compile_errcode MainFunction::Generate() {
             }
             case 4: {
                 if (name == L_CURLY_BRACKET_SYM) {
-                    top_label = pcode_generator->GetNextLabel();
-                    handle_func_table->SetTermTopLabel(string("main"), top_label);
+                    string top_label("main");
+                    handle_func_table->SetTermTopLabel("main", top_label);
                     Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_top_label);
                     state = 5;
@@ -1526,6 +1527,7 @@ compile_errcode MainFunction::Generate() {
             case 6: {
                 if (name == R_CURLY_BRACKET_SYM) {
                     bottom_label = pcode_generator->GetNextLabel();
+                    handle_func_table->SetTermBottomLabel("main", bottom_label);
                     Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_bottom_label);
                     state = 7;

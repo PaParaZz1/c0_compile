@@ -160,12 +160,15 @@ void MipsGenerator::TranslateInput(Pcode& item) {
     string num2 = item.GetNum2();
     if (num2 == string("int")) {
         Output2File(string("li $v0 5"));
+        Output2File("syscall");
     } else if (num2 == string("char")) {
         Output2File(string("li $v0 12"));
+        Output2File("syscall");
     } else {
         fprintf(stderr, "invalid input type\n");
     }
-    Output2File(string("move $v0 " + NUM1));
+
+    Output2File("move " + NUM1 + " $v0");
     GenerateStore(num1, TMP);
 }
 
@@ -215,7 +218,7 @@ void MipsGenerator::TranslateCall(Pcode& item) {
     }
     Output2File("addi $sp $fp -" + space_length);
     Output2File("jal " + top_level);
-    Output2File("addi $sp $fp " + space_length);
+    Output2File("addi $sp $fp " + std::to_string(m_relative_addr + 8));
     Output2File("lw $fp -" + std::to_string(m_relative_addr + 4) + "($sp)");
     Output2File("lw $ra -" + std::to_string(m_relative_addr) + "($sp)");
     m_parameter_stack.clear();
@@ -250,13 +253,17 @@ void MipsGenerator::TranslateASSIGN(Pcode& item) {
 
 void MipsGenerator::TranslateLoadAddr(Pcode& item) {
     string target = item.GetNum1();
-    string addr = item.GetNum2();
-    size_t fp = addr.find(FP);
+    string array_addr = item.GetNum2();
+    string offset = item.GetNum3();
+    size_t fp = array_addr.find(FP);
     if (fp != string::npos) {
-       Output2File("addi " + NUM1 + " $fp -" + addr.substr(fp + 2));
-       GenerateStore(target, TMP);
+        GenerateLoad(NUM1, offset, TMP);
+        Output2File("sll " + NUM3 + " " + NUM1 + " 2");
+        Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
+        Output2File("sub " + NUM1 + " $fp " + NUM3);
+        GenerateStore(target, TMP);
     } else {
-        fprintf(stderr, "not support this type address---%s\n", addr.c_str());
+        fprintf(stderr, "not support this type array_address---%s\n", array_addr.c_str());
     }
 }
 
@@ -266,11 +273,12 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
     string offset = item.GetNum3();
     size_t fp = array_addr.find(FP);
     if (fp != string::npos) {
-       Output2File("addi " + NUM2 + " $fp -" + array_addr.substr(fp + 2));
-       GenerateLoad(NUM3, offset, TMP);
-       Output2File("add " + NUM1 + " " + NUM2 + " " + NUM3);
-       Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
-       GenerateStore(target, TMP);
+        GenerateLoad(NUM1, offset, TMP);
+        Output2File("sll " + NUM3 + " " + NUM1 + " 2");
+        Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
+        Output2File("sub " + NUM1 + " $fp " + NUM3);
+        Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
+        GenerateStore(target, TMP);
     } else {
         fprintf(stderr, "not support this type address---%s\n", array_addr.c_str());
     }
@@ -310,6 +318,14 @@ void MipsGenerator::TranslateBType(Pcode& item) {
 void MipsGenerator::Translate() {
     this->ExtractString();
     auto iter = m_pcode_queue.begin();
+    int main_space_length;
+    string main_bottom_label;
+    handle_func_table->GetTermBottomLabel("main", main_bottom_label);
+    handle_func_table->GetTermSpaceLength("main", main_space_length); 
+    Output2File("move $fp $sp");
+    Output2File("addi $sp $fp -" + std::to_string(main_space_length)); 
+    Output2File("la $ra " + main_bottom_label);
+    Output2File("j main");
     for (; iter != m_pcode_queue.end(); ++iter) {
         switch (iter->GetOP()) {
             case LABEL: Output2File(iter->GetNum1() + string(":")); break;
@@ -366,9 +382,10 @@ void MipsGenerator::Translate() {
             }
             case LOAD_VALUE: {
                 TranslateLoadValue(*iter);                 
+                break;
             }
             default: {
-                         std::cout<<iter->GetOP()<<std::endl;
+                std::cerr << "unknown pcode: " << iter->GetOP() << std::endl;
                 fprintf(stderr, "not implemented pcode2mips type\n");         
             }
         }

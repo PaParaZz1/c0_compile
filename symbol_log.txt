@@ -96,7 +96,7 @@ function type: VOID
  kind: CONST
  type: INT
  relative addr: 0x0000
- const int value: 10
+ const int value: 1
 }
 {
  name: c1
@@ -153,7 +153,7 @@ function type: VOID
 function
 name: _print
 top label: label1
-bottom label: 
+bottom label: label2
 argument space: 0
 return value space: 0
 space length: 0
@@ -161,7 +161,7 @@ space length: 0
 function
 name: fibonacci
 top label: label3
-bottom label: 
+bottom label: label7
 argument space: 4
 return value space: 4
 space length: 8
@@ -169,15 +169,15 @@ space length: 8
 function
 name: test
 top label: label8
-bottom label: 
+bottom label: label9
 argument space: 8
 return value space: 4
 space length: 8
 --------------------------------------
 function
 name: main
-top label: label10
-bottom label: 
+top label: main
+bottom label: label18
 argument space: 0
 return value space: 0
 space length: 64

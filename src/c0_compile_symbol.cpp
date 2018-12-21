@@ -165,6 +165,18 @@ compile_errcode SymbolTableTree::GetTermKind(string cur_func_name, string name, 
     return -3;
 }
 
+compile_errcode SymbolTableTree::GetTermType(string cur_func_name, string name, SymbolType& type) {
+    int ret = COMPILE_OK;
+    auto iter = m_table_tree.begin(); 
+    for (; iter != m_table_tree.end(); ++iter) {
+        if (iter->first == cur_func_name) {
+            iter->second.GetTermType(name, type);
+            return ret;
+        }
+    }
+    return -3;
+}
+
 compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
     int ret = COMPILE_OK;
     vector<pair<string, SymbolTableTerm> >::iterator iter;
@@ -283,9 +295,8 @@ compile_errcode SymbolTableTree::GetTermKind(string name, SymbolKind& kind) {
     return ret;
 }
 
-compile_errcode SymbolTableTree::GetTermIntValue(string name, int& value) {
+compile_errcode SymbolTableTree::GetTermIntValue(string current_table_name, string name, int& value) {
     int ret = COMPILE_OK;
-    string current_table_name = this->GetCurrentTableName();
     do {
         auto iter = m_table_tree.begin();
         for (; iter != m_table_tree.end(); ++iter) {
@@ -408,13 +419,24 @@ void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
 }
 
 
-void FunctionTable::GetTermTopLabel(string term_name, string& top_label) {
+void FunctionTable::GetTermTopLabel(const string& term_name, string& top_label) {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
         string tmp;
         iter->GetName(tmp);
         if (tmp == term_name) {
             iter->GetTopLabel(top_label);
+        }
+    }
+}
+
+void FunctionTable::GetTermBottomLabel(const string& term_name, string& bottom_label) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == term_name) {
+            iter->GetBottomLabel(bottom_label);
         }
     }
 }
@@ -430,13 +452,24 @@ void FunctionTable::GetTermSpaceLength(string func_name, int& space_length) {
     }
 }
 
-void FunctionTable::SetTermTopLabel(string func_name, string& top_level) {
+void FunctionTable::SetTermTopLabel(const string& func_name, const string& top_label) {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
         string tmp;
         iter->GetName(tmp);
         if (tmp == func_name) {
-            iter->SetTopLabel(top_level);
+            iter->SetTopLabel(top_label);
+        }
+    }
+}
+
+void FunctionTable::SetTermBottomLabel(const string& func_name, const string& bottom_label) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == func_name) {
+            iter->SetBottomLabel(bottom_label);
         }
     }
 }

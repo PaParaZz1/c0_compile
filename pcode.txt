@@ -54,16 +54,16 @@ label7		LABEL
 label8		LABEL	
 label9		LABEL	
 		FUNC_BOTTOM	
-label10		LABEL	
+main		LABEL	
 t32	1	MUL	0
 t33	0	ADD	t32
 fp16	t33	ASSIGN	
 t34	1	MUL	0
 t35	0	ADD	t34
 fp20	t35	ASSIGN	
-t36		INPUT	
+t36	char	INPUT	
 fp4	t36	ASSIGN	
-t38	1	MUL	32766
+t38	1	MUL	1
 t39	0	ADD	t38
 fp0	t39	PARA	
 label3	8	CALL	
@@ -78,39 +78,39 @@ t42	t44	ASSIGN
 t42	int_expression	OUTPUT	
 t45	1	MUL	fp4
 t46	0	ADD	t45
-t46	97	BNE	label12
+t46	97	BNE	label11
 t47	1	MUL	100
 t48	0	ADD	t47
 fp12	t48	ASSIGN	
-label11		JUMP	
-label12		LABEL	
-t46	98	BNE	label13
+label10		JUMP	
+label11		LABEL	
+t46	98	BNE	label12
 t49	1	MUL	99
 t50	0	ADD	t49
 fp12	t50	ASSIGN	
-label11		JUMP	
-label13		LABEL	
-t46	99	BNE	label14
+label10		JUMP	
+label12		LABEL	
+t46	99	BNE	label13
 t51	1	MUL	98
 t52	0	ADD	t51
 fp12	t52	ASSIGN	
-label11		JUMP	
-label14		LABEL	
+label10		JUMP	
+label13		LABEL	
 t53	1	MUL	120
 t54	0	ADD	t53
 fp12	t54	ASSIGN	
-label11		LABEL	
+label10		LABEL	
 %c	string	OUTPUT	
 t56	1	MUL	fp12
 t57	0	ADD	t56
 t55	t57	ASSIGN	
 t55	int_expression	OUTPUT	
-label15		LABEL	
+label14		LABEL	
 t58	1	MUL	fp16
 t59	0	ADD	t58
 t60	1	MUL	100
 t61	0	ADD	t60
-t59	t61	BGE	label16
+t59	t61	BGE	label15
 t62	1	MUL	fp20
 t63	0	ADD	t62
 t64	1	MUL	fp16
@@ -121,8 +121,8 @@ t67	0	ADD	t66
 t68	1	MUL	1
 t69	t67	ADD	t68
 fp16	t69	ASSIGN	
-label15		JUMP	
-label16		LABEL	
+label14		JUMP	
+label15		LABEL	
     	string	OUTPUT	
 sum of 100:%d	string	OUTPUT	
 t72	1	MUL	fp20
@@ -141,35 +141,34 @@ g0	t79	ASSIGN
 t80	1	MUL	110
 t81	0	ADD	t80
 fp8	t81	ASSIGN	
-label17		LABEL	
+label16		LABEL	
 t82	1	MUL	fp16
 t83	0	ADD	t82
 t84	1	MUL	g0
 t85	0	ADD	t84
-t83	t85	BGE	label18
+t83	t85	BGE	label17
 t86	1	MUL	fp16
 t87	0	ADD	t86
-t88	fp24	LOAD_ADDR	
-t89	t88	ADD	t87
-t90	1	MUL	fp8
-t91	0	ADD	t90
-t89	t91	ASSIGN	
+t88	fp24	LOAD_ADDR	t87
+t89	1	MUL	fp8
+t90	0	ADD	t89
+t88	t90	ASSIGN	
 %c	string	OUTPUT	
-t94	1	MUL	fp16
-t95	0	ADD	t94
-t96	fp24	LOAD_VALUE	t95
-t93	1	MUL	t96
-t97	0	ADD	t93
-t92	t97	ASSIGN	
-t92	int_expression	OUTPUT	
-t98	1	MUL	fp16
-t99	0	ADD	t98
-t100	1	MUL	1
-t101	t99	ADD	t100
-fp16	t101	ASSIGN	
-label17		JUMP	
-label18		LABEL	
+t93	1	MUL	fp16
+t94	0	ADD	t93
+t95	fp24	LOAD_VALUE	t94
+t92	1	MUL	t95
+t96	0	ADD	t92
+t91	t96	ASSIGN	
+t91	int_expression	OUTPUT	
+t97	1	MUL	fp16
+t98	0	ADD	t97
+t99	1	MUL	1
+t100	t98	ADD	t99
+fp16	t100	ASSIGN	
+label16		JUMP	
+label17		LABEL	
     	string	OUTPUT	
 end	string	OUTPUT	
 RA		JUMP	
-label19		LABEL	
+label18		LABEL	
