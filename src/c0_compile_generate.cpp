@@ -73,7 +73,7 @@ compile_errcode Factor::Generate(string& factor_string) {
     int ret = COMPILE_OK;
     string expression_string;
     SymbolName name = handle_correct_queue->GetCurrentName();
-    string temp;
+    string temp, temp1, temp2;
     switch (name) {
         case INTERGER_SYM: {
             int value = handle_correct_queue->GetCurrentValue<int>();
@@ -93,11 +93,11 @@ compile_errcode Factor::Generate(string& factor_string) {
             if (name == L_SQUARE_BRACKET_SYM) {
                 string array_addr;
                 symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, array_addr);
-                temp = pcode_generator->GetNextTemp();
                 handle_correct_queue->NextSymbol();
                 m_expression.Generate(expression_string);
-                Pcode pcode(ADD, temp, array_addr, expression_string);
-                pcode_generator->Insert(pcode);
+                temp = pcode_generator->GetNextTemp();
+                Pcode pcode_lv(LOAD_VALUE, temp, array_addr, expression_string);
+                pcode_generator->Insert(pcode_lv);
                 factor_string = temp;
                 break;
             } else if (name == L_CIRCLE_BRACKET_SYM) {
@@ -105,8 +105,10 @@ compile_errcode Factor::Generate(string& factor_string) {
                 m_value_argument_list.Generate();
                 string func_top;
                 handle_func_table->GetTermTopLabel(m_identifier_name, func_top);
-                Pcode pcode(CALL, func_top, EMPTY_STR, EMPTY_STR);
-                pcode_generator->Insert(pcode);
+                int space_length;
+                handle_func_table->GetTermSpaceLength(m_identifier_name, space_length);
+                Pcode pcode_call_end(CALL, func_top, std::to_string(space_length), EMPTY_STR);
+                pcode_generator->Insert(pcode_call_end);
                 factor_string = pcode_generator->GetNextTemp();
                 Pcode pcode_load_return_value(ASSIGN, factor_string, "V0", EMPTY_STR);
                 pcode_generator->Insert(pcode_load_return_value);
@@ -661,7 +663,7 @@ compile_errcode AssignStatement::Generate() {
     string left;
     string right;
     string expression_string;
-    string temp;
+    string temp1, temp2;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -698,10 +700,13 @@ compile_errcode AssignStatement::Generate() {
             case 3: return COMPILE_OK;
             case 11: {
                 m_expression.Generate(expression_string);
-                temp = pcode_generator->GetNextTemp();
-                Pcode pcode(ADD, temp, left, expression_string);
+                temp1 = pcode_generator->GetNextTemp();
+                Pcode pcode_la(LOAD_ADDR, temp1, left, EMPTY_STR);
+                pcode_generator->Insert(pcode_la);
+                temp2 = pcode_generator->GetNextTemp();
+                Pcode pcode(ADD, temp2, temp1, expression_string);
                 pcode_generator->Insert(pcode);
-                left = temp;
+                left = temp2;
                 state = 12;
                 break;
             }
@@ -1262,6 +1267,7 @@ compile_errcode ValueArgumentList::Generate() {
     int state = 0;
     string expression_string;
     string argument_temp;
+    int parameter_count = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
@@ -1271,7 +1277,8 @@ compile_errcode ValueArgumentList::Generate() {
                 } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     pcode_generator->ZeroArgumentCount();
                     argument_temp = pcode_generator->GetNextArgument();
-                    Pcode pcode(ASSIGN, argument_temp, expression_string, EMPTY_STR);
+                    string parameter_address = "fp" + std::to_string(parameter_count*4);
+                    Pcode pcode(PARA, parameter_address, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     state = 1;
                     break;
@@ -1340,7 +1347,9 @@ compile_errcode FunctionCall::Generate() {
             }
             case 3: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
-                    Pcode pcode(CALL, func_top, EMPTY_STR, EMPTY_STR);
+                    int space_length;
+                    handle_func_table->GetTermSpaceLength(identifier_name, space_length);
+                    Pcode pcode(CALL, func_top, std::to_string(space_length), EMPTY_STR);
                     pcode_generator->Insert(pcode);
                     state = 4;
                     break;

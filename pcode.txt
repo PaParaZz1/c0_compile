@@ -32,8 +32,8 @@ t19	1	MUL	fp0
 t20	0	ADD	t19
 t21	1	MUL	1
 t22	t20	SUB	t21
-argument1	t22	ASSIGN	
-label3		CALL	
+fp0	t22	PARA	
+label3	8	CALL	
 t23	V0	ASSIGN	
 t18	1	MUL	t23
 t24	0	ADD	t18
@@ -41,8 +41,8 @@ t26	1	MUL	fp0
 t27	0	ADD	t26
 t28	1	MUL	2
 t29	t27	SUB	t28
-argument1	t29	ASSIGN	
-label3		CALL	
+fp0	t29	PARA	
+label3	8	CALL	
 t30	V0	ASSIGN	
 t25	1	MUL	t30
 t31	t24	ADD	t25
@@ -63,10 +63,10 @@ t35	0	ADD	t34
 fp20	t35	ASSIGN	
 t36		INPUT	
 fp4	t36	ASSIGN	
-t38	1	MUL	0
+t38	1	MUL	32766
 t39	0	ADD	t38
-argument1	t39	ASSIGN	
-label3		CALL	
+fp0	t39	PARA	
+label3	8	CALL	
 t40	V0	ASSIGN	
 t37	1	MUL	t40
 t41	0	ADD	t37
@@ -131,7 +131,7 @@ t71	t73	ASSIGN
 t71	int_expression	OUTPUT	
     	string	OUTPUT	
     	string	OUTPUT	
-label1		CALL	
+label1	0	CALL	
 t76	1	MUL	0
 t77	0	ADD	t76
 fp16	t77	ASSIGN	
@@ -149,23 +149,24 @@ t85	0	ADD	t84
 t83	t85	BGE	label18
 t86	1	MUL	fp16
 t87	0	ADD	t86
-t88	fp24	ADD	t87
-t89	1	MUL	fp8
-t90	0	ADD	t89
-t88	t90	ASSIGN	
+t88	fp24	LOAD_ADDR	
+t89	t88	ADD	t87
+t90	1	MUL	fp8
+t91	0	ADD	t90
+t89	t91	ASSIGN	
 %c	string	OUTPUT	
 t94	1	MUL	fp16
 t95	0	ADD	t94
-t93	fp24	ADD	t95
-t92	1	MUL	t93
-t96	0	ADD	t92
-t91	t96	ASSIGN	
-t91	int_expression	OUTPUT	
-t97	1	MUL	fp16
-t98	0	ADD	t97
-t99	1	MUL	1
-t100	t98	ADD	t99
-fp16	t100	ASSIGN	
+t96	fp24	LOAD_VALUE	t95
+t93	1	MUL	t96
+t97	0	ADD	t93
+t92	t97	ASSIGN	
+t92	int_expression	OUTPUT	
+t98	1	MUL	fp16
+t99	0	ADD	t98
+t100	1	MUL	1
+t101	t99	ADD	t100
+fp16	t101	ASSIGN	
 label17		JUMP	
 label18		LABEL	
     	string	OUTPUT	

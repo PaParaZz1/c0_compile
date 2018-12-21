@@ -30,6 +30,7 @@ private:
     int m_string_label_count;
     FILE* m_fp_mips;
     vector<Pcode> m_pcode_queue;
+    vector<Pcode> m_parameter_stack;
     unordered_map<string, int> m_temp2address;
     map<string, string> m_string_map;
     int m_relative_addr;
@@ -42,10 +43,13 @@ private:
     void TranslateMULType(Pcode& item);
     void TranslateBType(Pcode& item);
     void TranslateASSIGN(Pcode& item);
+    void TranslatePara(Pcode& item);
     void TranslateCall(Pcode& item);
     void TranslateJUMP(Pcode& item);
     void TranslateInput(Pcode& item);
     void TranslateOutput(Pcode& item);
+    void TranslateLoadAddr(Pcode& item);
+    void TranslateLoadValue(Pcode& item);
     void Output2File(string str) {
         fprintf(m_fp_mips, "%s\n", str.c_str());
     }

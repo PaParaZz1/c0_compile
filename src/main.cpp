@@ -110,7 +110,7 @@ ERROR1:
 }
 
 void MipsGenerate(vector<Pcode>& source_queue) {
-    handle_mips_generator = new MipsGenerator("mips.txt", source_queue);
+    handle_mips_generator = new MipsGenerator("mips.asm", source_queue);
     handle_mips_generator->Translate();
     delete(handle_mips_generator);
 }

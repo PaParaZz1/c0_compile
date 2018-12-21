@@ -3,3 +3,6 @@
 *.swp
 build_temp_dir/
 compile_test
+ans.txt
+err.txt
+*.asm

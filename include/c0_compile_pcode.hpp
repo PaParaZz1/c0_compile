@@ -27,6 +27,8 @@ using std::stack;
         FUNC(OUTPUT) \
         FUNC(PARA) \
         FUNC(FUNC_BOTTOM) \
+        FUNC(LOAD_ADDR) \
+        FUNC(LOAD_VALUE) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,

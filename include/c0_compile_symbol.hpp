@@ -343,6 +343,9 @@ public:
     void GetName(string& name) {
         name = m_func_name;
     }
+    void GetSpaceLength(int& space_length) {
+        space_length = m_space_length;
+    }
     void SetTopLabel(const string& top_label) {
         m_top_label = top_label;
     }
@@ -366,6 +369,7 @@ public:
     void GetTermTopLabel(string term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);
     void GetCurrentTermBottomLabel(string& bottom_label);
+    void GetTermSpaceLength(string func_name, int& space_length);
     void PrintAllTerm();
     void SetTermTopLabel(string func_name, string& top_label);
 private:

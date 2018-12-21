@@ -407,6 +407,7 @@ void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
     m_func_table[m_current_term_ptr].GetBottomLabel(bottom_label);
 }
 
+
 void FunctionTable::GetTermTopLabel(string term_name, string& top_label) {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
@@ -414,6 +415,17 @@ void FunctionTable::GetTermTopLabel(string term_name, string& top_label) {
         iter->GetName(tmp);
         if (tmp == term_name) {
             iter->GetTopLabel(top_label);
+        }
+    }
+}
+
+void FunctionTable::GetTermSpaceLength(string func_name, int& space_length) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == func_name) {
+            iter->GetSpaceLength(space_length);
         }
     }
 }

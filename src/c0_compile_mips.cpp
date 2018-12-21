@@ -33,12 +33,12 @@ void MipsGenerator::GenerateStore(string temp_name, string type) {
     if (type == TMP) {
         int store_offset = m_relative_addr;
         m_temp2address[temp_name] = store_offset;
-        Output2File(string("sw ") + NUM1 + string(" ") + std::to_string(store_offset) + string("($sp)"));
+        Output2File(string("sw ") + NUM1 + " -" + std::to_string(store_offset) + string("($sp)"));
         m_relative_addr += 4;
     } else if (type == GLOBAL) {
-        Output2File(string("sw ") + NUM1 + string(" ") + temp_name + string("($0)"));
+        Output2File(string("sw ") + NUM1 + " " + temp_name + string("($0)"));
     } else {
-        Output2File(string("sw ") + NUM1 + string(" ") + temp_name + string("($0)"));
+        Output2File(string("sw ") + NUM1 + " -" + temp_name + string("($fp)"));
     }
 }
 
@@ -46,11 +46,11 @@ void MipsGenerator::GenerateLoad(string target, string source, string type) {
     if (type == TMP) {
         int load_offset;
         FindRelativeAddr(source, load_offset);
-        Output2File(string("lw ") + target + string(" ") + std::to_string(load_offset) + string("($sp)"));
+        Output2File(string("lw ") + target + " -" + std::to_string(load_offset) + string("($sp)"));
     } else if (type == GLOBAL) {
-        Output2File(string("lw ") + target + string(" ") + source + string("($0)"));
+        Output2File(string("lw ") + target + " " + source + string("($0)"));
     } else {
-        Output2File(string("lw ") + target + string(" ") + source + string("($fp)"));
+        Output2File(string("lw ") + target + " -" + source + string("($fp)"));
     }
 }
 
@@ -60,6 +60,7 @@ void MipsGenerator::GetNextStringLabel(string& string_label) {
 }
 
 void MipsGenerator::ExtractString() {
+    Output2File(".data");
     auto iter = m_pcode_queue.begin();
     for (; iter != m_pcode_queue.end(); ++iter) {
         if (iter->GetOP() == OUTPUT && iter->GetNum2() == STRING) {
@@ -73,6 +74,7 @@ void MipsGenerator::ExtractString() {
             }
         }
     }
+    Output2File(".text");
 }
 
 void MipsGenerator::TranslateADDType(Pcode& item) {
@@ -94,7 +96,7 @@ void MipsGenerator::TranslateADDType(Pcode& item) {
     } else if (f2 != string::npos && f3 != string::npos) {
         GenerateLoad(NUM2, num2, TMP);
         GenerateLoad(NUM3, num3, TMP);
-        Output2File(op + NUM1 + string(" ") + NUM2 + string(" ") + NUM3);
+        Output2File(op + string(" ") + NUM1 + string(" ") + NUM2 + string(" ") + NUM3);
     } else if (f2 == string::npos) {
         GenerateLoad(NUM2, num3, TMP);
         Output2File(op + string("i ") + NUM1 + string(" ") + NUM2 + string(" ") + num2);
@@ -198,22 +200,25 @@ void MipsGenerator::TranslateOutput(Pcode& item) {
     }
 }
 
-void MipsGenerator::TranslateCall(Pcode& item) {
-    //int variable_space = symbol_table_tree->GetTable
-    
-    int variable_space = 100;
-    Output2File(string("addi $sp $sp -8"));
-    Output2File(string("sw $ra 0($sp)"));
-    Output2File(string("sw $fp 4($sp)"));
-    Output2File(string("move $fp $sp"));
-    Output2File(string("addi $sp $sp -") + std::to_string(variable_space));
-    string num1 = item.GetNum1();
-    Output2File(string("jal ") + num1);
-    Output2File(string("addi $sp $sp ") + std::to_string(variable_space));
-    Output2File(string("lw $fp 4($sp)"));
-    Output2File(string("lw $ra 0($sp)"));
-    Output2File(string("addi $sp $sp 12"));
 
+void MipsGenerator::TranslatePara(Pcode& item) {
+    m_parameter_stack.push_back(item);
+}
+void MipsGenerator::TranslateCall(Pcode& item) {
+    string top_level = item.GetNum1();
+    string space_length = item.GetNum2();
+    Output2File(string("sw $ra -") + std::to_string(m_relative_addr) + "($sp)");
+    Output2File(string("sw $fp -") + std::to_string(m_relative_addr + 4) + "($sp)");
+    Output2File(string("addi $fp $sp -") + std::to_string(m_relative_addr + 8));
+    for (Pcode para : m_parameter_stack) {
+        TranslateASSIGN(para);
+    }
+    Output2File("addi $sp $fp -" + space_length);
+    Output2File("jal " + top_level);
+    Output2File("addi $sp $fp " + space_length);
+    Output2File("lw $fp -" + std::to_string(m_relative_addr + 4) + "($sp)");
+    Output2File("lw $ra -" + std::to_string(m_relative_addr) + "($sp)");
+    m_parameter_stack.clear();
 }
 
 void MipsGenerator::TranslateASSIGN(Pcode& item) {
@@ -221,7 +226,7 @@ void MipsGenerator::TranslateASSIGN(Pcode& item) {
     string num2 = item.GetNum2();
     string source;
     if (num2 == string("V0")) {
-        source = string("$V0");
+        source = string("$v0");
     } else {
         GenerateLoad(NUM2, num2, TMP);
         source = NUM2;
@@ -241,6 +246,35 @@ void MipsGenerator::TranslateASSIGN(Pcode& item) {
         Output2File(string("move ") + NUM1 + string(" ") + source);
         GenerateStore(num1, TMP);
     }
+}
+
+void MipsGenerator::TranslateLoadAddr(Pcode& item) {
+    string target = item.GetNum1();
+    string addr = item.GetNum2();
+    size_t fp = addr.find(FP);
+    if (fp != string::npos) {
+       Output2File("addi " + NUM1 + " $fp -" + addr.substr(fp + 2));
+       GenerateStore(target, TMP);
+    } else {
+        fprintf(stderr, "not support this type address---%s\n", addr.c_str());
+    }
+}
+
+void MipsGenerator::TranslateLoadValue(Pcode& item) {
+    string target = item.GetNum1();
+    string array_addr = item.GetNum2();
+    string offset = item.GetNum3();
+    size_t fp = array_addr.find(FP);
+    if (fp != string::npos) {
+       Output2File("addi " + NUM2 + " $fp -" + array_addr.substr(fp + 2));
+       GenerateLoad(NUM3, offset, TMP);
+       Output2File("add " + NUM1 + " " + NUM2 + " " + NUM3);
+       Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
+       GenerateStore(target, TMP);
+    } else {
+        fprintf(stderr, "not support this type address---%s\n", array_addr.c_str());
+    }
+    
 }
 
 void MipsGenerator::TranslateJUMP(Pcode& item) {
@@ -310,6 +344,10 @@ void MipsGenerator::Translate() {
                 TranslateBType(*iter);          
                 break;
             }
+            case PARA: {
+                TranslatePara(*iter);
+                break;
+            }
             case CALL: {
                 TranslateCall(*iter);
                 break;
@@ -321,6 +359,13 @@ void MipsGenerator::Translate() {
             case JUMP: {
                 TranslateJUMP(*iter);
                 break;
+            }
+            case LOAD_ADDR: {
+                TranslateLoadAddr(*iter);
+                break;
+            }
+            case LOAD_VALUE: {
+                TranslateLoadValue(*iter);                 
             }
             default: {
                          std::cout<<iter->GetOP()<<std::endl;
