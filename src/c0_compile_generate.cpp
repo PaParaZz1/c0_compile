@@ -632,20 +632,6 @@ compile_errcode OutputStatement::Generate() {
                         return NOT_MATCH;
                     }
                 }
-                /*
-                } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
-                    Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
-                    pcode_generator->Insert(pcode_assign);
-                    //string expression_type = expression_string == INT ? INT_EXPRESSION :
-                      //                       expression_string == CHAR ? CHAR_EXPRESSION : string("GG");
-                    string expression_type = INT_EXPRESSION; // TODO
-                    Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
-                    pcode_generator->Insert(pcode_output);
-                    state = 5;
-                    break;
-                } else {
-                    return NOT_MATCH;
-                }*/
             }
             case 3: {
                 if (name == COMMA_SYM) {
@@ -659,44 +645,32 @@ compile_errcode OutputStatement::Generate() {
                 }
             }
             case 4: {
-                    string expression_type = INT_EXPRESSION;
-                    handle_correct_queue->SetCacheLocate();
-                    if (name == CHARACTER_SYM) {
-                        handle_correct_queue->NextSymbol();
-                        if (name == R_CURLY_BRACKET_SYM) {
-                            expression_type = CHAR_EXPRESSION;
-                        }
-                    } else if (name == IDENTIFIER_SYM) {
-                        string identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                        SymbolType type;
-                        symbol_table_tree->GetTermTypeInterface(current_func_name, identifier_name, type); 
-                        if (type == CHAR) {
-                            expression_type = CHAR_EXPRESSION;
-                        }
+                string expression_type = INT_EXPRESSION;
+                handle_correct_queue->SetCacheLocate();
+                if (name == CHARACTER_SYM) {
+                    handle_correct_queue->NextSymbol();
+                    if (name == R_CURLY_BRACKET_SYM) {
+                        expression_type = CHAR_EXPRESSION;
                     }
-                    handle_correct_queue->SetCurrentLocate();
-                    if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
-                        Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
-                        pcode_generator->Insert(pcode_assign);
-                        Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
-                        pcode_generator->Insert(pcode_output);
-                        state = 5;
-                        break;
-                    } else {
-                        return NOT_MATCH;
+                } else if (name == IDENTIFIER_SYM) {
+                    string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    SymbolType type;
+                    symbol_table_tree->GetTermTypeInterface(current_func_name, identifier_name, type); 
+                    if (type == CHAR) {
+                        expression_type = CHAR_EXPRESSION;
                     }
-                /*
+                }
+                handle_correct_queue->SetCurrentLocate();
                 if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
-                    string expression_type = INT_EXPRESSION; // TODO
                     Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
                     pcode_generator->Insert(pcode_output);
                     state = 5;
                     break;
                 } else {
                     return NOT_MATCH;
-                }*/
+                }
             }
             case 5: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
