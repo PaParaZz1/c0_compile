@@ -1056,17 +1056,13 @@ compile_errcode Default::Generate() {
                 }
             }
             case 2: {
-                if (name == R_CURLY_BRACKET_SYM) {
+                m_statement_ptr = new Statement;
+                if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
+                    delete(m_statement_ptr);
                     return COMPILE_OK;
                 } else {
-                    m_statement_ptr = new Statement;
-                    if ((ret = m_statement_ptr->Generate()) == COMPILE_OK) {
-                        delete(m_statement_ptr);
-                        return COMPILE_OK;
-                    } else {
-                        delete(m_statement_ptr);
-                        return NOT_MATCH;
-                    }
+                    delete(m_statement_ptr);
+                    return NOT_MATCH;
                 }
             }
         }

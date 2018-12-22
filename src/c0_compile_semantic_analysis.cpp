@@ -1004,18 +1004,14 @@ compile_errcode Default::Action() {
                 }
             }
             case 2: {
-                if (name == R_CURLY_BRACKET_SYM) {
+                m_statement_ptr = new Statement;
+                if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
+                    m_statement_ptr->LogOutput();
+                    delete(m_statement_ptr);
                     return COMPILE_OK;
                 } else {
-                    m_statement_ptr = new Statement;
-                    if ((ret = m_statement_ptr->Action()) == COMPILE_OK) {
-                        m_statement_ptr->LogOutput();
-                        delete(m_statement_ptr);
-                        return COMPILE_OK;
-                    } else {
-                        delete(m_statement_ptr);
-                        return NOT_MATCH;
-                    }
+                    delete(m_statement_ptr);
+                    return NOT_MATCH;
                 }
             }
         }
