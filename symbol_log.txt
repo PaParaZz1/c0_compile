@@ -2,78 +2,399 @@
 function global's symbol table
 function type: VOID
 {
- name: name
+ name: const_char_a
  kind: CONST
  type: CHAR
  relative addr: 0x0000
- const char value: n
+ const char value: a
 }
 {
- name: date
+ name: const_char_b
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: b
+}
+{
+ name: const_char_c
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: c
+}
+{
+ name: const_char_A
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: A
+}
+{
+ name: const_int_postive
  kind: CONST
  type: INT
  relative addr: 0x0000
- const int value: 20181111
+ const int value: 1
 }
 {
- name: test_int1
+ name: const_int_zero
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: 0
+}
+{
+ name: const_int_negtive
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: -1
+}
+{
+ name: const_char_num
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: 9
+}
+{
+ name: const_char_underline
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: _
+}
+{
+ name: const_char_add
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: +
+}
+{
+ name: const_char_mul
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: *
+}
+{
+ name: int_global_var
  kind: VARIABLE
  type: INT
  relative addr: 0x0000
 }
 {
- name: test_int2
+ name: char_global_var
  kind: VARIABLE
- type: INT
+ type: CHAR
  relative addr: 0x0004
 }
 {
- name: test_int3
- kind: VARIABLE
+ name: sort
+ kind: ARRAY
  type: INT
  relative addr: 0x0008
+ array length: 10
 }
 {
- name: _print
+ name: testIfWhile
  kind: FUNCTION
  type: VOID
  function parameter number: 0
 }
 {
- name: fibonacci
+ name: testSwitchCase
  kind: FUNCTION
- type: INT
- function parameter number: 1
-}
-{
- name: test
- kind: FUNCTION
- type: INT
+ type: VOID
  function parameter number: 2
 }
--------------------------------------------------
--------------------------------------------------
-function _print's symbol table
-function type: VOID
--------------------------------------------------
--------------------------------------------------
-function fibonacci's symbol table
-function type: INT
 {
- name: n
+ name: returnInt
+ kind: FUNCTION
+ type: INT
+ function parameter number: 0
+}
+{
+ name: returnChar
+ kind: FUNCTION
+ type: CHAR
+ function parameter number: 0
+}
+{
+ name: returnIntParameter
+ kind: FUNCTION
+ type: INT
+ function parameter number: 5
+}
+{
+ name: returnCharParameter
+ kind: FUNCTION
+ type: CHAR
+ function parameter number: 5
+}
+{
+ name: testAssign
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+{
+ name: testInputOutput
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+{
+ name: testTrick
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+{
+ name: judge1
+ kind: FUNCTION
+ type: INT
+ function parameter number: 4
+}
+{
+ name: judge2
+ kind: FUNCTION
+ type: INT
+ function parameter number: 4
+}
+{
+ name: Qsort
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 2
+}
+{
+ name: testRecursion
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+{
+ name: testCallFunction
+ kind: FUNCTION
+ type: VOID
+ function parameter number: 0
+}
+-------------------------------------------------
+-------------------------------------------------
+function testIfWhile's symbol table
+function type: VOID
+{
+ name: test_if_1
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: 1
+}
+{
+ name: test_if_2
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: 2
+}
+{
+ name: const_char_a
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: b
+}
+{
+ name: const_char_b
+ kind: CONST
+ type: CHAR
+ relative addr: 0x0000
+ const char value: a
+}
+{
+ name: test_if_result
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: loop_num
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0004
+}
+-------------------------------------------------
+-------------------------------------------------
+function testSwitchCase's symbol table
+function type: VOID
+{
+ name: test_switch_int
  kind: PARAMETER
  type: INT
  relative addr: 0x0000
 }
 {
- name: cfibo
- kind: VARIABLE
+ name: test_switch_char
+ kind: PARAMETER
  type: CHAR
  relative addr: 0x0004
 }
 -------------------------------------------------
 -------------------------------------------------
-function test's symbol table
+function returnInt's symbol table
+function type: INT
+-------------------------------------------------
+-------------------------------------------------
+function returnChar's symbol table
+function type: CHAR
+-------------------------------------------------
+-------------------------------------------------
+function returnIntParameter's symbol table
+function type: INT
+{
+ name: select
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: int_parameter_1
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0004
+}
+{
+ name: int_parameter_2
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0008
+}
+{
+ name: int_parameter_3
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x000c
+}
+{
+ name: int_parameter_4
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0010
+}
+{
+ name: _tmp
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0014
+}
+-------------------------------------------------
+-------------------------------------------------
+function returnCharParameter's symbol table
+function type: CHAR
+{
+ name: select
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: char_parameter_1
+ kind: PARAMETER
+ type: CHAR
+ relative addr: 0x0004
+}
+{
+ name: char_parameter_2
+ kind: PARAMETER
+ type: CHAR
+ relative addr: 0x0008
+}
+{
+ name: char_parameter_3
+ kind: PARAMETER
+ type: CHAR
+ relative addr: 0x000c
+}
+{
+ name: char_parameter_4
+ kind: PARAMETER
+ type: CHAR
+ relative addr: 0x0010
+}
+-------------------------------------------------
+-------------------------------------------------
+function testAssign's symbol table
+function type: VOID
+{
+ name: test_assign_10
+ kind: CONST
+ type: INT
+ relative addr: 0x0000
+ const int value: 10
+}
+{
+ name: int_test_assign
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: int_array_test_assign
+ kind: ARRAY
+ type: INT
+ relative addr: 0x0004
+ array length: 3
+}
+{
+ name: char_test_assign
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x0010
+}
+{
+ name: char_array_test_assign
+ kind: ARRAY
+ type: CHAR
+ relative addr: 0x0014
+ array length: 3
+}
+-------------------------------------------------
+-------------------------------------------------
+function testInputOutput's symbol table
+function type: VOID
+{
+ name: int_test_input
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: char_test_input
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x0004
+}
+{
+ name: int_global_var
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0008
+}
+{
+ name: char_global_var
+ kind: VARIABLE
+ type: CHAR
+ relative addr: 0x000c
+}
+-------------------------------------------------
+-------------------------------------------------
+function testTrick's symbol table
+function type: VOID
+-------------------------------------------------
+-------------------------------------------------
+function judge1's symbol table
 function type: INT
 {
  name: a
@@ -87,97 +408,234 @@ function type: INT
  type: INT
  relative addr: 0x0004
 }
--------------------------------------------------
--------------------------------------------------
-function main's symbol table
-function type: VOID
 {
- name: n
- kind: CONST
+ name: c
+ kind: PARAMETER
  type: INT
- relative addr: 0x0000
- const int value: 7
-}
-{
- name: c1
- kind: CONST
- type: CHAR
- relative addr: 0x0000
- const char value: a
-}
-{
- name: fibonacci_ans
- kind: VARIABLE
- type: INT
- relative addr: 0x0000
-}
-{
- name: test_c
- kind: VARIABLE
- type: CHAR
- relative addr: 0x0004
-}
-{
- name: test_d
- kind: VARIABLE
- type: CHAR
  relative addr: 0x0008
 }
 {
- name: c
- kind: VARIABLE
- type: CHAR
+ name: d
+ kind: PARAMETER
+ type: INT
  relative addr: 0x000c
 }
 {
- name: i
+ name: ret
  kind: VARIABLE
  type: INT
  relative addr: 0x0010
 }
+-------------------------------------------------
+-------------------------------------------------
+function judge2's symbol table
+function type: INT
 {
- name: sum
+ name: a
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
+}
+{
+ name: b
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0004
+}
+{
+ name: c
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0008
+}
+{
+ name: d
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x000c
+}
+{
+ name: ret
  kind: VARIABLE
  type: INT
- relative addr: 0x0014
+ relative addr: 0x0010
+}
+-------------------------------------------------
+-------------------------------------------------
+function Qsort's symbol table
+function type: VOID
+{
+ name: low
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0000
 }
 {
- name: array
- kind: ARRAY
- type: CHAR
- relative addr: 0x0018
- array length: 10
+ name: high
+ kind: PARAMETER
+ type: INT
+ relative addr: 0x0004
 }
+{
+ name: first
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0008
+}
+{
+ name: last
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x000c
+}
+{
+ name: key
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0010
+}
+-------------------------------------------------
+-------------------------------------------------
+function testRecursion's symbol table
+function type: VOID
+{
+ name: i
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0000
+}
+-------------------------------------------------
+-------------------------------------------------
+function testCallFunction's symbol table
+function type: VOID
+{
+ name: test_select
+ kind: VARIABLE
+ type: INT
+ relative addr: 0x0000
+}
+-------------------------------------------------
+-------------------------------------------------
+function main's symbol table
+function type: VOID
 -------------------------------------------------
 --------------------------------------
 function
-name: _print
+name: testIfWhile
 top label: label1
-bottom label: label2
+bottom label: label30
+argument space: 0
+return value space: 0
+space length: 8
+--------------------------------------
+function
+name: testSwitchCase
+top label: label31
+bottom label: label51
+argument space: 8
+return value space: 0
+space length: 8
+--------------------------------------
+function
+name: returnInt
+top label: label52
+bottom label: label53
+argument space: 0
+return value space: 4
+space length: 0
+--------------------------------------
+function
+name: returnChar
+top label: label54
+bottom label: label55
+argument space: 0
+return value space: 4
+space length: 0
+--------------------------------------
+function
+name: returnIntParameter
+top label: label56
+bottom label: label62
+argument space: 20
+return value space: 4
+space length: 24
+--------------------------------------
+function
+name: returnCharParameter
+top label: label63
+bottom label: label69
+argument space: 20
+return value space: 4
+space length: 20
+--------------------------------------
+function
+name: testAssign
+top label: label70
+bottom label: label71
+argument space: 0
+return value space: 0
+space length: 32
+--------------------------------------
+function
+name: testInputOutput
+top label: label72
+bottom label: label73
+argument space: 0
+return value space: 0
+space length: 16
+--------------------------------------
+function
+name: testTrick
+top label: label74
+bottom label: label75
 argument space: 0
 return value space: 0
 space length: 0
 --------------------------------------
 function
-name: fibonacci
-top label: label3
-bottom label: label7
-argument space: 4
+name: judge1
+top label: label76
+bottom label: label79
+argument space: 16
 return value space: 4
-space length: 8
+space length: 20
 --------------------------------------
 function
-name: test
-top label: label8
-bottom label: label9
-argument space: 8
+name: judge2
+top label: label80
+bottom label: label83
+argument space: 16
 return value space: 4
-space length: 8
+space length: 20
+--------------------------------------
+function
+name: Qsort
+top label: label84
+bottom label: label92
+argument space: 8
+return value space: 0
+space length: 20
+--------------------------------------
+function
+name: testRecursion
+top label: label93
+bottom label: label96
+argument space: 0
+return value space: 0
+space length: 4
+--------------------------------------
+function
+name: testCallFunction
+top label: label97
+bottom label: label104
+argument space: 0
+return value space: 0
+space length: 4
 --------------------------------------
 function
 name: main
 top label: main
-bottom label: label18
+bottom label: label105
 argument space: 0
 return value space: 0
-space length: 64
+space length: 0

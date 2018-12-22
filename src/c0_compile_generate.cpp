@@ -482,7 +482,7 @@ compile_errcode InputStatement::Generate() {
                     symbol_table_tree->GetAddressStringInterface(current_func_name, identifier_name, identifier_string);
                     SymbolType input_type;
                     string input_type_string;
-                    symbol_table_tree->GetTermType(current_func_name, identifier_name, input_type);
+                    symbol_table_tree->GetTermTypeInterface(current_func_name, identifier_name, input_type);
                     if (input_type == INT) {
                         input_type_string = string("int");
                     } else if (input_type == CHAR) {
@@ -604,6 +604,35 @@ compile_errcode OutputStatement::Generate() {
                     pcode_generator->Insert(pcode_output);
                     state = 3;
                     break;
+                } else {
+                    string expression_type = INT_EXPRESSION;
+                    handle_correct_queue->SetCacheLocate();
+                    if (name == CHARACTER_SYM) {
+                        handle_correct_queue->NextSymbol();
+                        if (name == R_CURLY_BRACKET_SYM) {
+                            expression_type = CHAR_EXPRESSION;
+                        }
+                    } else if (name == IDENTIFIER_SYM) {
+                        string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                        SymbolType type;
+                        symbol_table_tree->GetTermTypeInterface(current_func_name, identifier_name, type); 
+                        if (type == CHAR) {
+                            expression_type = CHAR_EXPRESSION;
+                        }
+                    }
+                    handle_correct_queue->SetCurrentLocate();
+                    if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                        Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
+                        pcode_generator->Insert(pcode_assign);
+                        Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
+                        pcode_generator->Insert(pcode_output);
+                        state = 5;
+                        break;
+                    } else {
+                        return NOT_MATCH;
+                    }
+                }
+                /*
                 } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
@@ -616,7 +645,7 @@ compile_errcode OutputStatement::Generate() {
                     break;
                 } else {
                     return NOT_MATCH;
-                }
+                }*/
             }
             case 3: {
                 if (name == COMMA_SYM) {
@@ -630,6 +659,33 @@ compile_errcode OutputStatement::Generate() {
                 }
             }
             case 4: {
+                    string expression_type = INT_EXPRESSION;
+                    handle_correct_queue->SetCacheLocate();
+                    if (name == CHARACTER_SYM) {
+                        handle_correct_queue->NextSymbol();
+                        if (name == R_CURLY_BRACKET_SYM) {
+                            expression_type = CHAR_EXPRESSION;
+                        }
+                    } else if (name == IDENTIFIER_SYM) {
+                        string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                        SymbolType type;
+                        symbol_table_tree->GetTermTypeInterface(current_func_name, identifier_name, type); 
+                        if (type == CHAR) {
+                            expression_type = CHAR_EXPRESSION;
+                        }
+                    }
+                    handle_correct_queue->SetCurrentLocate();
+                    if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
+                        Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
+                        pcode_generator->Insert(pcode_assign);
+                        Pcode pcode_output(OUTPUT, temp_output, expression_type, EMPTY_STR);
+                        pcode_generator->Insert(pcode_output);
+                        state = 5;
+                        break;
+                    } else {
+                        return NOT_MATCH;
+                    }
+                /*
                 if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     Pcode pcode_assign(ASSIGN, temp_output, expression_string, EMPTY_STR);
                     pcode_generator->Insert(pcode_assign);
@@ -640,7 +696,7 @@ compile_errcode OutputStatement::Generate() {
                     break;
                 } else {
                     return NOT_MATCH;
-                }
+                }*/
             }
             case 5: {
                 if (name == R_CIRCLE_BRACKET_SYM) {

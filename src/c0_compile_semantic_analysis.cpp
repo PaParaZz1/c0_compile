@@ -115,7 +115,7 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
                     name = handle_correct_queue->GetCurrentName();
                     if (name == R_SQUARE_BRACKET_SYM) {
                         if (m_valid) {
-                            symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                            symbol_table_tree->GetTermTypeInterface(m_identifier_name, factor_type);
                         } else {
                             factor_type = VOID;
                         }
@@ -135,7 +135,7 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
                         string str = "This is a function call";
                         GRAMMA_LOG(str);
                         if (m_valid) {
-                            symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                            symbol_table_tree->GetTermTypeInterface(m_identifier_name, factor_type);
                             if (factor_type == VOID) {
                                 m_valid = false; // (doubt)
                                 SemanticErrorLog(string("no return value func can't be used as factor"), m_identifier_name, line_number, character_number);
@@ -153,7 +153,7 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
             } else {
                 handle_correct_queue->SetCurrentLocate();
                 if (m_valid) {
-                    symbol_table_tree->GetTermType(m_identifier_name, factor_type);
+                    symbol_table_tree->GetTermTypeInterface(m_identifier_name, factor_type);
                 } else {
                     factor_type = VOID;
                 }
