@@ -117,8 +117,8 @@ compile_errcode Factor::Generate(string& factor_string) {
                 handle_correct_queue->SetCurrentLocate();
                 SymbolKind kind; 
                 SymbolType type;
-                symbol_table_tree->GetTermKind(current_func_name, m_identifier_name, kind);
-                symbol_table_tree->GetTermType(m_identifier_name, type);
+                symbol_table_tree->GetTermKindInterface(current_func_name, m_identifier_name, kind);
+                name = handle_correct_queue->GetCurrentName();
                 if (kind == CONST) {
                     int value;
                     symbol_table_tree->GetTermIntValue(current_func_name, m_identifier_name, value);

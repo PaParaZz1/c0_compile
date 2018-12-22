@@ -307,11 +307,11 @@ public:
     compile_errcode GetCurrentTableType(SymbolType& type);
     compile_errcode GetTermType(string name, SymbolType& type);
     compile_errcode GetTermType(string current_table_name, string name, SymbolType& type);
-    compile_errcode GetTermKind(string name, SymbolKind& kind);
-    compile_errcode GetTermKind(string current_table_name, string name, SymbolKind& kind);
     compile_errcode GetTermIntValue(string current_table_name, string name, int& value);
     compile_errcode GetAddressStringInterface(string name, string& address_string);
     compile_errcode GetAddressStringInterface(string current_table_name, string name, string& address_string);
+    compile_errcode GetTermKindInterface(const string& name, SymbolKind& kind);
+    compile_errcode GetTermKindInterface(const string& cur_func_name, const string& name, SymbolKind& kind);
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }
@@ -323,6 +323,7 @@ private:
     string current_table_name;
     int m_tree_address_length;
     compile_errcode GetAddressString(string current_table_name, string name, string& address_string);
+    compile_errcode GetTermKind(string current_table_name, string name, SymbolKind& kind);
 };
 
 class FunctionTableTerm {

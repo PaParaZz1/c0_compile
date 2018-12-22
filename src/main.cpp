@@ -162,6 +162,7 @@ void TestGenerate(const char* test_file_name) {
     symbol_table_tree->PrintTree();
     cout << "symbol table and semantic check OK" << endl;
     // pcode generate
+    // return;
     handle_correct_queue->Restart();
     program.Generate();
     pcode_generator->PrintAllPcode();
