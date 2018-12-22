@@ -1084,6 +1084,9 @@ compile_errcode SwitchStatement::Action() {
                     m_default.LogOutput();
                     state = 7;
                     break;
+                } else if (name == R_CURLY_BRACKET_SYM) {
+                    state = 8;
+                    break;
                 } else {
                     goto ERROR_SWITCH;
                 }

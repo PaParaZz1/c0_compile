@@ -28,7 +28,7 @@ public:
         buffer_index = 0;
         enable_number = true;
         m_line_number = 1;
-        m_character_number = 1;
+        m_character_number = 0;
     }
     ~LexicalAnalysis() {
         if (!fp_in)

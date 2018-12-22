@@ -1103,6 +1103,9 @@ compile_errcode SwitchStatement::Generate() {
                 if ((ret = m_default.Generate()) == COMPILE_OK) {
                     state = 7;
                     break;
+                } else if (name == R_CURLY_BRACKET_SYM) {
+                    state = 8;
+                    break;
                 } else {
                     goto ERROR_SWITCH;
                 }

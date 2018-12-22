@@ -38,8 +38,10 @@ inline bool IsRelationalOpeartor(SymbolName name) {
 }
 
 FILE* gramma_error = fopen("gramma_error.txt", "w");
+bool gramma_flag = true;
 void GrammaErrorLogs(string error_content) {
     cout<<"bug ++"<<endl;
+    gramma_flag = false;
     int line_number = handle_symbol_queue->GetCurrentLine();
     int character_number = handle_symbol_queue->GetCurrentCharacter();
     if (gramma_error == NULL) {
@@ -959,6 +961,9 @@ compile_errcode SwitchStatement::Parse() {
                     m_default.LogOutput();
                     state = 7;
                     break;
+                } else if (name == R_CURLY_BRACKET_SYM){
+                    state = 8;
+                    break;
                 } else {
                     goto ERROR_SWITCH;
                 }
@@ -1377,5 +1382,7 @@ compile_errcode Program::Parse() {
     if ((ret = m_main_function.Parse()) == COMPILE_OK) {
         m_main_function.LogOutput();
     }
+    if (gramma_flag == false)
+        ret = NOT_MATCH;
     return ret;
 }

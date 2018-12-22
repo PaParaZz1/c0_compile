@@ -316,7 +316,7 @@ ParseSym:
         case '\r': goto ParseSym;
         case '\n': {
             m_line_number++;
-            m_character_number = 1;
+            m_character_number = 0;
             goto ParseSym;
         }
         default: {
