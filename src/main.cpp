@@ -168,6 +168,7 @@ void TestGenerate(const char* test_file_name) {
     pcode_generator->PrintAllPcode();
     handle_func_table->PrintAllTerm();
     cout << "generate pcode OK" << endl;
+    //goto ERROR2;
     // mips generate
     pcode_generator->CopyPcode(pcode_copy);
     MipsGenerate(pcode_copy);

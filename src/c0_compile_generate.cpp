@@ -1104,6 +1104,8 @@ compile_errcode SwitchStatement::Generate() {
                     state = 7;
                     break;
                 } else if (name == R_CURLY_BRACKET_SYM) {
+                    Pcode pcode(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR);
+                    pcode_generator->Insert(pcode);
                     state = 8;
                     break;
                 } else {

@@ -16,7 +16,7 @@ public:
         m_pcode_queue.assign(source_queue.begin(), source_queue.end());
         m_relative_addr = 0;
         m_string_label_count = 0;
-        m_global = 0;
+        m_global = 0x10010000;
     }
     ~MipsGenerator() {
         if (!m_fp_mips)
