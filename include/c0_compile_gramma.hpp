@@ -91,7 +91,11 @@ public:
         GRAMMA_LOG(str);
     }
     compile_errcode Action();
-    compile_errcode Generate();
+    compile_errcode Generate() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return -2;
+    }
+    compile_errcode Generate(const string& call_name);
 private:
     Expression m_expression;
 };

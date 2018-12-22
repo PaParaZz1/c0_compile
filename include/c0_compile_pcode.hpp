@@ -49,16 +49,16 @@ public:
     string ToString() {
         return m_num1 + string("\t") + m_num2 + string("\t") + string(pcode_string[m_op]) + string("\t") + m_num3;
     }
-    PcodeType GetOP() {
+    PcodeType GetOP() const {
         return m_op;
     }
-    string GetNum1() {
+    string GetNum1() const {
         return m_num1;
     }
-    string GetNum2() {
+    string GetNum2() const {
         return m_num2;
     }
-    string GetNum3() {
+    string GetNum3() const {
         return m_num3;
     }
 private:

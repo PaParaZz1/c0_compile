@@ -40,7 +40,8 @@ private:
     void GenerateLoad(string target, string source, string type);
     void GetNextStringLabel(string& string_label);
     void ExtractString();
-    void TranslateADDType(Pcode& item);
+    void TranslateADD(Pcode& item);
+    void TranslateSUB(const Pcode& item);
     void TranslateMULType(Pcode& item);
     void TranslateBType(Pcode& item);
     void TranslateASSIGN(Pcode& item);

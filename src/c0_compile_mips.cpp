@@ -93,18 +93,10 @@ void MipsGenerator::ExtractString() {
     m_global += (string_count/4*4)+4;
 }
 
-void MipsGenerator::TranslateADDType(Pcode& item) {
+void MipsGenerator::TranslateADD(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
-    PcodeType op_type = item.GetOP();
-    string op;
-    if (op_type == ADD)
-        op = "add";
-    else if (op_type == SUB)
-        op = "sub";
-    else
-        fprintf(stderr, "invalid add type\n");
     size_t f2 = num2.find(TMP);
     size_t f3 = num3.find(TMP);
     if (f2 == string::npos && f3 == string::npos) {
@@ -112,13 +104,37 @@ void MipsGenerator::TranslateADDType(Pcode& item) {
     } else if (f2 != string::npos && f3 != string::npos) {
         GenerateLoad(NUM2, num2, TMP);
         GenerateLoad(NUM3, num3, TMP);
-        Output2File(op + " " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("add " + NUM1 + " " + NUM2 + " " + NUM3);
     } else if (f2 == string::npos) {
         GenerateLoad(NUM2, num3, TMP);
-        Output2File(op + string("i ") + NUM1 + " " + NUM2 + " " + num2);
+        Output2File("addi " + NUM1 + " " + NUM2 + " " + num2);
     } else {
         GenerateLoad(NUM2, num2, TMP);
-        Output2File(op + string("i ") + NUM1 + " " + NUM2 + " " + num3);
+        Output2File("addi " + NUM1 + " " + NUM2 + " " + num3);
+    }
+    GenerateStore(num1, TMP);
+}
+
+void MipsGenerator::TranslateSUB(const Pcode& item) {
+    string num1 = item.GetNum1();
+    string num2 = item.GetNum2();
+    string num3 = item.GetNum3();
+    size_t f2 = num2.find(TMP);
+    size_t f3 = num3.find(TMP);
+    if (f2 == string::npos && f3 == string::npos) {
+        fprintf(stderr, "not implemented translate SUB\n");
+    } else if (f2 != string::npos && f3 != string::npos) {
+        GenerateLoad(NUM2, num2, TMP);
+        GenerateLoad(NUM3, num3, TMP);
+        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
+    } else if (f2 == string::npos) {
+        Output2File("li " + NUM2 + " " + num2);
+        GenerateLoad(NUM3, num3, TMP);
+        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
+    } else {
+        Output2File("li " + NUM3 + " " + num3);
+        GenerateLoad(NUM2, num2, TMP);
+        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
     }
     GenerateStore(num1, TMP);
 }
@@ -226,18 +242,28 @@ void MipsGenerator::TranslatePara(Pcode& item) {
 void MipsGenerator::TranslateCall(Pcode& item) {
     string top_level = item.GetNum1();
     string space_length = item.GetNum2();
+    string func_name = item.GetNum3();
     Output2File(string("sw $ra -") + std::to_string(m_relative_addr) + "($sp)");
     Output2File(string("sw $fp -") + std::to_string(m_relative_addr + 4) + "($sp)");
     Output2File(string("addi $fp $sp -") + std::to_string(m_relative_addr + 8));
     for (Pcode para : m_parameter_stack) {
-        TranslateASSIGN(para);
+        if (para.GetNum3() == func_name){
+            Output2File("# para");
+            TranslateASSIGN(para);
+        }
     }
     Output2File("addi $sp $fp -" + space_length);
     Output2File("jal " + top_level);
     Output2File("addi $sp $fp " + std::to_string(m_relative_addr + 8));
     Output2File("lw $fp -" + std::to_string(m_relative_addr + 4) + "($sp)");
     Output2File("lw $ra -" + std::to_string(m_relative_addr) + "($sp)");
-    m_parameter_stack.clear();
+    for (auto iter = m_parameter_stack.begin(); iter != m_parameter_stack.end();) {
+        if (iter->GetNum3() == func_name) {
+            iter = m_parameter_stack.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
 }
 
 void MipsGenerator::TranslateASSIGN(Pcode& item) {
@@ -385,9 +411,12 @@ void MipsGenerator::Translate() {
                 TranslateInput(*iter);
                 break;
             }
-            case SUB:
+            case SUB: {
+                TranslateSUB(*iter);
+                break;
+            }
             case ADD: {
-                TranslateADDType(*iter);
+                TranslateADD(*iter);
                 break;
             }
             case DIV:
