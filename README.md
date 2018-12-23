@@ -6,6 +6,8 @@
 
 ## output
  - gramma log: gramma_log.txt
+ - gramma error: gramma_error.txt
  - symbol log: symbol_log.txt
  - error: semantic_error.txt
  - pcode: pcode.txt
+ - mips assembly: mips.txt

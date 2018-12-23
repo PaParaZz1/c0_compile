@@ -338,8 +338,9 @@ public:
     FunctionTableTerm(string func_name,
                       int space_length,
                       int argument_number,
-                      int return_value_number) :
-    m_func_name(func_name), m_space_length(space_length) {
+                      int return_value_number,
+                      const vector<SymbolType>& argument_type) :
+    m_func_name(func_name), m_space_length(space_length), m_argument_type(argument_type) {
         m_argument_space_length = 4 * argument_number;
         m_return_value_space_length = 4 * return_value_number;
     }
@@ -355,6 +356,9 @@ public:
     void GetSpaceLength(int& space_length) const {
         space_length = m_space_length;
     }
+    vector<SymbolType> GetArgumentType() const {
+        return m_argument_type;
+    }
     void SetTopLabel(const string& top_label) {
         m_top_label = top_label;
     }
@@ -369,6 +373,7 @@ private:
     int m_argument_space_length;
     int m_return_value_space_length;
     int m_space_length;
+    vector<SymbolType> m_argument_type;
 };
 
 class FunctionTable {
@@ -376,13 +381,14 @@ public:
     FunctionTable() {
         m_current_term_ptr = -1;
     }
-    void InsertTerm(string func_name, int space_length, int argument_number, int return_value_number);
+    void InsertTerm(string func_name, int space_length, int return_value_number, const vector<SymbolType>& argument_type);
     bool Find(string func_name);
     void GetTermTopLabel(const string& term_name, string& top_label);
     void GetCurrentTermTopLabel(string& top_label);
     void GetTermBottomLabel(const string& term_name, string& bottom_label);
     void GetCurrentTermBottomLabel(string& bottom_label);
     void GetTermSpaceLength(string func_name, int& space_length);
+    void GetTermArgumentType(const string& term_name, vector<SymbolType>& argument_type);
     void PrintAllTerm();
     void SetTermTopLabel(const string& func_name, const string& top_label);
     void SetTermBottomLabel(const string& func_name, const string& bottom_label);

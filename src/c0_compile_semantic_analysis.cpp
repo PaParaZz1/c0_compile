@@ -160,6 +160,28 @@ void AssignCheck(const string& identifier_name, int line_number, int character_n
     }
 }
 
+void ArgumentCheck(const string& identifier_name, int line_number, int character_number, vector<SymbolType>& value_argument_type) {
+    if (!handle_func_table->Find(identifier_name)) {
+        return;
+    }
+    vector<SymbolType> argument_type;
+    handle_func_table->GetTermArgumentType(identifier_name, argument_type);
+    int argument_type_len = argument_type.size();
+    int value_argument_type_len = value_argument_type.size();
+    if (argument_type_len != value_argument_type_len) {
+        SemanticErrorLog("argument list expected: " + std::to_string(argument_type_len) + ", but value argument list had: "
+                + std::to_string(value_argument_type_len), identifier_name, line_number, character_number);
+        return;
+    }
+    for (int i=0; i<value_argument_type_len; ++i) {
+        if (argument_type[i] != value_argument_type[i]) {
+            string str1 = symbol_type_string[argument_type[i]];
+            string str2 = symbol_type_string[value_argument_type[i]];
+            SemanticErrorLog("argument expected: " + str1 + ", but value argument had: " + str2, identifier_name, line_number, character_number);
+        }
+    }
+}
+
 compile_errcode Factor::Action(SymbolType& factor_type) {
     int ret = COMPILE_OK;
     SymbolType expression_type;
@@ -177,12 +199,12 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
             handle_correct_queue->SetCacheLocate();
             handle_correct_queue->NextSymbol();
             name = handle_correct_queue->GetCurrentName();
+            // array
             if (name == L_SQUARE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
                 if (m_valid)
                     ArrayCheck(m_identifier_name, line_number, character_number);
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
-                    // m_expression.LogOutput();
                     name = handle_correct_queue->GetCurrentName();
                     if (name == R_SQUARE_BRACKET_SYM) {
                         if (m_valid) {
@@ -197,10 +219,11 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
                 } else {
                     return NOT_MATCH;
                 }
-            } else if (name == L_CIRCLE_BRACKET_SYM) {
+            } else if (name == L_CIRCLE_BRACKET_SYM) {  // function
                 handle_correct_queue->NextSymbol();
-                if ((ret = m_value_argument_list.Action()) == COMPILE_OK) {
-                    // m_value_argument_list.LogOutput();
+                vector<SymbolType> argument_type;
+                if ((ret = m_value_argument_list.Action(argument_type)) == COMPILE_OK) {
+                    ArgumentCheck(m_identifier_name, line_number, character_number, argument_type);
                     name = handle_correct_queue->GetCurrentName();
                     if (name == R_CIRCLE_BRACKET_SYM) {
                         string str = "This is a function call";
@@ -234,7 +257,7 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
         case L_CIRCLE_BRACKET_SYM: {
             handle_correct_queue->NextSymbol();
             if ((ret = m_expression.Action(factor_type)) == COMPILE_OK) {
-                // m_expression.LogOutput();
+                factor_type = INT;
                 name = handle_correct_queue->GetCurrentName();
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     break;
@@ -275,6 +298,7 @@ compile_errcode Term::Action(SymbolType& term_type) {
             }
             case 1: {
                 if (IsMultiplyOperation(name)) {
+                    term_type = INT;
                     state = 0;
                     break;
                 } else {
@@ -298,6 +322,7 @@ compile_errcode Expression::Action(SymbolType& expression_type) {
         switch (state) {
             case 0: {
                 if (IsAddOperation(name)) {
+                    expression_type = INT;
                     state = 0;
                     break;
                 } else if ((ret = m_term.Action(cur_term_type)) == COMPILE_OK) {
@@ -311,6 +336,7 @@ compile_errcode Expression::Action(SymbolType& expression_type) {
             }
             case 1: {
                 if (IsAddOperation(name)) {
+                    expression_type = INT;
                     state = 2;
                     break;
                 } else {
@@ -1288,10 +1314,9 @@ compile_errcode CompoundStatement::Action() {
     return COMPILE_OK;
 }
 
-compile_errcode ArgumentList::Action(int& argument_number) {
+compile_errcode ArgumentList::Action(vector<SymbolType>& argument_type) {
     int ret = COMPILE_OK;
     int state = 0;
-    argument_number = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         int line_number = handle_correct_queue->GetCurrentLine();
@@ -1301,6 +1326,13 @@ compile_errcode ArgumentList::Action(int& argument_number) {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
                 } else if (IsValidVariableType(name)) {
+                    if (name == INT_SYM) {
+                        argument_type.push_back(INT);
+                    } else if (name == CHAR_SYM) {
+                        argument_type.push_back(CHAR);
+                    } else {
+                        fprintf(stderr, "invalid function argument type\n");
+                    }
                     state = 1;
                     m_type = name;
                     break;
@@ -1310,7 +1342,6 @@ compile_errcode ArgumentList::Action(int& argument_number) {
             }
             case 1: {
                 if (name == IDENTIFIER_SYM) {
-                    argument_number++;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     if (symbol_table_tree->Find(m_identifier_name, true)) {
                         SemanticErrorLog(string("repeat definition identifier(para)"), m_identifier_name, line_number, character_number);
@@ -1333,6 +1364,13 @@ compile_errcode ArgumentList::Action(int& argument_number) {
             }
             case 3: {
                 if (IsValidVariableType(name)) {
+                    if (name == INT_SYM) {
+                        argument_type.push_back(INT);
+                    } else if (name == CHAR_SYM) {
+                        argument_type.push_back(CHAR);
+                    } else {
+                        fprintf(stderr, "invalid function argument type\n");
+                    }
                     state = 1;
                     m_type = name;
                     break;
@@ -1345,7 +1383,7 @@ compile_errcode ArgumentList::Action(int& argument_number) {
     }
 }
 
-compile_errcode ValueArgumentList::Action() {
+compile_errcode ValueArgumentList::Action(vector<SymbolType>& argument_type) {
     int ret = COMPILE_OK;
     int state = 0;
     SymbolType expression_type;
@@ -1356,6 +1394,7 @@ compile_errcode ValueArgumentList::Action() {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     return COMPILE_OK;
                 } else if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
+                    argument_type.push_back(expression_type);
                     state = 1;
                     break;
                 } else {
@@ -1372,6 +1411,7 @@ compile_errcode ValueArgumentList::Action() {
             }
             case 2: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
+                    argument_type.push_back(expression_type);
                     state = 1;
                     break;
                 } else {
@@ -1387,6 +1427,8 @@ compile_errcode ValueArgumentList::Action() {
 compile_errcode FunctionCall::Action() {
     int ret = COMPILE_OK;
     int state = 0;
+    vector<SymbolType> argument_type;
+    string identifier_name;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         int line_number = handle_correct_queue->GetCurrentLine();
@@ -1394,7 +1436,7 @@ compile_errcode FunctionCall::Action() {
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
-                    string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     IdentifierCheck(identifier_name, line_number, character_number);
                     state = 1;
                     break;
@@ -1411,7 +1453,8 @@ compile_errcode FunctionCall::Action() {
                 }
             }
             case 2: {
-                if ((ret = m_value_argument_list.Action()) == COMPILE_OK) {
+                if ((ret = m_value_argument_list.Action(argument_type)) == COMPILE_OK) {
+                    ArgumentCheck(identifier_name, line_number, character_number, argument_type);
                     state = 3;
                     break;
                 } else {
@@ -1437,6 +1480,7 @@ compile_errcode FunctionDefinition::Action() {
     int ret = COMPILE_OK;
     int state = 0;
     int return_value_number = 0;
+    vector<SymbolType> argument_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         int line_number = handle_correct_queue->GetCurrentLine();
@@ -1487,7 +1531,7 @@ compile_errcode FunctionDefinition::Action() {
                 }
             }
             case 3: {
-                if ((ret = m_argument_list.Action(m_argument_number)) == COMPILE_OK) {
+                if ((ret = m_argument_list.Action(argument_type)) == COMPILE_OK) {
                     m_argument_list.LogOutput();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
@@ -1530,7 +1574,7 @@ compile_errcode FunctionDefinition::Action() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     int space_length = 0;
                     symbol_table_tree->GetTableSpaceLength(m_identifier_name, space_length);
-                    handle_func_table->InsertTerm(m_identifier_name, space_length, m_argument_number, return_value_number);
+                    handle_func_table->InsertTerm(m_identifier_name, space_length, return_value_number, argument_type);
                     symbol_table_tree->UpgradeAddress();
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
@@ -1609,7 +1653,7 @@ compile_errcode MainFunction::Action() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     int space_length = 0;
                     symbol_table_tree->GetTableSpaceLength(string("main"), space_length);
-                    handle_func_table->InsertTerm(string("main"), space_length, 0, 0);
+                    handle_func_table->InsertTerm(string("main"), space_length, 0, vector<SymbolType>());
                     string previous_table_name = symbol_table_tree->GetCurrentPreviousTableName();
                     symbol_table_tree->SetCurrentTableName(previous_table_name);
                     state = 7;

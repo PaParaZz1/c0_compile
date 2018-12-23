@@ -90,7 +90,11 @@ public:
         string str("This is a value argument list");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return FUNC_NOT_IMPLEMENTED;
+    }
+    compile_errcode Action(vector<SymbolType>& argument_type);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
         return FUNC_NOT_IMPLEMENTED;
@@ -135,7 +139,7 @@ public:
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
         return FUNC_NOT_IMPLEMENTED;
     }
-    compile_errcode Action(int& argument_number);
+    compile_errcode Action(vector<SymbolType>& argument_number);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
         return FUNC_NOT_IMPLEMENTED;

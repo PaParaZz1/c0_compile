@@ -437,14 +437,19 @@ void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
 
 void FunctionTableTerm::PrintTerm() {
     fprintf(fp_symbol, "--------------------------------------\n");
-    fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\nspace length: %d\n",
+    fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\nspace length: %d\nargument type:\n",
     m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length, m_space_length);
+    for (SymbolType tmp : m_argument_type) {
+        fprintf(fp_symbol, "\t%s\n", symbol_type_string[tmp]);
+    }
 }
+
 void FunctionTable::InsertTerm(string func_name,
                                int space_length,
-                               int argument_number,
-                               int return_value_number) {
-    FunctionTableTerm term(func_name, space_length, argument_number, return_value_number);
+                               int return_value_number,
+                               const vector<SymbolType>& argument_type) {
+    int argument_number = argument_type.size();
+    FunctionTableTerm term(func_name, space_length, argument_number, return_value_number, argument_type);
     m_func_table.push_back(term);
     m_current_term_ptr++;
 }
@@ -467,7 +472,6 @@ void FunctionTable::GetCurrentTermTopLabel(string& top_label) {
 void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
     m_func_table[m_current_term_ptr].GetBottomLabel(bottom_label);
 }
-
 
 void FunctionTable::GetTermTopLabel(const string& term_name, string& top_label) {
     auto iter = m_func_table.begin();
@@ -498,6 +502,19 @@ void FunctionTable::GetTermSpaceLength(string func_name, int& space_length) {
         iter->GetName(tmp);
         if (tmp == func_name) {
             iter->GetSpaceLength(space_length);
+            return;
+        }
+    }
+}
+
+void FunctionTable::GetTermArgumentType(const string& func_name, vector<SymbolType>& argument_type) {
+    auto iter = m_func_table.begin();
+    for (; iter != m_func_table.end(); ++iter) {
+        string tmp;
+        iter->GetName(tmp);
+        if (tmp == func_name) {
+            argument_type = iter->GetArgumentType();
+            return;
         }
     }
 }
