@@ -77,13 +77,54 @@ inline SymbolType Name2Type(SymbolName name) {
 }
 
 FILE* semantic_error = fopen("semantic_error.txt", "w");
-
+bool semantic_flag = true;
 void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
+    semantic_flag = false;
     if (semantic_error == NULL) {
         fprintf(stderr, "%s error: '%s' in line %d character %d\n", error_type.c_str(), content.c_str(), line_number, character_number);
     } else {
         fprintf(semantic_error, "%s error: '%s' in line %d character %d\n", error_type.c_str(),  content.c_str(), line_number, character_number);
     }
+}
+
+void ArrayCheck(const string& array_name, int line_number, int character_number) {
+    SymbolKind identifier_kind;
+    symbol_table_tree->GetTermKindInterface(array_name, identifier_kind);
+    if (identifier_kind != ARRAY) {
+        SemanticErrorLog("invalid array identifier: ", array_name, line_number, character_number);
+        return;
+    }
+    handle_correct_queue->SetCacheLocate();
+    SymbolName name;
+    name = handle_correct_queue->GetCurrentName();
+    if (name == INTERGER_SYM) {
+        int value = handle_correct_queue->GetCurrentValue<int>();
+        handle_correct_queue->NextSymbol();
+        name = handle_correct_queue->GetCurrentName();
+        if (name == R_SQUARE_BRACKET_SYM) {
+            int array_space;
+            symbol_table_tree->GetArraySpaceInterface(array_name, array_space);
+            if (value<0 || value>=array_space)
+                SemanticErrorLog("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
+        }
+    } else if (name == IDENTIFIER_SYM) {
+        SymbolKind kind;
+        string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+        symbol_table_tree->GetTermKindInterface(identifier_name, kind);
+        if (kind == CONST) {
+            int value;
+            symbol_table_tree->GetTermIntValueInterface(identifier_name, value);
+            handle_correct_queue->NextSymbol();
+            name = handle_correct_queue->GetCurrentName();
+            if (name == R_SQUARE_BRACKET_SYM) {
+                int array_space;
+                symbol_table_tree->GetArraySpaceInterface(array_name, array_space);
+                if (value<0 || value>=array_space)
+                    SemanticErrorLog("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
+            }
+        }
+    }
+    handle_correct_queue->SetCurrentLocate();
 }
 
 compile_errcode Factor::Action(SymbolType& factor_type) {
@@ -110,6 +151,7 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
             name = handle_correct_queue->GetCurrentName();
             if (name == L_SQUARE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
+                ArrayCheck(m_identifier_name, line_number, character_number);
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     // m_expression.LogOutput();
                     name = handle_correct_queue->GetCurrentName();
@@ -685,11 +727,15 @@ compile_errcode AssignStatement::Action() {
     SymbolType expression_type;
     SymbolType identifier_type;
     SymbolKind identifier_kind;
+    string identifier_name;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
+                    identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     state = 1;
                     break;
                 } else {
@@ -701,6 +747,8 @@ compile_errcode AssignStatement::Action() {
                     state = 2;
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
+                    handle_correct_queue->NextSymbol();
+                    ArrayCheck(identifier_name, line_number, character_number);
                     state = 11;
                     break;
                 } else {
@@ -742,7 +790,7 @@ compile_errcode AssignStatement::Action() {
                 }
             }
         }
-        if (state != 3 && state != 12)
+        if (state != 3 && state != 11 && state!=12)
             handle_correct_queue->NextSymbol();
     }
 }
@@ -1556,5 +1604,7 @@ compile_errcode Program::Action() {
     if ((ret = m_main_function.Action()) == COMPILE_OK) {
         m_main_function.LogOutput();
     }
+    if (!semantic_flag)
+        ret = SEMANTIC_ERROR;
     return ret;
 }

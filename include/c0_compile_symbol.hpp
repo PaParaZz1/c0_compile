@@ -267,6 +267,7 @@ public:
     compile_errcode GetTermKind(string name, SymbolKind& kind);
     compile_errcode GetTermIntValue(string name, int& value);
     compile_errcode GetAddress(string name, int& addr);
+    compile_errcode GetArraySpace(const string& name, int& array_length);
     void GetTableType(SymbolType& type) {
         type = m_table_type;
     }
@@ -305,13 +306,16 @@ public:
         return current_table_name;
     }
     compile_errcode GetCurrentTableType(SymbolType& type);
-    compile_errcode GetTermIntValue(string current_table_name, string name, int& value);
     compile_errcode GetAddressStringInterface(string name, string& address_string);
     compile_errcode GetAddressStringInterface(string current_table_name, string name, string& address_string);
     compile_errcode GetTermKindInterface(const string& name, SymbolKind& kind);
     compile_errcode GetTermKindInterface(const string& cur_func_name, const string& name, SymbolKind& kind);
     compile_errcode GetTermTypeInterface(const string& name, SymbolType& kind);
     compile_errcode GetTermTypeInterface(const string& cur_func_name, const string& name, SymbolType& Type);
+    compile_errcode GetArraySpaceInterface(const string& name, int& array_space);
+    compile_errcode GetArraySpaceInterface(const string& cur_func_name, const string& name, int& array_space);
+    compile_errcode GetTermIntValueInterface(const string& name, int& value);
+    compile_errcode GetTermIntValueInterface(const string& cur_func_name, const string& name, int& value);
     void SetCurrentTableName(string name) {
         current_table_name = name;
     }
@@ -325,6 +329,8 @@ private:
     compile_errcode GetAddressString(string current_table_name, string name, string& address_string);
     compile_errcode GetTermKind(const string& begin_table_name, const string& name, SymbolKind& kind);
     compile_errcode GetTermType(const string& begin_table_name, const string& name, SymbolType& type);
+    compile_errcode GetArraySpace(const string& begin_table_name, const string& name, int& array_space);
+    compile_errcode GetTermIntValue(const string& begin_table_name, const string& name, int& value);
 };
 
 class FunctionTableTerm {

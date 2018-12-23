@@ -156,6 +156,17 @@ compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
     }
 }
 
+compile_errcode SymbolTable::GetArraySpace(const string& name, int& array_space) {
+    int ret = COMPILE_OK;
+    vector<pair<string, SymbolTableTerm> >::iterator iter;
+    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+        return ret;
+    } else {
+        array_space = iter->second.GetArrayInformation();
+        return COMPILE_OK;
+    }
+}
+
 
 compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
     int ret = COMPILE_OK;
@@ -235,24 +246,6 @@ void SymbolTableTree::PrintTree() {
     for (; iter != m_table_tree.end(); ++iter) {
         (iter->second).PrintTable();
     }
-}
-
-compile_errcode SymbolTableTree::GetTermIntValue(string current_table_name, string name, int& value) {
-    int ret = COMPILE_OK;
-    do {
-        auto iter = m_table_tree.begin();
-        for (; iter != m_table_tree.end(); ++iter) {
-            if (iter->first == current_table_name) {
-                break;
-            }
-        }
-        if ((ret = iter->second.GetTermIntValue(name, value)) != COMPILE_OK) {
-            current_table_name = iter->second.GetPreviousTableName();
-        } else {
-            return COMPILE_OK;
-        }
-    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
-    return ret;
 }
 
 compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
@@ -345,6 +338,7 @@ compile_errcode SymbolTableTree::GetTermKindInterface(const string& name, Symbol
 compile_errcode SymbolTableTree::GetTermKindInterface(const string& cur_func_name, const string& name, SymbolKind& kind) {
     return this->GetTermKind(cur_func_name, name, kind);
 }
+
 compile_errcode SymbolTableTree::GetTermType(const string& begin_func_name, const string& name, SymbolType& type) {
     int ret = COMPILE_OK;
     string cur_func_name = begin_func_name;
@@ -372,6 +366,64 @@ compile_errcode SymbolTableTree::GetTermTypeInterface(const string& name, Symbol
 
 compile_errcode SymbolTableTree::GetTermTypeInterface(const string& cur_func_name, const string& name, SymbolType& type) {
     return this->GetTermType(cur_func_name, name, type);
+}
+
+compile_errcode SymbolTableTree::GetArraySpace(const string& begin_func_name, const string& name, int& array_space) {
+    int ret = COMPILE_OK;
+    string cur_func_name = begin_func_name;
+    do {
+        auto iter = m_table_tree.begin(); 
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == cur_func_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetArraySpace(name, array_space)) != COMPILE_OK) {
+            cur_func_name = iter->second.GetPreviousTableName();
+        } else {
+            return COMPILE_OK;
+        }
+    } while(cur_func_name != BOTTOM_LEVEL);
+    fprintf(stderr, "no match term name\n");
+    return -3;
+}
+
+compile_errcode SymbolTableTree::GetArraySpaceInterface(const string& name, int& array_space) {
+    string cur_func_name = this->GetCurrentTableName();
+    return this->GetArraySpace(cur_func_name, name, array_space);
+}
+
+compile_errcode SymbolTableTree::GetArraySpaceInterface(const string& cur_func_name, const string& name, int& array_space) {
+    return this->GetArraySpace(cur_func_name, name, array_space);
+}
+
+compile_errcode SymbolTableTree::GetTermIntValue(const string& begin_func_name, const string& name, int& value) {
+    int ret = COMPILE_OK;
+    string cur_func_name = begin_func_name;
+    do {
+        auto iter = m_table_tree.begin(); 
+        for (; iter != m_table_tree.end(); ++iter) {
+            if (iter->first == cur_func_name) {
+                break;
+            }
+        }
+        if ((ret = iter->second.GetTermIntValue(name, value)) != COMPILE_OK) {
+            cur_func_name = iter->second.GetPreviousTableName();
+        } else {
+            return COMPILE_OK;
+        }
+    } while(cur_func_name != BOTTOM_LEVEL);
+    fprintf(stderr, "no match term name\n");
+    return -3;
+}
+
+compile_errcode SymbolTableTree::GetTermIntValueInterface(const string& name, int& value) {
+    string cur_func_name = this->GetCurrentTableName();
+    return this->GetTermIntValue(cur_func_name, name, value);
+}
+
+compile_errcode SymbolTableTree::GetTermIntValueInterface(const string& cur_func_name, const string& name, int& value) {
+    return this->GetTermIntValue(cur_func_name, name, value);
 }
 
 void SymbolTableTree::GetTableSpaceLength(string name, int& length) {

@@ -50,12 +50,12 @@ public:
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Action(SymbolType& term_type);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string& term_string);
 private:
@@ -71,12 +71,12 @@ public:
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Action(SymbolType& expression_type);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string& expression_string);
 private:
@@ -93,7 +93,7 @@ public:
     compile_errcode Action();
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(const string& call_name);
 private:
@@ -109,19 +109,19 @@ public:
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Action(SymbolType& factor_type);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string& factor_string);
 private:
-    Expression m_expression;
-    ValueArgumentList m_value_argument_list;
     bool m_valid;
     string m_identifier_name;
+    Expression m_expression;
+    ValueArgumentList m_value_argument_list;
 };
 
 class ArgumentList : AnalysisInterface {
@@ -133,12 +133,12 @@ public:
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Action(int& argument_number);
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(int& argument_number);
 private:
@@ -156,7 +156,7 @@ public:
     compile_errcode Action();
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string& jump_label);
 private:
@@ -205,7 +205,7 @@ public:
     compile_errcode Action();
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string compare_string, string jump_label, string& next_case_label);
 private:
@@ -222,7 +222,7 @@ public:
     compile_errcode Action();
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Generate(string compare_string, string& jump_label);
 private:
@@ -361,7 +361,7 @@ public:
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
-        return -2;
+        return FUNC_NOT_IMPLEMENTED;
     }
     compile_errcode Action(SymbolType& function_type, string funtion_name);
     compile_errcode Generate();

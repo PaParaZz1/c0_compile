@@ -24,7 +24,7 @@ void TestLexicalAnalysis(const char* test_file_name) {
         return;
     }
     Symbol symbol;
-    bool log_flag = true;
+    bool log_flag = false;
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
         if (ret == COMPILE_OK) {

@@ -121,7 +121,7 @@ compile_errcode Factor::Generate(string& factor_string) {
                 name = handle_correct_queue->GetCurrentName();
                 if (kind == CONST) {
                     int value;
-                    symbol_table_tree->GetTermIntValue(current_func_name, m_identifier_name, value);
+                    symbol_table_tree->GetTermIntValueInterface(current_func_name, m_identifier_name, value);
                     factor_string = std::to_string(value);
                 } else {
                     symbol_table_tree->GetAddressStringInterface(current_func_name, m_identifier_name, factor_string);
