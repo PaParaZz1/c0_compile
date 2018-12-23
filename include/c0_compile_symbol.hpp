@@ -137,10 +137,10 @@ public:
     T GetValue() {
         return m_value.GetValue<T>();
     }
-    int GetLine() {
+    int GetLine() const {
         return m_line_number;
     }
-    int GetCharacter() {
+    int GetCharacter() const {
         return m_character_number;
     }
     void SetLocate(int line_number, int character_number) {

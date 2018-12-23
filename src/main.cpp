@@ -24,7 +24,7 @@ void TestLexicalAnalysis(const char* test_file_name) {
         return;
     }
     Symbol symbol;
-    bool log_flag = false;
+    bool log_flag = true;
     while (true) {
         ret = lexical_analysis.GetSym(symbol);
         if (ret == COMPILE_OK) {
@@ -45,7 +45,9 @@ void TestLexicalAnalysis(const char* test_file_name) {
                 cout << symbol_name_string[name] << endl;
             }
         } else {
-            std::cerr << "errcode:" << ret << endl;
+            int line_number = symbol.GetLine();
+            int character_number = symbol.GetCharacter();
+            std::cerr << "errcode:" << ret << " in line " << line_number << " in character " << character_number << endl;
         }
     }
 }
@@ -181,13 +183,27 @@ ERROR2:
 }
 
 int main(int argc, char** argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: ./compile_test /path_to_source_code" << endl;
+    if (argc != 3) {
+        std::cerr << "Usage: ./compile_test /path_to_source_code -use_mode" << endl;
+        return -1;
     } else {
-        //TestLexicalAnalysis(argv[1]);
-        //TestGrammaAnalysis(argv[1]);
-        //TestSemanticAnalysis(argv[1]);
-        TestGenerate(argv[1]);
+        for (int i=2; i<3; ++i) {
+            if (argv[i][0] == '-') {
+                switch(argv[i][1]) {
+                    case '1': TestLexicalAnalysis(argv[1]); break;
+                    case '2': TestGrammaAnalysis(argv[1]); break;
+                    case '3': TestSemanticAnalysis(argv[1]); break;
+                    case '4': TestGenerate(argv[1]); break;
+                    default: {
+                        std::cerr << "invalid option: " << argv[i][1] << endl;
+                        return -1;
+                    }
+                }
+            } else {
+                std::cerr << "please '-' + option" << endl;
+                return -1;
+            }
+        }
     }
     return 0;
 }
