@@ -551,6 +551,9 @@ This is a term
 This is a assign statement
 This is a statement
 This is a term
+This is a term
+This is a term
+This is a term
 This is a expression
 This is a term
 This is a assign statement
@@ -1555,6 +1558,9 @@ This is a term
 This is a term
 This is a assign statement
 This is a statement
+This is a term
+This is a term
+This is a term
 This is a term
 This is a expression
 This is a term

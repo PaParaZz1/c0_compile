@@ -782,6 +782,7 @@ compile_errcode OutputStatement::Action() {
 
 compile_errcode AssignStatement::Action() {
     int ret = COMPILE_OK;
+    int id_ret = COMPILE_OK;
     int state = 0;
     SymbolType expression_type;
     SymbolType identifier_type;
@@ -795,7 +796,7 @@ compile_errcode AssignStatement::Action() {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
                     identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    ret = IdentifierCheck(identifier_name, line_number, character_number);
+                    id_ret = IdentifierCheck(identifier_name, line_number, character_number);
                     state = 1;
                     break;
                 } else {
@@ -819,6 +820,12 @@ compile_errcode AssignStatement::Action() {
             }
             case 2: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
+                    if (id_ret == COMPILE_OK) {
+                        symbol_table_tree->GetTermTypeInterface(identifier_name, identifier_type);
+                        if (identifier_type != expression_type) {
+                            SemanticErrorLog("assign type not match", identifier_name, line_number, character_number);
+                        }
+                    }
                     state = 3;
                     break;
                 } else {
@@ -863,9 +870,14 @@ compile_errcode Condition::Action() {
     SymbolType expression_type;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
+                    if (expression_type == CHAR) {
+                        SemanticErrorLog("condition must be int", string(""), line_number, character_number);
+                    }
                     m_expression.LogOutput();
                     state = 1;
                     break;
@@ -883,6 +895,9 @@ compile_errcode Condition::Action() {
             }
             case 2: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
+                    if (expression_type == CHAR) {
+                        SemanticErrorLog("condition must be int", string(""), line_number, character_number);
+                    }
                     m_expression.LogOutput();
                     state = 3;
                     break;
@@ -1021,12 +1036,14 @@ compile_errcode WhileLoopStatement::Action() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchChildStatement::Action() {
+compile_errcode SwitchChildStatement::Action(const SymbolType& parent_type) {
     int ret = COMPILE_OK;
     int state = 0;
     m_statement_ptr = new Statement;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == CASE_SYM) {
@@ -1038,6 +1055,13 @@ compile_errcode SwitchChildStatement::Action() {
             }
             case 1: {
                 if (name == INTERGER_SYM || name == CHARACTER_SYM) {
+                    SymbolType constant_type = name == INTERGER_SYM ? INT :
+                                               name == CHARACTER_SYM ? CHAR : VOID;
+                    if (parent_type != constant_type) {
+                        string str1 = symbol_type_string[parent_type];
+                        string str2 = symbol_type_string[constant_type];
+                        SemanticErrorLog("case type not match between " + str1 + "and " + str2, string(""), line_number, character_number);
+                    }
                     state = 2;
                     break;
                 } else {
@@ -1074,11 +1098,11 @@ compile_errcode SwitchChildStatement::Action() {
         return NOT_MATCH;
 }
 
-compile_errcode SwitchTable::Action() {
+compile_errcode SwitchTable::Action(const SymbolType& parent_type) {
     int ret = 0;
     int count = 0;
     while (true) {
-        if ((ret = m_switch_child_statement.Action()) == COMPILE_OK) {
+        if ((ret = m_switch_child_statement.Action(parent_type)) == COMPILE_OK) {
             m_switch_child_statement.LogOutput();
             count++;
         } else {
@@ -1177,7 +1201,7 @@ compile_errcode SwitchStatement::Action() {
                 }
             }
             case 5: {
-                if ((ret = m_switch_table.Action()) == COMPILE_OK) {
+                if ((ret = m_switch_table.Action(expression_type)) == COMPILE_OK) {
                     m_switch_table.LogOutput();
                     state = 6;
                     break;

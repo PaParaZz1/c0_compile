@@ -206,7 +206,11 @@ public:
         string str("This is a switch child statement");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action(const SymbolType& parent_type);
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return FUNC_NOT_IMPLEMENTED;
+    }
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
         return FUNC_NOT_IMPLEMENTED;
@@ -223,7 +227,11 @@ public:
         string str("This is a switch table");
         GRAMMA_LOG(str);
     }
-    compile_errcode Action();
+    compile_errcode Action(const SymbolType& parent_type);
+    compile_errcode Action() {
+        fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
+        return FUNC_NOT_IMPLEMENTED;
+    }
     compile_errcode Generate() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
         return FUNC_NOT_IMPLEMENTED;

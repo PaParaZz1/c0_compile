@@ -107,7 +107,7 @@ function type: VOID
  name: testSwitchCase
  kind: FUNCTION
  type: VOID
- function parameter number: 2
+ function parameter number: 0
 }
 {
  name: returnInt
@@ -125,13 +125,13 @@ function type: VOID
  name: returnIntParameter
  kind: FUNCTION
  type: INT
- function parameter number: 5
+ function parameter number: 0
 }
 {
  name: returnCharParameter
  kind: FUNCTION
  type: CHAR
- function parameter number: 5
+ function parameter number: 0
 }
 {
  name: testAssign
@@ -155,19 +155,19 @@ function type: VOID
  name: judge1
  kind: FUNCTION
  type: INT
- function parameter number: 4
+ function parameter number: 0
 }
 {
  name: judge2
  kind: FUNCTION
  type: INT
- function parameter number: 4
+ function parameter number: 0
 }
 {
  name: Qsort
  kind: FUNCTION
  type: VOID
- function parameter number: 2
+ function parameter number: 0
 }
 {
  name: testRecursion
@@ -527,6 +527,7 @@ bottom label: label30
 argument space: 0
 return value space: 0
 space length: 8
+argument type:
 --------------------------------------
 function
 name: testSwitchCase
@@ -535,6 +536,9 @@ bottom label: label51
 argument space: 8
 return value space: 0
 space length: 8
+argument type:
+	INT
+	CHAR
 --------------------------------------
 function
 name: returnInt
@@ -543,6 +547,7 @@ bottom label: label53
 argument space: 0
 return value space: 4
 space length: 0
+argument type:
 --------------------------------------
 function
 name: returnChar
@@ -551,6 +556,7 @@ bottom label: label55
 argument space: 0
 return value space: 4
 space length: 0
+argument type:
 --------------------------------------
 function
 name: returnIntParameter
@@ -559,6 +565,12 @@ bottom label: label62
 argument space: 20
 return value space: 4
 space length: 24
+argument type:
+	INT
+	INT
+	INT
+	INT
+	INT
 --------------------------------------
 function
 name: returnCharParameter
@@ -567,6 +579,12 @@ bottom label: label69
 argument space: 20
 return value space: 4
 space length: 20
+argument type:
+	INT
+	CHAR
+	CHAR
+	CHAR
+	CHAR
 --------------------------------------
 function
 name: testAssign
@@ -575,6 +593,7 @@ bottom label: label71
 argument space: 0
 return value space: 0
 space length: 32
+argument type:
 --------------------------------------
 function
 name: testInputOutput
@@ -583,6 +602,7 @@ bottom label: label73
 argument space: 0
 return value space: 0
 space length: 16
+argument type:
 --------------------------------------
 function
 name: testTrick
@@ -591,6 +611,7 @@ bottom label: label75
 argument space: 0
 return value space: 0
 space length: 0
+argument type:
 --------------------------------------
 function
 name: judge1
@@ -599,6 +620,11 @@ bottom label: label79
 argument space: 16
 return value space: 4
 space length: 20
+argument type:
+	INT
+	INT
+	INT
+	INT
 --------------------------------------
 function
 name: judge2
@@ -607,6 +633,11 @@ bottom label: label83
 argument space: 16
 return value space: 4
 space length: 20
+argument type:
+	INT
+	INT
+	INT
+	INT
 --------------------------------------
 function
 name: Qsort
@@ -615,6 +646,9 @@ bottom label: label92
 argument space: 8
 return value space: 0
 space length: 20
+argument type:
+	INT
+	INT
 --------------------------------------
 function
 name: testRecursion
@@ -623,6 +657,7 @@ bottom label: label96
 argument space: 0
 return value space: 0
 space length: 4
+argument type:
 --------------------------------------
 function
 name: testCallFunction
@@ -631,6 +666,7 @@ bottom label: label104
 argument space: 0
 return value space: 0
 space length: 4
+argument type:
 --------------------------------------
 function
 name: main
@@ -639,3 +675,4 @@ bottom label: label105
 argument space: 0
 return value space: 0
 space length: 0
+argument type:
