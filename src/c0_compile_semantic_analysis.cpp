@@ -127,6 +127,39 @@ void ArrayCheck(const string& array_name, int line_number, int character_number)
     handle_correct_queue->SetCurrentLocate();
 }
 
+compile_errcode IdentifierCheck(const string& identifier_name, int line_number, int character_number) {
+    if (symbol_table_tree->Find(identifier_name, false)) {
+        return COMPILE_OK;
+    } else {
+        SemanticErrorLog(string("undefined identifier error"), identifier_name, line_number, character_number);
+        return SEMANTIC_ERROR;
+    }
+}
+
+void AssignCheck(const string& identifier_name, int line_number, int character_number) {
+    SymbolKind kind;
+    symbol_table_tree->GetTermKindInterface(identifier_name, kind);
+    switch(kind) {
+        case VARIABLE:
+        case PARAMETER: break;
+        case ARRAY: {
+            handle_correct_queue->SetCacheLocate();
+            handle_correct_queue->NextSymbol();
+            SymbolName name = handle_correct_queue->GetCurrentName();
+            if (name != L_SQUARE_BRACKET_SYM) {
+                string str = symbol_kind_string[kind];
+                SemanticErrorLog("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
+            }
+            handle_correct_queue->SetCurrentLocate();
+            break;
+        }
+        default: {
+            string str = symbol_kind_string[kind];
+            SemanticErrorLog("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
+        }
+    }
+}
+
 compile_errcode Factor::Action(SymbolType& factor_type) {
     int ret = COMPILE_OK;
     SymbolType expression_type;
@@ -140,18 +173,14 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
         case IDENTIFIER_SYM: {
             // check identifier
             m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-            if (symbol_table_tree->Find(m_identifier_name, false)) {
-                m_valid = true;
-            } else {
-                m_valid = false;
-                SemanticErrorLog(string("undefined identifier error"), m_identifier_name, line_number, character_number);
-            }
+            m_valid = (ret = IdentifierCheck(m_identifier_name, line_number, character_number)) == COMPILE_OK;
             handle_correct_queue->SetCacheLocate();
             handle_correct_queue->NextSymbol();
             name = handle_correct_queue->GetCurrentName();
             if (name == L_SQUARE_BRACKET_SYM) {
                 handle_correct_queue->NextSymbol();
-                ArrayCheck(m_identifier_name, line_number, character_number);
+                if (m_valid)
+                    ArrayCheck(m_identifier_name, line_number, character_number);
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     // m_expression.LogOutput();
                     name = handle_correct_queue->GetCurrentName();
@@ -552,6 +581,8 @@ compile_errcode InputStatement::Action() {
     int state = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == SCANF_SYM) {
@@ -571,6 +602,8 @@ compile_errcode InputStatement::Action() {
             }
             case 2: {
                 if (name == IDENTIFIER_SYM) {
+                    string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    IdentifierCheck(identifier_name, line_number, character_number);
                     state = 3;
                     break;
                 } else {
@@ -736,6 +769,7 @@ compile_errcode AssignStatement::Action() {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
                     identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    ret = IdentifierCheck(identifier_name, line_number, character_number);
                     state = 1;
                     break;
                 } else {
@@ -744,6 +778,8 @@ compile_errcode AssignStatement::Action() {
             }
             case 1: {
                 if (name == ASSIGN_SYM) {
+                    if (ret == COMPILE_OK)
+                        AssignCheck(identifier_name, line_number, character_number);
                     state = 2;
                     break;
                 } else if (name == L_SQUARE_BRACKET_SYM) {
@@ -1258,6 +1294,8 @@ compile_errcode ArgumentList::Action(int& argument_number) {
     argument_number = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == R_CIRCLE_BRACKET_SYM) {
@@ -1272,11 +1310,14 @@ compile_errcode ArgumentList::Action(int& argument_number) {
             }
             case 1: {
                 if (name == IDENTIFIER_SYM) {
-                    state = 2;
                     argument_number++;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                        SemanticErrorLog(string("repeat definition identifier(para)"), m_identifier_name, line_number, character_number);
+                    }
                     SymbolTableTerm term(m_identifier_name, PARAMETER, m_type);
                     symbol_table_tree->Insert(term);
+                    state = 2;
                     break;
                 } else {
                     return NOT_MATCH;
@@ -1348,9 +1389,13 @@ compile_errcode FunctionCall::Action() {
     int state = 0;
     while (true) {
         SymbolName name = handle_correct_queue->GetCurrentName();
+        int line_number = handle_correct_queue->GetCurrentLine();
+        int character_number = handle_correct_queue->GetCurrentCharacter();
         switch (state) {
             case 0: {
                 if (name == IDENTIFIER_SYM) {
+                    string identifier_name = handle_correct_queue->GetCurrentValue<string>();
+                    IdentifierCheck(identifier_name, line_number, character_number);
                     state = 1;
                     break;
                 } else {

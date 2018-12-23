@@ -302,7 +302,7 @@ public:
     bool Find(string name, bool only_this_level);
     compile_errcode Insert(SymbolTableTerm& term);
     string GetCurrentPreviousTableName();
-    string GetCurrentTableName() {
+    string GetCurrentTableName() const {
         return current_table_name;
     }
     compile_errcode GetCurrentTableType(SymbolType& type);
