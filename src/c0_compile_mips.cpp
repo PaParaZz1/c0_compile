@@ -104,13 +104,13 @@ void MipsGenerator::TranslateADD(Pcode& item) {
     } else if (f2 != string::npos && f3 != string::npos) {
         GenerateLoad(NUM2, num2, TMP);
         GenerateLoad(NUM3, num3, TMP);
-        Output2File("add " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("addu " + NUM1 + " " + NUM2 + " " + NUM3);
     } else if (f2 == string::npos) {
         GenerateLoad(NUM2, num3, TMP);
-        Output2File("addi " + NUM1 + " " + NUM2 + " " + num2);
+        Output2File("addiu " + NUM1 + " " + NUM2 + " " + num2);
     } else {
         GenerateLoad(NUM2, num2, TMP);
-        Output2File("addi " + NUM1 + " " + NUM2 + " " + num3);
+        Output2File("addiu " + NUM1 + " " + NUM2 + " " + num3);
     }
     GenerateStore(num1, TMP);
 }
@@ -126,15 +126,15 @@ void MipsGenerator::TranslateSUB(const Pcode& item) {
     } else if (f2 != string::npos && f3 != string::npos) {
         GenerateLoad(NUM2, num2, TMP);
         GenerateLoad(NUM3, num3, TMP);
-        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
     } else if (f2 == string::npos) {
         Output2File("li " + NUM2 + " " + num2);
         GenerateLoad(NUM3, num3, TMP);
-        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
     } else {
         Output2File("li " + NUM3 + " " + num3);
         GenerateLoad(NUM2, num2, TMP);
-        Output2File("sub " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
     }
     GenerateStore(num1, TMP);
 }
@@ -252,9 +252,9 @@ void MipsGenerator::TranslateCall(Pcode& item) {
             TranslateASSIGN(para);
         }
     }
-    Output2File("addi $sp $fp -" + space_length);
+    Output2File("addiu $sp $fp -" + space_length);
     Output2File("jal " + top_level);
-    Output2File("addi $sp $fp " + std::to_string(m_relative_addr + 8));
+    Output2File("addiu $sp $fp " + std::to_string(m_relative_addr + 8));
     Output2File("lw $fp -" + std::to_string(m_relative_addr + 4) + "($sp)");
     Output2File("lw $ra -" + std::to_string(m_relative_addr) + "($sp)");
     for (auto iter = m_parameter_stack.begin(); iter != m_parameter_stack.end();) {
@@ -302,8 +302,8 @@ void MipsGenerator::TranslateLoadAddr(Pcode& item) {
     if (fp != string::npos) {
         GenerateLoad(NUM1, offset, TMP);
         Output2File("sll " + NUM3 + " " + NUM1 + " 2");
-        Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
-        Output2File("sub " + NUM2 + " $fp " + NUM3);
+        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
+        Output2File("subu " + NUM2 + " $fp " + NUM3);
         GenerateLoad(NUM1, source, TMP);
         GenerateStore(NUM1, "0", NUM2, "0");
     } else if (g != string::npos) {
@@ -311,8 +311,8 @@ void MipsGenerator::TranslateLoadAddr(Pcode& item) {
         base += m_global;
         GenerateLoad(NUM1, offset, TMP);
         Output2File("sll " + NUM3 + " " + NUM1 + " 2");
-        Output2File("addi " + NUM3 + " " + NUM3 + " " + std::to_string(base));
-        Output2File("add " + NUM2 + " $0 " + NUM3);
+        Output2File("addiu " + NUM3 + " " + NUM3 + " " + std::to_string(base));
+        Output2File("addu " + NUM2 + " $0 " + NUM3);
         GenerateLoad(NUM1, source, TMP);
         GenerateStore(NUM1, "0", NUM2, "0");
     } else {
@@ -329,8 +329,8 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
     if (fp != string::npos) {
         GenerateLoad(NUM1, offset, TMP);
         Output2File("sll " + NUM3 + " " + NUM1 + " 2");
-        Output2File("addi " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
-        Output2File("sub " + NUM1 + " $fp " + NUM3);
+        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
+        Output2File("subu " + NUM1 + " $fp " + NUM3);
         Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
         GenerateStore(target, TMP);
     } else if (g != string::npos) {
@@ -338,7 +338,7 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
         base += m_global;
         GenerateLoad(NUM1, offset, TMP);
         Output2File("sll " + NUM3 + " " + NUM1 + " 2");
-        Output2File("addi " + NUM1 + " " + NUM3 + " " + std::to_string(base));
+        Output2File("addiu " + NUM1 + " " + NUM3 + " " + std::to_string(base));
         Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
         GenerateStore(target, TMP);
     } else {
@@ -397,7 +397,7 @@ void MipsGenerator::Translate() {
     Output2File(".text");
     Output2File("li $t9 " + std::to_string(m_global));
     Output2File("move $fp $sp");
-    Output2File("addi $sp $fp -" + std::to_string(main_space_length)); 
+    Output2File("addiu $sp $fp -" + std::to_string(main_space_length)); 
     Output2File("la $ra " + main_bottom_label);
     Output2File("j main");
     for (; iter != m_pcode_queue.end(); ++iter) {
