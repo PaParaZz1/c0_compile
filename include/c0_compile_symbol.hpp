@@ -7,7 +7,6 @@
 #include <string>
 #include <utility>
 #include "c0_compile_utils.hpp"
-// #include <boost/variant.hpp>
 
 #define FOREACH_FUNC_SYMBOL(FUNC) \
         FUNC(WHILE_SYM) \
@@ -300,6 +299,7 @@ public:
     ~SymbolTableTree();
     compile_errcode CreateTable(string table_name, SymbolType type, string previous_level_name);
     bool Find(string name, bool only_this_level);
+    bool MatchKeyword(const string& name);
     compile_errcode Insert(SymbolTableTerm& term);
     string GetCurrentPreviousTableName();
     string GetCurrentTableName() const {

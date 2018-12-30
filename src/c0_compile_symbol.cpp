@@ -541,6 +541,15 @@ void FunctionTable::SetTermBottomLabel(const string& func_name, const string& bo
     }
 }
 
+bool SymbolTableTree::MatchKeyword(const string& name) {
+    auto iter = keyword.find(name);
+    if (iter == keyword.end()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void FunctionTable::PrintAllTerm() {
     for (FunctionTableTerm term: m_func_table) {
         term.PrintTerm();

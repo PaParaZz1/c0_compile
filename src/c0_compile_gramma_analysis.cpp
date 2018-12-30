@@ -39,7 +39,7 @@ inline bool IsRelationalOpeartor(SymbolName name) {
 
 FILE* gramma_error = fopen("gramma_error.txt", "w");
 bool gramma_flag = true;
-void GrammaErrorLogs(string error_content) {
+void GrammaErrorLogs(const string& error_content) {
     cout<<"bug ++"<<endl;
     gramma_flag = false;
     int line_number = handle_symbol_queue->GetCurrentLine();
@@ -224,7 +224,7 @@ compile_errcode ConstantDefinition::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid identifier");
+                    GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }
@@ -302,7 +302,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid identifier");
+                    GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }
@@ -1256,6 +1256,8 @@ compile_errcode FunctionDefinition::Parse() {
                     state = 2;
                     break;
                 } else {
+                    if (name != MAIN_SYM)
+                        GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }

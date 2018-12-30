@@ -393,7 +393,12 @@ compile_errcode ConstantDefinition::Action() {
                         SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
-                        m_valid = true;
+                        if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
+                            m_valid = false;
+                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                        } else {
+                            m_valid = true;
+                        }
                     }
                     break;
                 } else {
@@ -493,7 +498,12 @@ compile_errcode VariableDefinition::Action() {
                         SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
-                        m_valid = true;
+                        if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
+                            m_valid = false;
+                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                        } else {
+                            m_valid = true;
+                        }
                     }
                     break;
                 } else {
@@ -1531,15 +1541,18 @@ compile_errcode FunctionDefinition::Action() {
                         m_valid = false;
                         SemanticErrorLog(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
                         m_identifier_name = "error_" + m_identifier_name + "_error";
-                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
-                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
                     } else {
-                        string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                        symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
-                        symbol_table_tree->SetCurrentTableName(m_identifier_name);
-                        m_valid = true;
+                        if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
+                            m_valid = false;
+                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                            m_identifier_name = "error_" + m_identifier_name + "_error";
+                        } else {
+                            m_valid = true;
+                        }
                     }
+                    string previous_table_name = symbol_table_tree->GetCurrentTableName();
+                    symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
+                    symbol_table_tree->SetCurrentTableName(m_identifier_name);
                     state = 2;
                     break;
                 } else {
