@@ -4,13 +4,13 @@
 #include <iostream>
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_utils.hpp"
+
 using std::string;
 using std::map;
 using std::vector;
 using std::pair;
 using std::cout;
 using std::endl;
-#define m_BOTTOM_LEVEL "end"
 
 
 const char* symbol_name_string[] = {
@@ -238,7 +238,8 @@ bool SymbolTableTree::FindTerm(const string& name, bool only_this_level) const {
         } else {
             current_table_name = current_table.GetPreviousTableName();
         }
-    } while (!only_this_level && strcmp(current_table_name.c_str(), m_BOTTOM_LEVEL)!=0);
+    //} while (!only_this_level && strcmp(current_table_name.c_str(), m_BOTTOM_LEVEL)!=0);
+    } while (!only_this_level && current_table_name != m_BOTTOM_LEVEL);
     return false;
 }
 
@@ -444,7 +445,7 @@ compile_errcode SymbolTableTree::GetTableSpaceLength(const string& table_name, i
     return NOT_FIND_TERM;
 }
 
-void FunctionTableTerm::PrintTerm() {
+void FunctionTableTerm::PrintTerm() const {
     fprintf(fp_symbol, "--------------------------------------\n");
     fprintf(fp_symbol, "function\nname: %s\ntop label: %s\nbottom label: %s\nargument space: %d\nreturn value space: %d\nspace length: %d\nargument type:\n",
     m_func_name.c_str(), m_top_label.c_str(), m_bottom_label.c_str(), m_argument_space_length, m_return_value_space_length, m_space_length);
@@ -453,7 +454,7 @@ void FunctionTableTerm::PrintTerm() {
     }
 }
 
-void FunctionTable::InsertTerm(string func_name,
+void FunctionTable::InsertTerm(const string& func_name,
                                int space_length,
                                int return_value_number,
                                const vector<SymbolType>& argument_type) {
@@ -463,77 +464,71 @@ void FunctionTable::InsertTerm(string func_name,
     m_current_term_ptr++;
 }
 
-bool FunctionTable::Find(string func_name) {
+bool FunctionTable::Find(const string& func_name) {
     for (FunctionTableTerm term: m_func_table) {
-        string tmp;
-        term.GetName(tmp);
-        if (tmp == func_name) {
+        if (term.GetName() == func_name) {
             return true;
         }
     }
     return false;
 }
 
-void FunctionTable::GetCurrentTermTopLabel(string& top_label) {
-    m_func_table[m_current_term_ptr].GetTopLabel(top_label);
+void FunctionTable::GetCurrentTermTopLabel(string& top_label) const {
+    top_label = m_func_table[m_current_term_ptr].GetTopLabel();
 }
 
-void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) {
-    m_func_table[m_current_term_ptr].GetBottomLabel(bottom_label);
+void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) const {
+    bottom_label = m_func_table[m_current_term_ptr].GetBottomLabel();
 }
 
-void FunctionTable::GetTermTopLabel(const string& term_name, string& top_label) {
+compile_errcode FunctionTable::GetTermTopLabel(const string& term_name, string& top_label) const {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == term_name) {
-            iter->GetTopLabel(top_label);
+        if (iter->GetName() == term_name) {
+            top_label = iter->GetTopLabel();
+            return COMPILE_OK;
         }
     }
+    return NOT_FIND_TERM;
 }
 
-void FunctionTable::GetTermBottomLabel(const string& term_name, string& bottom_label) {
+compile_errcode FunctionTable::GetTermBottomLabel(const string& term_name, string& bottom_label) const {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == term_name) {
-            iter->GetBottomLabel(bottom_label);
+        if (iter->GetName() == term_name) {
+            bottom_label = iter->GetBottomLabel();
+            return COMPILE_OK;
         }
     }
+    return NOT_FIND_TERM;
 }
 
-void FunctionTable::GetTermSpaceLength(string func_name, int& space_length) {
+compile_errcode FunctionTable::GetTermSpaceLength(const string& func_name, int& space_length) const {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == func_name) {
-            iter->GetSpaceLength(space_length);
-            return;
+        if (iter->GetName() == func_name) {
+            space_length = iter->GetSpaceLength();
+            return COMPILE_OK;
         }
     }
+    return NOT_FIND_TERM;
 }
 
-void FunctionTable::GetTermArgumentType(const string& func_name, vector<SymbolType>& argument_type) {
+compile_errcode FunctionTable::GetTermArgumentType(const string& func_name, vector<SymbolType>& argument_type) const {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == func_name) {
+        if (iter->GetName() == func_name) {
             argument_type = iter->GetArgumentType();
-            return;
+            return COMPILE_OK;
         }
     }
+    return NOT_FIND_TERM;
 }
 
 void FunctionTable::SetTermTopLabel(const string& func_name, const string& top_label) {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == func_name) {
+        if (iter->GetName() == func_name) {
             iter->SetTopLabel(top_label);
         }
     }
@@ -542,9 +537,7 @@ void FunctionTable::SetTermTopLabel(const string& func_name, const string& top_l
 void FunctionTable::SetTermBottomLabel(const string& func_name, const string& bottom_label) {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
-        string tmp;
-        iter->GetName(tmp);
-        if (tmp == func_name) {
+        if (iter->GetName() == func_name) {
             iter->SetBottomLabel(bottom_label);
         }
     }
@@ -559,7 +552,7 @@ bool SymbolTableTree::MatchKeyword(const string& name) {
     }
 }
 
-void FunctionTable::PrintAllTerm() {
+void FunctionTable::PrintAllTerm() const {
     for (FunctionTableTerm term: m_func_table) {
         term.PrintTerm();
     }

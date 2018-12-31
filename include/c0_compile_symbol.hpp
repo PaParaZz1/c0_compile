@@ -322,7 +322,7 @@ public:
     void UpgradeAddress();
     void PrintTree() const;
 private:
-    //static const string m_BOTTOM_LEVEL = string("end");
+    const string m_BOTTOM_LEVEL = string("end");
     vector<pair<string, SymbolTable> > m_table_tree;
     string current_table_name;
     int m_tree_address_length;
@@ -344,17 +344,17 @@ public:
         m_argument_space_length = 4 * argument_number;
         m_return_value_space_length = 4 * return_value_number;
     }
-    void GetTopLabel(string& top_label) const {
-        top_label = m_top_label;
+    string GetTopLabel() const {
+        return m_top_label;
     }
-    void GetBottomLabel(string& bottom_label) const {
-        bottom_label = m_bottom_label;
+    string GetBottomLabel() const {
+        return m_bottom_label;
     }
-    void GetName(string& name) const {
-        name = m_func_name;
+    string GetName() const {
+        return m_func_name;
     }
-    void GetSpaceLength(int& space_length) const {
-        space_length = m_space_length;
+    int GetSpaceLength() const {
+        return m_space_length;
     }
     vector<SymbolType> GetArgumentType() const {
         return m_argument_type;
@@ -365,7 +365,7 @@ public:
     void SetBottomLabel(const string& bottom_label) {
         m_bottom_label = bottom_label;
     }
-    void PrintTerm();
+    void PrintTerm() const;
 private:
     string m_func_name;
     string m_top_label;
@@ -381,17 +381,18 @@ public:
     FunctionTable() {
         m_current_term_ptr = -1;
     }
-    void InsertTerm(string func_name, int space_length, int return_value_number, const vector<SymbolType>& argument_type);
-    bool Find(string func_name);
-    void GetTermTopLabel(const string& term_name, string& top_label);
-    void GetCurrentTermTopLabel(string& top_label);
-    void GetTermBottomLabel(const string& term_name, string& bottom_label);
-    void GetCurrentTermBottomLabel(string& bottom_label);
-    void GetTermSpaceLength(string func_name, int& space_length);
-    void GetTermArgumentType(const string& term_name, vector<SymbolType>& argument_type);
-    void PrintAllTerm();
+    ~FunctionTable() {}
+    void InsertTerm(const string& func_name, int space_length, int return_value_number, const vector<SymbolType>& argument_type);
+    bool Find(const string& func_name);
+    void GetCurrentTermTopLabel(string& top_label) const;
+    void GetCurrentTermBottomLabel(string& bottom_label) const ;
+    compile_errcode GetTermTopLabel(const string& term_name, string& top_label) const;
+    compile_errcode GetTermBottomLabel(const string& term_name, string& bottom_label) const;
+    compile_errcode GetTermSpaceLength(const string& term_name, int& space_length) const ;
+    compile_errcode GetTermArgumentType(const string& term_name, vector<SymbolType>& argument_type) const;
     void SetTermTopLabel(const string& func_name, const string& top_label);
     void SetTermBottomLabel(const string& func_name, const string& bottom_label);
+    void PrintAllTerm() const;
 private:
     vector<FunctionTableTerm> m_func_table;
     int m_current_term_ptr;
