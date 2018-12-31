@@ -271,7 +271,7 @@ compile_errcode ConstantDefinition::Generate() {
                 if (name == IDENTIFIER_SYM) {
                     state = 3;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
                         m_valid = false;
                     } else {
                         m_valid = true;
@@ -353,7 +353,7 @@ compile_errcode VariableDefinition::Generate() {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
                         m_valid = false;
                     } else {
                         m_valid = true;
@@ -1160,7 +1160,7 @@ compile_errcode SwitchStatement::Generate() {
 compile_errcode Statement::Generate() {
     int ret = COMPILE_OK;
     SymbolType function_type;
-    ret = symbol_table_tree->GetCurrentTableType(function_type);
+    function_type = symbol_table_tree->GetCurrentTableType();
     SymbolName name = handle_correct_queue->GetCurrentName();
     handle_correct_queue->SetCacheLocate();
     if (name == L_CURLY_BRACKET_SYM) {

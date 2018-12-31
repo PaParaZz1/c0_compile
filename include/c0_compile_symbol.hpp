@@ -76,64 +76,67 @@ typedef enum _SymbolName {
     FOREACH_FUNC_SYMBOL(GENERATE_ENUM)
 }SymbolName;
 
+typedef enum _SymbolKind {
+    FOREACH_FUNC_SYMBOL_KIND(GENERATE_ENUM)
+}SymbolKind;
+
+typedef enum _SymbolType {
+    FOREACH_FUNC_SYMBOL_TYPE(GENERATE_ENUM)
+}SymbolType;
+
 extern const char* symbol_name_string[];
+extern const char* symbol_kind_string[];
+extern const char* symbol_type_string[];
 
 extern map<string, SymbolName> keyword;
+
 namespace c0_compile {
 class SymbolValue {
 public:
     SymbolValue() {}
     explicit SymbolValue(int _value) {
-        //value = _value;
         memcpy(&value, &_value, sizeof(int));
     }
     explicit SymbolValue(char _value) {
-        //value = _value;
         memcpy(&value, &_value, sizeof(char));
     }
     explicit SymbolValue(const string& _value) {
-        //value = _value;
         string_value = _value;
     }
     template<typename T>
-    T GetValue() {
+    T GetValue() const {
         // TODO check type T
-        //return boost::get<T>(value);
         T ret;
         memcpy(&ret, &value, sizeof(T));
         return ret;
     }
-    /*template<class T>
-    T GetValue<T>() {
-    }*/
 private:
     typedef union {
         int int_value;
         char char_value;
     }Value;
-    // boost::variant<int, char, string> value;
     Value value;
     string string_value;
 };
     template<>
-    string SymbolValue::GetValue<string>();
+    string SymbolValue::GetValue<string>() const;
 }  // namespace c0_compile
 
 class Symbol {
 public:
     Symbol() {}
-    void SetName(SymbolName name) {
+    void SetName(const SymbolName& name) {
         m_name = name;
     }
     template<typename T>
     void SetValue(T value) {
         m_value = c0_compile::SymbolValue(value);
     }
-    SymbolName GetName() {
+    SymbolName GetName() const {
         return m_name;
     }
     template<typename T>
-    T GetValue() {
+    T GetValue() const {
         return m_value.GetValue<T>();
     }
     int GetLine() const {
@@ -146,29 +149,19 @@ public:
         this->SetLineNumber(line_number);
         this->SetCharacterNumber(character_number);
     }
+private:
+    SymbolName m_name;
+    c0_compile::SymbolValue m_value;
+    int m_line_number;
+    int m_character_number;
     void SetLineNumber(int line_number) {
         m_line_number = line_number;
     }
     void SetCharacterNumber(int character_number) {
         m_character_number = character_number;
     }
-private:
-    SymbolName m_name;
-    c0_compile::SymbolValue m_value;
-    int m_line_number;
-    int m_character_number;
 };
 
-typedef enum _SymbolKind {
-    FOREACH_FUNC_SYMBOL_KIND(GENERATE_ENUM)
-}SymbolKind;
-
-typedef enum _SymbolType {
-    FOREACH_FUNC_SYMBOL_TYPE(GENERATE_ENUM)
-}SymbolType;
-
-extern const char* symbol_kind_string[];
-extern const char* symbol_type_string[];
 
 template<class T>
 struct DisableCompare : public std::binary_function<T, T, bool> {
@@ -179,36 +172,43 @@ struct DisableCompare : public std::binary_function<T, T, bool> {
 
 class SymbolTableTerm {
 public:
-    SymbolTableTerm(string name, SymbolKind kind, SymbolName type_name) {
-        m_name = name;
-        m_kind = kind;
-        if (type_name == INT_SYM)
-            m_type = INT;
-        else if (type_name == CHAR_SYM)
-            m_type = CHAR;
-        else if (type_name == VOID_SYM && kind == FUNCTION)
-            m_type = VOID;
-        else
-            fprintf(stderr, "invalid type name\n");
+    SymbolTableTerm() {}
+    SymbolTableTerm(const string& name, const SymbolKind& kind, const SymbolName& type_name) : m_name(name), m_kind(kind) {
+        switch (type_name) {
+            case INT_SYM: m_type = INT; break;
+            case CHAR_SYM: m_type = CHAR; break;
+            case VOID_SYM: {
+                               if (kind == FUNCTION) {
+                                   m_type = VOID;
+                                   break;
+                               } else {
+                                   fprintf(stderr, "invalid type name: %s\n", symbol_name_string[type_name]);
+                                   break;
+                               }
+                           }
+            default:
+                    fprintf(stderr, "invalid type name: %s\n", symbol_name_string[type_name]);
+        }
     }
     ~SymbolTableTerm();
-    string GetName() {
+    string GetName() const {
         return m_name;
     }
-    SymbolType GetType() {
+    SymbolType GetType() const {
         return m_type;
     }
-    SymbolKind GetKind() {
+    SymbolKind GetKind() const {
         return m_kind;
     }
-    int GetRelativeAddr() {
+    int GetRelativeAddr() const {
         return m_relative_address;
     }
-    int GetAbsoluteAddr() {
+    int GetAbsoluteAddr() const {
         return m_absolute_address;
     }
     template<typename T>
     compile_errcode SetConstInformation(T value) {
+        // (TODO) check T type
         memcpy(&m_other_information, &value, sizeof(T));
         return COMPILE_OK;
     }
@@ -222,24 +222,27 @@ public:
         m_relative_address = relative_address;
         m_absolute_address = base_address + relative_address;
     }
-    int GetArrayInformation() {
+    int GetArrayInformation() const {
         return m_other_information.array_length;
     }
-    int GetValueInformation() {
+    int GetValueInformation() const {
         if (m_type == CHAR) {
             return static_cast<int>(m_other_information.char_value);
-        } else {
+        } else if (m_type == INT) {
             return m_other_information.int_value;
+        } else {
+            fprintf(stderr, "invalid m_type: %s\n", symbol_type_string[m_type]);
+            return NOT_DEFINED_ERROR;
         }
     }
-    void PrintTerm();
+    void PrintTerm() const;
 private:
     string m_name;
     SymbolKind m_kind;
     SymbolType m_type;
     int m_relative_address;
     int m_absolute_address;
-    typedef union {
+    typedef union _Info{
         int int_value;
         char char_value;
         int array_length;
@@ -250,37 +253,31 @@ private:
 
 class SymbolTable {
 public:
-    //SymbolTable(string name, string previous_level) : m_table_name(name), m_previous_level_name(previous_level) {}
     SymbolTable() {}
-    SymbolTable(string name, SymbolType type, string previous_level) {
-        m_table_name = name;
-        m_table_type = type;
-        m_previous_level_name = previous_level;
-    }
-    bool Find(string name);
-    compile_errcode Insert(SymbolTableTerm& term);
-    string GetPreviousTableName() {
+    SymbolTable(const string& name, const SymbolType& type, const string& previous_level_name, int base_address) 
+        : m_table_name(name), m_table_type(type), m_previous_level_name(previous_level_name), m_table_base_address(base_address) {
+            m_table_address_length = 0;
+        }
+    string GetPreviousTableName() const {
         return m_previous_level_name;
     }
-    compile_errcode GetTermType(string name, SymbolType& type);
-    compile_errcode GetTermKind(string name, SymbolKind& kind);
-    compile_errcode GetTermIntValue(string name, int& value);
-    compile_errcode GetAddress(string name, int& addr);
-    compile_errcode GetArraySpace(const string& name, int& array_length);
-    void GetTableType(SymbolType& type) {
-        type = m_table_type;
+    SymbolType GetTableType() const {
+        return m_table_type;
     }
-    int GetTableBaseAddr() {
+    int GetTableBaseAddr() const {
         return m_table_base_address;
     }
-    int GetTableSpace() {
+    int GetTableSpace() const {
         return m_table_address_length;
     }
-    void SetAddress(int base_address) {
-        m_table_base_address = base_address;
-        m_table_address_length = 0;
-    }
-    void PrintTable();
+    compile_errcode GetTermType(const string& name, SymbolType& type) const;
+    compile_errcode GetTermKind(const string& name, SymbolKind& kind) const;
+    compile_errcode GetTermIntValue(const string& name, int& value) const;
+    compile_errcode GetAddress(const string& name, int& addr) const;
+    compile_errcode GetArraySpace(const string& name, int& array_length) const;
+    bool Find(const string& name) const;
+    compile_errcode Insert(SymbolTableTerm& term);
+    void PrintTable() const;
 private:
     vector<pair<string, SymbolTableTerm> > m_symbol_table;
     string m_table_name;
@@ -288,7 +285,8 @@ private:
     SymbolType m_table_type;
     int m_table_base_address;
     int m_table_address_length;
-    compile_errcode GetTerm(string name, vector<pair<string, SymbolTableTerm> >::iterator& iter);
+    compile_errcode GetTerm(const string& name, SymbolTableTerm& term) const;
+    compile_errcode GetTermIter(const string& name, vector<pair<string, SymbolTableTerm> >::iterator& iter);
 };
 
 class SymbolTableTree {
@@ -297,36 +295,38 @@ public:
         m_tree_address_length = 0;
     }
     ~SymbolTableTree();
-    compile_errcode CreateTable(string table_name, SymbolType type, string previous_level_name);
-    bool Find(string name, bool only_this_level);
+    void InsertTable(const string& table_name, const SymbolType& type, const string& previous_level_name);
+    bool FindTerm(const string& name, bool only_this_level) const;
     bool MatchKeyword(const string& name);
     compile_errcode Insert(SymbolTableTerm& term);
-    string GetCurrentPreviousTableName();
     string GetCurrentTableName() const {
         return current_table_name;
     }
-    compile_errcode GetCurrentTableType(SymbolType& type);
-    compile_errcode GetAddressStringInterface(string name, string& address_string);
-    compile_errcode GetAddressStringInterface(string current_table_name, string name, string& address_string);
-    compile_errcode GetTermKindInterface(const string& name, SymbolKind& kind);
-    compile_errcode GetTermKindInterface(const string& cur_func_name, const string& name, SymbolKind& kind);
-    compile_errcode GetTermTypeInterface(const string& name, SymbolType& kind);
-    compile_errcode GetTermTypeInterface(const string& cur_func_name, const string& name, SymbolType& Type);
-    compile_errcode GetArraySpaceInterface(const string& name, int& array_space);
-    compile_errcode GetArraySpaceInterface(const string& cur_func_name, const string& name, int& array_space);
-    compile_errcode GetTermIntValueInterface(const string& name, int& value);
-    compile_errcode GetTermIntValueInterface(const string& cur_func_name, const string& name, int& value);
-    void SetCurrentTableName(string name) {
+    void SetCurrentTableName(const string& name) {
         current_table_name = name;
     }
-    void GetTableSpaceLength(string name, int& length);
+    string GetCurrentPreviousTableName() const;
+    SymbolType GetCurrentTableType() const;
+    compile_errcode GetTableSpaceLength(const string& table_name, int& length);
+
+    compile_errcode GetTermKindInterface(const string& name, SymbolKind& kind);
+    compile_errcode GetTermKindInterface(const string& cur_table_name, const string& name, SymbolKind& kind);
+    compile_errcode GetTermTypeInterface(const string& name, SymbolType& kind);
+    compile_errcode GetTermTypeInterface(const string& cur_table_name, const string& name, SymbolType& Type);
+    compile_errcode GetArraySpaceInterface(const string& name, int& array_space);
+    compile_errcode GetArraySpaceInterface(const string& cur_table_name, const string& name, int& array_space);
+    compile_errcode GetTermIntValueInterface(const string& name, int& value);
+    compile_errcode GetTermIntValueInterface(const string& cur_table_name, const string& name, int& value);
+    compile_errcode GetAddressStringInterface(const string& name, string& address_string);
+    compile_errcode GetAddressStringInterface(const string& cur_table_name, const string& name, string& address_string);
     void UpgradeAddress();
-    void PrintTree();
+    void PrintTree() const;
 private:
+    //static const string m_BOTTOM_LEVEL = string("end");
     vector<pair<string, SymbolTable> > m_table_tree;
     string current_table_name;
     int m_tree_address_length;
-    compile_errcode GetAddressString(string current_table_name, string name, string& address_string);
+    compile_errcode GetAddressString(const string& begin_table_name, const string& name, string& address_string);
     compile_errcode GetTermKind(const string& begin_table_name, const string& name, SymbolKind& kind);
     compile_errcode GetTermType(const string& begin_table_name, const string& name, SymbolType& type);
     compile_errcode GetArraySpace(const string& begin_table_name, const string& name, int& array_space);

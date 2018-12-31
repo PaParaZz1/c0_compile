@@ -10,7 +10,7 @@ using std::vector;
 using std::pair;
 using std::cout;
 using std::endl;
-#define BOTTOM_LEVEL "end"
+#define m_BOTTOM_LEVEL "end"
 
 
 const char* symbol_name_string[] = {
@@ -49,12 +49,12 @@ SymbolTableTerm::~SymbolTableTerm() {
 }
 namespace c0_compile {
     template<>
-    string SymbolValue::GetValue<string>() {
+    string SymbolValue::GetValue<string>() const {
         return string_value;
     }
 } // namespace c0_compile
 
-void SymbolTableTerm::PrintTerm() {
+void SymbolTableTerm::PrintTerm() const {
     fprintf(fp_symbol, "{\n name: %s\n", m_name.c_str());
     fprintf(fp_symbol, " kind: %s\n", symbol_kind_string[m_kind]);
     fprintf(fp_symbol, " type: %s\n", symbol_type_string[m_type]);
@@ -81,7 +81,7 @@ void SymbolTableTerm::PrintTerm() {
     fprintf(fp_symbol, "}\n");
 }
 
-bool SymbolTable::Find(string name) {
+bool SymbolTable::Find(const string& name) const {
     auto iter = m_symbol_table.begin();
     for (; iter != m_symbol_table.end(); ++iter) {
         if (iter->first == name)
@@ -113,7 +113,7 @@ compile_errcode SymbolTable::Insert(SymbolTableTerm& term) {
     }
 }
 
-void SymbolTable::PrintTable() {
+void SymbolTable::PrintTable() const {
     fprintf(fp_symbol, "-------------------------------------------------\n");
     fprintf(fp_symbol, "function %s's symbol table\n", m_table_name.c_str());
     fprintf(fp_symbol, "function type: %s\n", symbol_type_string[m_table_type]);
@@ -124,68 +124,79 @@ void SymbolTable::PrintTable() {
     fprintf(fp_symbol, "-------------------------------------------------\n");
 }
 
-compile_errcode SymbolTable::GetTerm(string name, vector<pair<string, SymbolTableTerm> >::iterator& iter) {
+compile_errcode SymbolTable::GetTermIter(const string& name, vector<pair<string, SymbolTableTerm> >::iterator& iter) {
     iter = m_symbol_table.begin();
     for (; iter != m_symbol_table.end(); ++iter) {
         if (iter->first == name) {
             return COMPILE_OK;
         }
     }
-    return UNDEFINED_SYMBOL_TERM;
+    return NOT_FIND_TERM;
 }
 
-compile_errcode SymbolTable::GetTermType(string name, SymbolType& type) {
+compile_errcode SymbolTable::GetTerm(const string& name, SymbolTableTerm& term) const {
+    auto iter = m_symbol_table.begin();
+    for (; iter != m_symbol_table.end(); ++iter) {
+        if (iter->first == name) {
+            term = iter->second;
+            return COMPILE_OK;
+        }
+    }
+    return NOT_FIND_TERM;
+}
+
+compile_errcode SymbolTable::GetTermType(const string& name, SymbolType& type) const {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm> >::iterator iter;
-    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+    SymbolTableTerm term;
+    if ((ret = this->GetTerm(name, term)) != COMPILE_OK) {
         return ret;
     } else {
-        type = iter->second.GetType();
+        type = term.GetType();
         return COMPILE_OK;
     }
 }
 
-compile_errcode SymbolTable::GetTermKind(string name, SymbolKind& kind) {
+compile_errcode SymbolTable::GetTermKind(const string& name, SymbolKind& kind) const {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm> >::iterator iter;
-    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+    SymbolTableTerm term;
+    if ((ret = this->GetTerm(name, term)) != COMPILE_OK) {
         return ret;
     } else {
-        kind = iter->second.GetKind();
+        kind = term.GetKind();
         return COMPILE_OK;
     }
 }
 
-compile_errcode SymbolTable::GetArraySpace(const string& name, int& array_space) {
+compile_errcode SymbolTable::GetArraySpace(const string& name, int& array_space) const {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm> >::iterator iter;
-    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+    SymbolTableTerm term;
+    if ((ret = this->GetTerm(name, term)) != COMPILE_OK) {
         return ret;
     } else {
-        array_space = iter->second.GetArrayInformation();
+        array_space = term.GetArrayInformation();
         return COMPILE_OK;
     }
 }
 
 
-compile_errcode SymbolTable::GetTermIntValue(string name, int& value) {
+compile_errcode SymbolTable::GetTermIntValue(const string& name, int& value) const {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm> >::iterator iter;
-    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+    SymbolTableTerm term;
+    if ((ret = this->GetTerm(name, term)) != COMPILE_OK) {
         return ret;
     } else {
-        value = iter->second.GetValueInformation();
+        value = term.GetValueInformation();
         return COMPILE_OK;
     }
 }
 
-compile_errcode SymbolTable::GetAddress(string name, int& addr) {
+compile_errcode SymbolTable::GetAddress(const string& name, int& addr) const {
     int ret = COMPILE_OK;
-    vector<pair<string, SymbolTableTerm> >::iterator iter;
-    if ((ret = this->GetTerm(name, iter)) != COMPILE_OK) {
+    SymbolTableTerm term;
+    if ((ret = this->GetTerm(name, term)) != COMPILE_OK) {
         return ret;
     } else {
-        addr = iter->second.GetRelativeAddr();
+        addr = term.GetRelativeAddr();
         return COMPILE_OK;
     }
 }
@@ -193,12 +204,10 @@ compile_errcode SymbolTable::GetAddress(string name, int& addr) {
 SymbolTableTree::~SymbolTableTree() {
 }
 
-compile_errcode SymbolTableTree::CreateTable(string table_name, SymbolType type, string previous_level) {
-    auto table = SymbolTable(table_name, type, previous_level);
-    table.SetAddress(m_tree_address_length);
+void SymbolTableTree::InsertTable(const string& table_name, const SymbolType& type, const string& previous_level) {
+    SymbolTable table = SymbolTable(table_name, type, previous_level, m_tree_address_length);
     pair<string, SymbolTable> pair_term(table_name, table);
     m_table_tree.push_back(pair_term);
-    return COMPILE_OK;
 }
 
 compile_errcode SymbolTableTree::Insert(SymbolTableTerm& term) {
@@ -211,7 +220,7 @@ compile_errcode SymbolTableTree::Insert(SymbolTableTerm& term) {
     return iter->second.Insert(term);
 }
 
-bool SymbolTableTree::Find(string name, bool only_this_level) {
+bool SymbolTableTree::FindTerm(const string& name, bool only_this_level) const {
     string current_table_name = this->GetCurrentTableName();
     do {
         auto iter = m_table_tree.begin();
@@ -229,26 +238,27 @@ bool SymbolTableTree::Find(string name, bool only_this_level) {
         } else {
             current_table_name = current_table.GetPreviousTableName();
         }
-    } while (!only_this_level && strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    } while (!only_this_level && strcmp(current_table_name.c_str(), m_BOTTOM_LEVEL)!=0);
     return false;
 }
 
-string SymbolTableTree::GetCurrentPreviousTableName() {
-    for (auto iter=m_table_tree.begin(); iter != m_table_tree.end(); ++iter) {
+string SymbolTableTree::GetCurrentPreviousTableName() const {
+    auto iter = m_table_tree.begin();
+    for (; iter != m_table_tree.end(); ++iter) {
         if (iter->first == current_table_name)
-            return iter->second.GetPreviousTableName();
+            break;
     }
-    return string("Bug++");
+    return iter->second.GetPreviousTableName();
 }
 
-void SymbolTableTree::PrintTree() {
+void SymbolTableTree::PrintTree() const {
     auto iter = m_table_tree.begin();
     for (; iter != m_table_tree.end(); ++iter) {
         (iter->second).PrintTable();
     }
 }
 
-compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
+SymbolType SymbolTableTree::GetCurrentTableType() const {
     string current_table_name = this->GetCurrentTableName();
     auto iter = m_table_tree.begin();
     for (; iter != m_table_tree.end(); ++iter) {
@@ -256,11 +266,7 @@ compile_errcode SymbolTableTree::GetCurrentTableType(SymbolType& type) {
             break;
         }
     }
-    if (iter == m_table_tree.end()) {
-        return -2;
-    }
-    iter->second.GetTableType(type);
-    return COMPILE_OK;
+    return iter->second.GetTableType();
 }
 
 void SymbolTableTree::UpgradeAddress() {
@@ -275,20 +281,21 @@ void SymbolTableTree::UpgradeAddress() {
     }
 }
 
-compile_errcode SymbolTableTree::GetAddressString(string current_table_name, string name, string& address_string) {
+compile_errcode SymbolTableTree::GetAddressString(const string& begin_func_name, const string& name, string& address_string) {
     int addr;
     int ret = COMPILE_OK;
+    string cur_table_name = begin_func_name;
     do {
         auto iter = m_table_tree.begin();
         for (; iter != m_table_tree.end(); ++iter) {
-            if (iter->first == current_table_name) {
+            if (iter->first == cur_table_name) {
                 break;
             }
         }
         if ((ret = iter->second.GetAddress(name, addr)) != COMPILE_OK) {
-            current_table_name = iter->second.GetPreviousTableName();
+            cur_table_name = iter->second.GetPreviousTableName();
         } else {
-            if (current_table_name != string("global")) {
+            if (cur_table_name != string("global")) {
                 address_string = string("fp") + std::to_string(addr);
             } else {
                 int base_addr = 0;
@@ -296,16 +303,16 @@ compile_errcode SymbolTableTree::GetAddressString(string current_table_name, str
             }
             return COMPILE_OK;
         }
-    } while (strcmp(current_table_name.c_str(), BOTTOM_LEVEL) != 0);
+    } while (cur_table_name != m_BOTTOM_LEVEL);
     return COMPILE_OK;
 }
 
-compile_errcode SymbolTableTree::GetAddressStringInterface(string name, string& address_string) {
+compile_errcode SymbolTableTree::GetAddressStringInterface(const string& name, string& address_string) {
     string current_table_name = this->GetCurrentTableName();
     return this->GetAddressString(current_table_name, name, address_string);
 }
 
-compile_errcode SymbolTableTree::GetAddressStringInterface(string current_table_name, string name, string& address_string) {
+compile_errcode SymbolTableTree::GetAddressStringInterface(const string& current_table_name, const string& name, string& address_string) {
     return this->GetAddressString(current_table_name, name, address_string);
 
 }
@@ -325,9 +332,9 @@ compile_errcode SymbolTableTree::GetTermKind(const string& begin_func_name, cons
         } else {
             return COMPILE_OK;
         }
-    } while(cur_func_name != BOTTOM_LEVEL);
+    } while(cur_func_name != m_BOTTOM_LEVEL);
     fprintf(stderr, "no match term name\n");
-    return -3;
+    return NOT_FIND_TERM;
 }
 
 compile_errcode SymbolTableTree::GetTermKindInterface(const string& name, SymbolKind& kind) {
@@ -354,9 +361,9 @@ compile_errcode SymbolTableTree::GetTermType(const string& begin_func_name, cons
         } else {
             return COMPILE_OK;
         }
-    } while(cur_func_name != BOTTOM_LEVEL);
+    } while(cur_func_name != m_BOTTOM_LEVEL);
     fprintf(stderr, "no match term name\n");
-    return -3;
+    return NOT_FIND_TERM;
 }
 
 compile_errcode SymbolTableTree::GetTermTypeInterface(const string& name, SymbolType& type) {
@@ -383,9 +390,9 @@ compile_errcode SymbolTableTree::GetArraySpace(const string& begin_func_name, co
         } else {
             return COMPILE_OK;
         }
-    } while(cur_func_name != BOTTOM_LEVEL);
+    } while(cur_func_name != m_BOTTOM_LEVEL);
     fprintf(stderr, "no match term name\n");
-    return -3;
+    return NOT_FIND_TERM;
 }
 
 compile_errcode SymbolTableTree::GetArraySpaceInterface(const string& name, int& array_space) {
@@ -412,9 +419,9 @@ compile_errcode SymbolTableTree::GetTermIntValue(const string& begin_func_name, 
         } else {
             return COMPILE_OK;
         }
-    } while(cur_func_name != BOTTOM_LEVEL);
+    } while(cur_func_name != m_BOTTOM_LEVEL);
     fprintf(stderr, "no match term name\n");
-    return -3;
+    return NOT_FIND_TERM;
 }
 
 compile_errcode SymbolTableTree::GetTermIntValueInterface(const string& name, int& value) {
@@ -426,13 +433,15 @@ compile_errcode SymbolTableTree::GetTermIntValueInterface(const string& cur_func
     return this->GetTermIntValue(cur_func_name, name, value);
 }
 
-void SymbolTableTree::GetTableSpaceLength(string name, int& length) {
+compile_errcode SymbolTableTree::GetTableSpaceLength(const string& table_name, int& length) {
     auto iter = m_table_tree.begin();
     for (; iter != m_table_tree.end(); ++iter) {
-        if (iter->first == name) {
+        if (iter->first == table_name) {
             length = iter->second.GetTableSpace();
+            return COMPILE_OK;
         }
     }
+    return NOT_FIND_TERM;
 }
 
 void FunctionTableTerm::PrintTerm() {

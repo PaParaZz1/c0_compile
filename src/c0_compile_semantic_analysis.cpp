@@ -128,7 +128,7 @@ void ArrayCheck(const string& array_name, int line_number, int character_number)
 }
 
 compile_errcode IdentifierCheck(const string& identifier_name, int line_number, int character_number) {
-    if (symbol_table_tree->Find(identifier_name, false)) {
+    if (symbol_table_tree->FindTerm(identifier_name, false)) {
         return COMPILE_OK;
     } else {
         SemanticErrorLog(string("undefined identifier error"), identifier_name, line_number, character_number);
@@ -389,7 +389,7 @@ compile_errcode ConstantDefinition::Action() {
                 if (name == IDENTIFIER_SYM) {
                     state = 3;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
                         SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
@@ -494,7 +494,7 @@ compile_errcode VariableDefinition::Action() {
                 if (name == IDENTIFIER_SYM) {
                     state = 2;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
                         SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
@@ -1251,7 +1251,7 @@ compile_errcode SwitchStatement::Action() {
 compile_errcode Statement::Action() {
     int ret = COMPILE_OK;
     SymbolType function_type;
-    ret = symbol_table_tree->GetCurrentTableType(function_type);
+    function_type = symbol_table_tree->GetCurrentTableType();
     string funtion_name = symbol_table_tree->GetCurrentTableName();
     SymbolName name = handle_correct_queue->GetCurrentName();
     handle_correct_queue->SetCacheLocate();
@@ -1377,7 +1377,7 @@ compile_errcode ArgumentList::Action(vector<SymbolType>& argument_type) {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, true)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
                         SemanticErrorLog(string("repeat definition identifier(para)"), m_identifier_name, line_number, character_number);
                     }
                     SymbolTableTerm term(m_identifier_name, PARAMETER, m_type);
@@ -1537,7 +1537,7 @@ compile_errcode FunctionDefinition::Action() {
             case 1: {
                 if (name == IDENTIFIER_SYM) {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
-                    if (symbol_table_tree->Find(m_identifier_name, false)) {
+                    if (symbol_table_tree->FindTerm(m_identifier_name, false)) {
                         m_valid = false;
                         SemanticErrorLog(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
                         m_identifier_name = "error_" + m_identifier_name + "_error";
@@ -1551,7 +1551,7 @@ compile_errcode FunctionDefinition::Action() {
                         }
                     }
                     string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                    symbol_table_tree->CreateTable(m_identifier_name, Name2Type(m_type), previous_table_name);
+                    symbol_table_tree->InsertTable(m_identifier_name, Name2Type(m_type), previous_table_name);
                     symbol_table_tree->SetCurrentTableName(m_identifier_name);
                     state = 2;
                     break;
@@ -1645,7 +1645,7 @@ compile_errcode MainFunction::Action() {
             case 1: {
                 if (name == MAIN_SYM) {
                     string previous_table_name = symbol_table_tree->GetCurrentTableName();
-                    symbol_table_tree->CreateTable(string("main"), VOID, previous_table_name);
+                    symbol_table_tree->InsertTable(string("main"), VOID, previous_table_name);
                     symbol_table_tree->SetCurrentTableName(string("main"));
                     state = 2;
                     break;
