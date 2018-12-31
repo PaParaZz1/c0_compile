@@ -349,11 +349,10 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
 
 void MipsGenerator::TranslateJUMP(Pcode& item) {
     string num1 = item.GetNum1();
-    if (num1 == string("RA")) {
-        //TODO
-        Output2File(string("jr $ra"));
+    if (num1 == "RA") {
+        Output2File("jr $ra");
     } else {
-        Output2File(string("j ") + num1);
+        Output2File("j " + num1);
     }
 }
 
@@ -375,12 +374,12 @@ void MipsGenerator::TranslateBType(Pcode& item) {
         Output2File("li " + NUM2 + " " + num2);
     }
     switch (op) {
-        case BNE: Output2File(string("bne ") + NUM1 + " " + NUM2 + " " + num3); break;
-        case BEQ: Output2File(string("beq ") + NUM1 + " " + NUM2 + " " + num3); break;
-        case BLE: Output2File(string("ble ") + NUM1 + " " + NUM2 + " " + num3); break;
-        case BLT: Output2File(string("blt ") + NUM1 + " " + NUM2 + " " + num3); break;
-        case BGE: Output2File(string("bge ") + NUM1 + " " + NUM2 + " " + num3); break;
-        case BGT: Output2File(string("bgt ") + NUM1 + " " + NUM2 + " " + num3); break;
+        case BNE: Output2File("bne " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BEQ: Output2File("beq " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BLE: Output2File("ble " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BLT: Output2File("blt " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BGE: Output2File("bge " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BGT: Output2File("bgt " + NUM1 + " " + NUM2 + " " + num3); break;
         default: {
             fprintf(stderr, "invalid b type\n");         
         }
@@ -402,7 +401,7 @@ void MipsGenerator::Translate() {
     Output2File("j main");
     for (; iter != m_pcode_queue.end(); ++iter) {
         switch (iter->GetOP()) {
-            case LABEL: Output2File(iter->GetNum1() + string(":")); break;
+            case LABEL: Output2File(iter->GetNum1() + ":"); break;
             case OUTPUT: {
                 TranslateOutput(*iter);
                 break;
