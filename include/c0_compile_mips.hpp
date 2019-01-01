@@ -9,6 +9,49 @@ using std::string;
 using std::vector;
 using std::unordered_map;
 
+class Register {
+public:
+    Register(const string& id, bool is_float_register) : m_id(id), m_is_float_register(is_float_register) {
+        m_is_use = false;
+    }
+    string GetID() const {
+        return m_id;
+    }
+    bool IsUse() const {
+        return m_is_use;
+    }
+    void SetUse() {
+        m_is_use = true;
+    }
+private:
+    string m_id;
+    bool m_is_use;
+    bool m_is_float_register;
+};
+
+class RegisterPool {
+public:
+    RegisterPool(bool enable_float_register) {
+        for (int i=0; i<29; ++i) {
+            m_register_array.push_back(Register("$" + std::to_string(i), false));
+        }
+        if (enable_float_register) {
+            for (int i=0; i<31; ++i) {
+                m_register_array.push_back(Register("$f" + std::to_string(i), true));
+            }
+        }
+    }
+    int GetAllRegisterNumber() const {
+        return m_register_array.size();
+    }
+    int GetRandom() const {
+        return rand()%(GetAllRegisterNumber() + 1) - 1;
+    }
+    string NaiveAcquireRegister();
+private:
+    vector<Register> m_register_array;
+};
+
 class MipsGenerator {
 public:
     MipsGenerator(const char* file_name, vector<Pcode>& source_queue) {
