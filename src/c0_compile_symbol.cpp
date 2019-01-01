@@ -334,7 +334,7 @@ compile_errcode SymbolTableTree::GetTermKind(const string& begin_func_name, cons
             return COMPILE_OK;
         }
     } while(cur_func_name != m_BOTTOM_LEVEL);
-    fprintf(stderr, "no match term name\n");
+    fprintf(stderr, "(kind)no match term name: %s---%s\n", begin_func_name.c_str(), name.c_str());
     return NOT_FIND_TERM;
 }
 
@@ -363,7 +363,7 @@ compile_errcode SymbolTableTree::GetTermType(const string& begin_func_name, cons
             return COMPILE_OK;
         }
     } while(cur_func_name != m_BOTTOM_LEVEL);
-    fprintf(stderr, "no match term name\n");
+    fprintf(stderr, "(type)no match term name: %s---%s\n", begin_func_name.c_str(), name.c_str());
     return NOT_FIND_TERM;
 }
 
@@ -392,7 +392,7 @@ compile_errcode SymbolTableTree::GetArraySpace(const string& begin_func_name, co
             return COMPILE_OK;
         }
     } while(cur_func_name != m_BOTTOM_LEVEL);
-    fprintf(stderr, "no match term name\n");
+    fprintf(stderr, "(array space)no match term name: %s---%s\n", begin_func_name.c_str(), name.c_str());
     return NOT_FIND_TERM;
 }
 
@@ -421,7 +421,7 @@ compile_errcode SymbolTableTree::GetTermIntValue(const string& begin_func_name, 
             return COMPILE_OK;
         }
     } while(cur_func_name != m_BOTTOM_LEVEL);
-    fprintf(stderr, "no match term name\n");
+    fprintf(stderr, "(int value)no match term name: %s---%s\n", begin_func_name.c_str(), name.c_str());
     return NOT_FIND_TERM;
 }
 

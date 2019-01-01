@@ -6,6 +6,7 @@
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_pcode.hpp"
 #include "c0_compile_mips.hpp"
+#include "c0_compile_tools.hpp"
 
 using std::cout;
 using std::endl;
@@ -15,6 +16,7 @@ extern SymbolQueue* handle_correct_queue;
 extern SymbolTableTree* symbol_table_tree;
 extern PcodeGenerator* pcode_generator;
 extern FunctionTable* handle_func_table;
+extern LogTools* g_log_tools;
 
 void TestLexicalAnalysis(const char* test_file_name) {
     int ret = COMPILE_OK;
@@ -130,6 +132,7 @@ void TestGenerate(const char* test_file_name) {
     Program program;
     pcode_generator = new PcodeGenerator("pcode.txt");
     handle_func_table = new FunctionTable;
+    g_log_tools = new LogTools;
     vector<Pcode> pcode_copy;
     // lexical analysis
     while (true) {
@@ -180,6 +183,7 @@ ERROR2:
     delete(pcode_generator);
     delete(symbol_table_tree);
     delete(handle_symbol_queue);
+    delete(g_log_tools);
 }
 
 int main(int argc, char** argv) {

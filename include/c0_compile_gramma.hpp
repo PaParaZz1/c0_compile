@@ -3,15 +3,11 @@
 #include <iostream>
 #include <string>
 #include "c0_compile_symbol.hpp"
-
-#define LOG_SWITCH 1
-extern FILE* log_gramma;
-#define GRAMMA_LOG(str) do { \
-                            if (LOG_SWITCH) fprintf(log_gramma, "%s\n", str.c_str()); \
-                        }while(0) 
+#include "c0_compile_tools.hpp"
 
 typedef int compile_errcode;
 using std::string;
+extern LogTools* g_log_tools;
 
 
 /*class BaseAnalysisTool {
@@ -46,7 +42,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a term");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -67,7 +63,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a expression");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -88,7 +84,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a value argument list");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -109,7 +105,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a factor");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -133,7 +129,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a argument list");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -155,7 +151,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a condition");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate() {
@@ -173,7 +169,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a condition statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -188,7 +184,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a while loop statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -204,7 +200,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a switch child statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action(const SymbolType& parent_type);
     compile_errcode Action() {
@@ -225,7 +221,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a switch table");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action(const SymbolType& parent_type);
     compile_errcode Action() {
@@ -246,7 +242,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a default");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -259,7 +255,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a switch loop statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -275,7 +271,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a function call");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -288,7 +284,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a constant definition");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -303,7 +299,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a constant declaration");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -316,7 +312,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a variable definition");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -332,7 +328,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a variable declaration");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -345,7 +341,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a output statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -358,7 +354,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a input statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -369,7 +365,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a return statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action() {
         fprintf(stderr, "This func has not implemented, please check the head file use another form\n");
@@ -386,7 +382,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a assign statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -401,7 +397,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -422,7 +418,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a statement list");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -435,7 +431,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a compound statement");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -450,7 +446,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a funtion definition");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -468,7 +464,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a main function");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();
@@ -481,7 +477,7 @@ public:
     compile_errcode Parse();
     void LogOutput() {
         string str("This is a c0 program");
-        GRAMMA_LOG(str);
+        g_log_tools->GrammaNormalLogs(str);
     }
     compile_errcode Action();
     compile_errcode Generate();

@@ -4,6 +4,7 @@
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_lexical_analysis.hpp"
 #include "c0_compile_gramma.hpp"
+#include "c0_compile_tools.hpp"
 
 using std::string;
 using std::cout;
@@ -12,6 +13,7 @@ using std::endl;
 extern SymbolTableTree* symbol_table_tree;
 extern FunctionTable* handle_func_table;
 extern SymbolQueue* handle_symbol_queue;
+extern LogTools* g_log_tools;
 SymbolQueue* handle_correct_queue = handle_symbol_queue;
 
 inline bool IsAddOperation(SymbolName name) {
@@ -76,7 +78,7 @@ inline SymbolType Name2Type(SymbolName name) {
     }
 }
 
-FILE* semantic_error = fopen("semantic_error.txt", "w");
+/*FILE* semantic_error = fopen("semantic_error.txt", "w");
 bool semantic_flag = true;
 void SemanticErrorLog(string error_type, string content, int line_number, int character_number) {
     semantic_flag = false;
@@ -85,13 +87,13 @@ void SemanticErrorLog(string error_type, string content, int line_number, int ch
     } else {
         fprintf(semantic_error, "%s error: '%s' in line %d character %d\n", error_type.c_str(),  content.c_str(), line_number, character_number);
     }
-}
+}*/
 
 void ArrayCheck(const string& array_name, int line_number, int character_number) {
-    SymbolKind identifier_kind;
+    SymbolKind identifier_kind = FUNCTION;  // temp init
     symbol_table_tree->GetTermKindInterface(array_name, identifier_kind);
     if (identifier_kind != ARRAY) {
-        SemanticErrorLog("invalid array identifier: ", array_name, line_number, character_number);
+        g_log_tools->SemanticErrorLogs("invalid array identifier: ", array_name, line_number, character_number);
         return;
     }
     handle_correct_queue->SetCacheLocate();
@@ -105,7 +107,7 @@ void ArrayCheck(const string& array_name, int line_number, int character_number)
             int array_space;
             symbol_table_tree->GetArraySpaceInterface(array_name, array_space);
             if (value<0 || value>=array_space)
-                SemanticErrorLog("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
+                g_log_tools->SemanticErrorLogs("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
         }
     } else if (name == IDENTIFIER_SYM) {
         SymbolKind kind;
@@ -120,7 +122,7 @@ void ArrayCheck(const string& array_name, int line_number, int character_number)
                 int array_space;
                 symbol_table_tree->GetArraySpaceInterface(array_name, array_space);
                 if (value<0 || value>=array_space)
-                    SemanticErrorLog("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
+                    g_log_tools->SemanticErrorLogs("invalid array index value:" + std::to_string(value), array_name, line_number, character_number);
             }
         }
     }
@@ -131,13 +133,13 @@ compile_errcode IdentifierCheck(const string& identifier_name, int line_number, 
     if (symbol_table_tree->FindTerm(identifier_name, false)) {
         return COMPILE_OK;
     } else {
-        SemanticErrorLog(string("undefined identifier error"), identifier_name, line_number, character_number);
+        g_log_tools->SemanticErrorLogs(string("undefined identifier error"), identifier_name, line_number, character_number);
         return SEMANTIC_ERROR;
     }
 }
 
 void AssignCheck(const string& identifier_name, int line_number, int character_number) {
-    SymbolKind kind;
+    SymbolKind kind = VARIABLE;
     symbol_table_tree->GetTermKindInterface(identifier_name, kind);
     switch(kind) {
         case VARIABLE:
@@ -148,14 +150,14 @@ void AssignCheck(const string& identifier_name, int line_number, int character_n
             SymbolName name = handle_correct_queue->GetCurrentName();
             if (name != L_SQUARE_BRACKET_SYM) {
                 string str = symbol_kind_string[kind];
-                SemanticErrorLog("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
+                g_log_tools->SemanticErrorLogs("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
             }
             handle_correct_queue->SetCurrentLocate();
             break;
         }
         default: {
             string str = symbol_kind_string[kind];
-            SemanticErrorLog("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
+            g_log_tools->SemanticErrorLogs("invalid assign left value---kind:" + str, identifier_name, line_number, character_number);         
         }
     }
 }
@@ -169,7 +171,7 @@ void ArgumentCheck(const string& identifier_name, int line_number, int character
     int argument_type_len = argument_type.size();
     int value_argument_type_len = value_argument_type.size();
     if (argument_type_len != value_argument_type_len) {
-        SemanticErrorLog("argument list expected: " + std::to_string(argument_type_len) + ", but value argument list had: "
+        g_log_tools->SemanticErrorLogs("argument list expected: " + std::to_string(argument_type_len) + ", but value argument list had: "
                 + std::to_string(value_argument_type_len), identifier_name, line_number, character_number);
         return;
     }
@@ -177,7 +179,7 @@ void ArgumentCheck(const string& identifier_name, int line_number, int character
         if (argument_type[i] != value_argument_type[i]) {
             string str1 = symbol_type_string[argument_type[i]];
             string str2 = symbol_type_string[value_argument_type[i]];
-            SemanticErrorLog("argument expected: " + str1 + ", but value argument had: " + str2, identifier_name, line_number, character_number);
+            g_log_tools->SemanticErrorLogs("argument expected: " + str1 + ", but value argument had: " + str2, identifier_name, line_number, character_number);
         }
     }
 }
@@ -227,12 +229,11 @@ compile_errcode Factor::Action(SymbolType& factor_type) {
                     name = handle_correct_queue->GetCurrentName();
                     if (name == R_CIRCLE_BRACKET_SYM) {
                         string str = "This is a function call";
-                        GRAMMA_LOG(str);
                         if (m_valid) {
                             symbol_table_tree->GetTermTypeInterface(m_identifier_name, factor_type);
                             if (factor_type == VOID) {
                                 m_valid = false; // (doubt)
-                                SemanticErrorLog(string("no return value func can't be used as factor"), m_identifier_name, line_number, character_number);
+                                g_log_tools->SemanticErrorLogs(string("no return value func can't be used as factor"), m_identifier_name, line_number, character_number);
                             }
                         } else {
                             factor_type = VOID;
@@ -390,12 +391,12 @@ compile_errcode ConstantDefinition::Action() {
                     state = 3;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
-                        SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
                         if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
                             m_valid = false;
-                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                            g_log_tools->SemanticErrorLogs("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
                         } else {
                             m_valid = true;
                         }
@@ -417,11 +418,11 @@ compile_errcode ConstantDefinition::Action() {
                 if (name == INTERGER_SYM || name == CHARACTER_SYM) {
                     state = 5;
                     if (m_type == INT_SYM && name != INTERGER_SYM) {
-                        SemanticErrorLog(string("invalid assign match(int)"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("invalid assign match(int)"), m_identifier_name, line_number, character_number);
                         break;
                     }
                     if (m_type == CHAR_SYM && name != CHARACTER_SYM) {
-                        SemanticErrorLog(string("invalid assign match(char)"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("invalid assign match(char)"), m_identifier_name, line_number, character_number);
                         break;
                     }
                     if (m_valid) {
@@ -495,12 +496,12 @@ compile_errcode VariableDefinition::Action() {
                     state = 2;
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
-                        SemanticErrorLog(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("repeat definition identifier"), m_identifier_name, line_number, character_number);
                         m_valid = false;
                     } else {
                         if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
                             m_valid = false;
-                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                            g_log_tools->SemanticErrorLogs("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
                         } else {
                             m_valid = true;
                         }
@@ -539,7 +540,7 @@ compile_errcode VariableDefinition::Action() {
                     m_array_length = handle_correct_queue->GetCurrentValue<int>();
                     if (m_array_length <= 0) {
                         m_valid = false;
-                        SemanticErrorLog(string("invalid array length"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("invalid array length"), m_identifier_name, line_number, character_number);
                     }
                     break;
                 } else {
@@ -686,7 +687,7 @@ compile_errcode ReturnStatement::Action(SymbolType& function_type, string funtio
                     break;
                 } else if (name == SEMICOLON_SYM) {
                     if (function_type != VOID) {
-                        SemanticErrorLog(string("non void funtion with void return value"), funtion_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("non void funtion with void return value"), funtion_name, line_number, character_number);
                     }
                     return COMPILE_OK;
                 } else {
@@ -697,7 +698,7 @@ compile_errcode ReturnStatement::Action(SymbolType& function_type, string funtio
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     state = 3;
                     if (function_type != expression_type) {
-                        SemanticErrorLog(string("funtion return value not match"), funtion_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("funtion return value not match"), funtion_name, line_number, character_number);
                     }
                     m_expression.LogOutput();
                     break;
@@ -746,7 +747,6 @@ compile_errcode OutputStatement::Action() {
             case 2: {
                 if (name == STRING_SYM) {
                     string str("This is a string");
-                    GRAMMA_LOG(str);
                     state = 3;
                     break;
                 } else if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
@@ -833,7 +833,7 @@ compile_errcode AssignStatement::Action() {
                     if (id_ret == COMPILE_OK) {
                         symbol_table_tree->GetTermTypeInterface(identifier_name, identifier_type);
                         if (identifier_type != expression_type) {
-                            SemanticErrorLog("assign type not match", identifier_name, line_number, character_number);
+                            g_log_tools->SemanticErrorLogs("assign type not match", identifier_name, line_number, character_number);
                         }
                     }
                     state = 3;
@@ -886,7 +886,7 @@ compile_errcode Condition::Action() {
             case 0: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     if (expression_type == CHAR) {
-                        SemanticErrorLog("condition must be int", string(""), line_number, character_number);
+                        g_log_tools->SemanticErrorLogs("condition must be int", string(""), line_number, character_number);
                     }
                     m_expression.LogOutput();
                     state = 1;
@@ -906,7 +906,7 @@ compile_errcode Condition::Action() {
             case 2: {
                 if ((ret = m_expression.Action(expression_type)) == COMPILE_OK) {
                     if (expression_type == CHAR) {
-                        SemanticErrorLog("condition must be int", string(""), line_number, character_number);
+                        g_log_tools->SemanticErrorLogs("condition must be int", string(""), line_number, character_number);
                     }
                     m_expression.LogOutput();
                     state = 3;
@@ -1070,7 +1070,7 @@ compile_errcode SwitchChildStatement::Action(const SymbolType& parent_type) {
                     if (parent_type != constant_type) {
                         string str1 = symbol_type_string[parent_type];
                         string str2 = symbol_type_string[constant_type];
-                        SemanticErrorLog("case type not match between " + str1 + "and " + str2, string(""), line_number, character_number);
+                        g_log_tools->SemanticErrorLogs("case type not match between " + str1 + "and " + str2, string(""), line_number, character_number);
                     }
                     state = 2;
                     break;
@@ -1301,7 +1301,6 @@ compile_errcode Statement::Action() {
         if (name == SEMICOLON_SYM) {
             handle_correct_queue->NextSymbol();
             string str("This is a empty statement");
-            GRAMMA_LOG(str);
             return COMPILE_OK;
         } else {
             return NOT_MATCH;
@@ -1378,7 +1377,7 @@ compile_errcode ArgumentList::Action(vector<SymbolType>& argument_type) {
                 if (name == IDENTIFIER_SYM) {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     if (symbol_table_tree->FindTerm(m_identifier_name, true)) {
-                        SemanticErrorLog(string("repeat definition identifier(para)"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("repeat definition identifier(para)"), m_identifier_name, line_number, character_number);
                     }
                     SymbolTableTerm term(m_identifier_name, PARAMETER, m_type);
                     symbol_table_tree->Insert(term);
@@ -1539,12 +1538,12 @@ compile_errcode FunctionDefinition::Action() {
                     m_identifier_name = handle_correct_queue->GetCurrentValue<string>();
                     if (symbol_table_tree->FindTerm(m_identifier_name, false)) {
                         m_valid = false;
-                        SemanticErrorLog(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
+                        g_log_tools->SemanticErrorLogs(string("repeat definition identifier(func)"), m_identifier_name, line_number, character_number);
                         m_identifier_name = "error_" + m_identifier_name + "_error";
                     } else {
                         if (symbol_table_tree->MatchKeyword(m_identifier_name)) {
                             m_valid = false;
-                            SemanticErrorLog("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
+                            g_log_tools->SemanticErrorLogs("identifier repeat with the keyword: " + m_identifier_name, "", line_number, character_number);
                             m_identifier_name = "error_" + m_identifier_name + "_error";
                         } else {
                             m_valid = true;
@@ -1730,7 +1729,7 @@ compile_errcode Program::Action() {
     if ((ret = m_main_function.Action()) == COMPILE_OK) {
         m_main_function.LogOutput();
     }
-    if (!semantic_flag)
+    if (g_log_tools->GetSemanticFlag() == false)
         ret = SEMANTIC_ERROR;
     return ret;
 }

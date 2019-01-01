@@ -293,6 +293,7 @@ class SymbolTableTree {
 public:
     SymbolTableTree() {
         m_tree_address_length = 0;
+        m_BOTTOM_LEVEL = string("end");
     }
     ~SymbolTableTree();
     void InsertTable(const string& table_name, const SymbolType& type, const string& previous_level_name);
@@ -322,7 +323,7 @@ public:
     void UpgradeAddress();
     void PrintTree() const;
 private:
-    const string m_BOTTOM_LEVEL = string("end");
+    string m_BOTTOM_LEVEL;
     vector<pair<string, SymbolTable> > m_table_tree;
     string current_table_name;
     int m_tree_address_length;

@@ -4,13 +4,14 @@
 #include "c0_compile_symbol.hpp"
 #include "c0_compile_lexical_analysis.hpp"
 #include "c0_compile_gramma.hpp"
+#include "c0_compile_tools.hpp"
 
 using std::string;
 using std::cout;
 using std::endl;
 
 extern SymbolQueue* handle_symbol_queue;
-FILE* log_gramma = fopen("gramma_log.txt", "w");
+extern LogTools* g_log_tools;
 
 inline bool IsAddOperation(SymbolName name) {
     return (name == ADD_SYM) || (name == SUB_SYM);
@@ -37,17 +38,15 @@ inline bool IsRelationalOpeartor(SymbolName name) {
             name == LARGE_EQUAL_SYM);
 }
 
-FILE* gramma_error = fopen("gramma_error.txt", "w");
-bool gramma_flag = true;
-void GrammaErrorLogs(const string& error_content) {
-    cout<<"bug ++"<<endl;
-    gramma_flag = false;
+// friend func of class LogTools
+void GrammaErrorLogs(LogTools* log_tools_ptr, const string& error_content) {
+    log_tools_ptr->m_gramma_error_flag = false;
     int line_number = handle_symbol_queue->GetCurrentLine();
     int character_number = handle_symbol_queue->GetCurrentCharacter();
-    if (gramma_error == NULL) {
+    if (log_tools_ptr->m_fp_gramma_error == NULL) {
         fprintf(stderr, "error: '%s' in line %d character %d\n", error_content.c_str(), line_number, character_number);
     } else {
-        fprintf(gramma_error, "error: '%s' in line %d character %d\n", error_content.c_str(), line_number, character_number);
+        fprintf(log_tools_ptr->m_fp_gramma_error, "error: '%s' in line %d character %d\n", error_content.c_str(), line_number, character_number);
     }
 }
 
@@ -69,11 +68,11 @@ compile_errcode Factor::Parse() {
                     if (name == R_SQUARE_BRACKET_SYM) {
                         break;
                     } else {
-                        GrammaErrorLogs("expected a ']'");
+                        GrammaErrorLogs(g_log_tools, "expected a ']'");
                         return NOT_MATCH;
                     }
                 } else {
-                    GrammaErrorLogs("expected a valid array index expression");
+                    GrammaErrorLogs(g_log_tools, "expected a valid array index expression");
                     return NOT_MATCH;
                 }
             } else if (name == L_CIRCLE_BRACKET_SYM) {
@@ -83,14 +82,14 @@ compile_errcode Factor::Parse() {
                     name = handle_symbol_queue->GetCurrentName();
                     if (name == R_CIRCLE_BRACKET_SYM) {
                         string str = "This is a function call";
-                        GRAMMA_LOG(str);
+                        g_log_tools->GrammaNormalLogs(str);
                         break;
                     } else {
-                        GrammaErrorLogs("expected a ')'");
+                        GrammaErrorLogs(g_log_tools, "expected a ')'");
                         return NOT_MATCH;
                     }
                 } else {
-                    GrammaErrorLogs("expected a valid value argument list");
+                    GrammaErrorLogs(g_log_tools, "expected a valid value argument list");
                     return NOT_MATCH;
                 }
             } else {
@@ -106,16 +105,16 @@ compile_errcode Factor::Parse() {
                 if (name == R_CIRCLE_BRACKET_SYM) {
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     return NOT_MATCH;
                 }
             } else {
-                GrammaErrorLogs("expected a valid expression in bracket");
+                GrammaErrorLogs(g_log_tools, "expected a valid expression in bracket");
                 return NOT_MATCH;
             }
         }
         default: {
-            GrammaErrorLogs("invalid symbol in factor parse");
+            GrammaErrorLogs(g_log_tools, "invalid symbol in factor parse");
             return NOT_MATCH;
         }
     }
@@ -186,7 +185,7 @@ compile_errcode Expression::Parse() {
                     state = 1;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid term");
+                    GrammaErrorLogs(g_log_tools, "expected a valid term");
                     return NOT_MATCH;
                 }
             }
@@ -224,7 +223,7 @@ compile_errcode ConstantDefinition::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
+                    GrammaErrorLogs(g_log_tools, "expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }
@@ -232,7 +231,7 @@ compile_errcode ConstantDefinition::Parse() {
                 if (name == ASSIGN_SYM) {
                     state = 4;
                 } else {
-                    GrammaErrorLogs("expected a valid assign symbole");
+                    GrammaErrorLogs(g_log_tools, "expected a valid assign symbole");
                     return NOT_MATCH;
                 }
                 break;
@@ -242,7 +241,7 @@ compile_errcode ConstantDefinition::Parse() {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected valid const init");
+                    GrammaErrorLogs(g_log_tools, "expected valid const init");
                     return NOT_MATCH;
                 }
             }
@@ -252,7 +251,7 @@ compile_errcode ConstantDefinition::Parse() {
                 } else if (name == SEMICOLON_SYM) {
                     state = 6;
                 } else {
-                    GrammaErrorLogs("expected a ',' or ';'");
+                    GrammaErrorLogs(g_log_tools, "expected a ',' or ';'");
                     return NOT_MATCH;
                 }
                 break;
@@ -302,7 +301,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
+                    GrammaErrorLogs(g_log_tools, "expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }
@@ -317,7 +316,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '[' or ',' or ';'");
+                    GrammaErrorLogs(g_log_tools, "expected a '[' or ',' or ';'");
                     return NOT_MATCH;
                 }
             }
@@ -327,7 +326,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 12;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid identifier");
+                    GrammaErrorLogs(g_log_tools, "expected a valid identifier");
                     return NOT_MATCH;
                 }
             }
@@ -336,7 +335,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 13;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ']'");
+                    GrammaErrorLogs(g_log_tools, "expected a ']'");
                     return NOT_MATCH;
                 }
             }
@@ -348,7 +347,7 @@ compile_errcode VariableDefinition::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ',' or ';'");
+                    GrammaErrorLogs(g_log_tools, "expected a ',' or ';'");
                     return NOT_MATCH;
                 }
             }
@@ -413,7 +412,7 @@ compile_errcode InputStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     return NOT_MATCH;
                 }
             }
@@ -422,7 +421,7 @@ compile_errcode InputStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a identifier in input statement");
+                    GrammaErrorLogs(g_log_tools, "expected a identifier in input statement");
                     return NOT_MATCH;
                 }
             }
@@ -434,7 +433,7 @@ compile_errcode InputStatement::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ',' or ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ',' or ')'");
                     return NOT_MATCH;
                 }
             }
@@ -465,7 +464,7 @@ compile_errcode ReturnStatement::Parse() {
                 } else if (name == SEMICOLON_SYM) {
                     return COMPILE_OK;
                 } else {
-                    GrammaErrorLogs("expected a '(' or ';'");
+                    GrammaErrorLogs(g_log_tools, "expected a '(' or ';'");
                     return NOT_MATCH;
                 }
             }
@@ -475,7 +474,7 @@ compile_errcode ReturnStatement::Parse() {
                     m_expression.LogOutput();
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid expression in return statement");
+                    GrammaErrorLogs(g_log_tools, "expected a valid expression in return statement");
                     return NOT_MATCH;
                 }
             }
@@ -484,7 +483,7 @@ compile_errcode ReturnStatement::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     return NOT_MATCH;
                 }
             }
@@ -514,21 +513,21 @@ compile_errcode OutputStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     return NOT_MATCH;
                 }
             }
             case 2: {
                 if (name == STRING_SYM) {
                     string str("This is a string");
-                    GRAMMA_LOG(str);
+                    g_log_tools->GrammaNormalLogs(str);
                     state = 3;
                     break;
                 } else if ((ret = m_expression.Parse()) == COMPILE_OK) {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid string or expression");
+                    GrammaErrorLogs(g_log_tools, "expected a valid string or expression");
                     return NOT_MATCH;
                 }
             }
@@ -540,7 +539,7 @@ compile_errcode OutputStatement::Parse() {
                     state = 6;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')' or ','");
+                    GrammaErrorLogs(g_log_tools, "expected a ')' or ','");
                     return NOT_MATCH;
                 }
             }
@@ -549,7 +548,7 @@ compile_errcode OutputStatement::Parse() {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid expression");
+                    GrammaErrorLogs(g_log_tools, "expected a valid expression");
                     return NOT_MATCH;
                 }
             }
@@ -558,7 +557,7 @@ compile_errcode OutputStatement::Parse() {
                     state = 6;
                     break;
                 } else {
-                    GrammaErrorLogs("expression a ')'");
+                    GrammaErrorLogs(g_log_tools, "expression a ')'");
                     return NOT_MATCH;
                 }
             }
@@ -599,7 +598,7 @@ compile_errcode AssignStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid expression in assign right value");
+                    GrammaErrorLogs(g_log_tools, "expected a valid expression in assign right value");
                     return NOT_MATCH;
                 }
             }
@@ -610,7 +609,7 @@ compile_errcode AssignStatement::Parse() {
                     state = 12;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid expression in array index");
+                    GrammaErrorLogs(g_log_tools, "expected a valid expression in array index");
                     return NOT_MATCH;
                 }
             }
@@ -619,7 +618,7 @@ compile_errcode AssignStatement::Parse() {
                     state = 13;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ']'");
+                    GrammaErrorLogs(g_log_tools, "expected a ']'");
                     return NOT_MATCH;
                 }
             }
@@ -696,7 +695,7 @@ compile_errcode ConditionStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     goto ERROR_IF;
                 }
             }
@@ -706,7 +705,7 @@ compile_errcode ConditionStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid condition");
+                    GrammaErrorLogs(g_log_tools, "expected a valid condition");
                     goto ERROR_IF;
                 }
             }
@@ -715,7 +714,7 @@ compile_errcode ConditionStatement::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     goto ERROR_IF;
                 }
             }
@@ -761,7 +760,7 @@ compile_errcode WhileLoopStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     goto ERROR_WHILE;
                 }
             }
@@ -771,7 +770,7 @@ compile_errcode WhileLoopStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid condition");
+                    GrammaErrorLogs(g_log_tools, "expected a valid condition");
                     goto ERROR_WHILE;
                 }
             }
@@ -780,7 +779,7 @@ compile_errcode WhileLoopStatement::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     goto ERROR_WHILE;
                 }
             }
@@ -826,7 +825,7 @@ compile_errcode SwitchChildStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a constant in switch child");
+                    GrammaErrorLogs(g_log_tools, "expected a constant in switch child");
                     goto ERROR_SWITCH_CHILD;
                 }
             }
@@ -835,7 +834,7 @@ compile_errcode SwitchChildStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ':'");
+                    GrammaErrorLogs(g_log_tools, "expected a ':'");
                     goto ERROR_SWITCH_CHILD;
                 }
             }
@@ -897,7 +896,7 @@ compile_errcode Default::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ':'");
+                    GrammaErrorLogs(g_log_tools, "expected a ':'");
                     return NOT_MATCH;
                 }
             }
@@ -936,7 +935,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 2;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     goto ERROR_SWITCH;
                 }
             }
@@ -946,7 +945,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a valid expression in switch");
+                    GrammaErrorLogs(g_log_tools, "expected a valid expression in switch");
                     goto ERROR_SWITCH;
                 }
             }
@@ -955,7 +954,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     goto ERROR_SWITCH;
                 }
             }
@@ -964,7 +963,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '{'");
+                    GrammaErrorLogs(g_log_tools, "expected a '{'");
                     goto ERROR_SWITCH;
                 }
             }
@@ -986,7 +985,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 8;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '}'");
+                    GrammaErrorLogs(g_log_tools, "expected a '}'");
                     goto ERROR_SWITCH;
                 }
             }
@@ -995,7 +994,7 @@ compile_errcode SwitchStatement::Parse() {
                     state = 8;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '}'");
+                    GrammaErrorLogs(g_log_tools, "expected a '}'");
                     goto ERROR_SWITCH;
                 }
             }
@@ -1023,7 +1022,7 @@ compile_errcode Statement::Parse() {
                 handle_symbol_queue->NextSymbol();
                 goto NO_SEMICOLON;
             } else {
-                GrammaErrorLogs("expected a '}'");
+                GrammaErrorLogs(g_log_tools, "expected a '}'");
                 return NOT_MATCH;
             }
         } else {
@@ -1059,7 +1058,7 @@ compile_errcode Statement::Parse() {
         if (name == SEMICOLON_SYM) {
             handle_symbol_queue->NextSymbol();
             string str("This is a empty statement");
-            GRAMMA_LOG(str);
+            g_log_tools->GrammaNormalLogs(str);
             return COMPILE_OK;
         } else {
             return NOT_MATCH;
@@ -1071,7 +1070,7 @@ compile_errcode Statement::Parse() {
             handle_symbol_queue->NextSymbol();
             return COMPILE_OK;
         } else {
-            GrammaErrorLogs("expected a ';' in the end of statement");
+            GrammaErrorLogs(g_log_tools, "expected a ';' in the end of statement");
             return COMPILE_OK;
         }
     NO_SEMICOLON:
@@ -1119,7 +1118,7 @@ compile_errcode ArgumentList::Parse() {
                     state = 1;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')' in argument list");
+                    GrammaErrorLogs(g_log_tools, "expected a ')' in argument list");
                     return NOT_MATCH;
                 }
             }
@@ -1165,7 +1164,7 @@ compile_errcode ValueArgumentList::Parse() {
                     state = 1;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')' in value argument list");
+                    GrammaErrorLogs(g_log_tools, "expected a ')' in value argument list");
                     return NOT_MATCH;
                 }
             }
@@ -1226,7 +1225,7 @@ compile_errcode FunctionCall::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')' in function call");
+                    GrammaErrorLogs(g_log_tools, "expected a ')' in function call");
                     return NOT_MATCH;
                 }
             }
@@ -1257,7 +1256,7 @@ compile_errcode FunctionDefinition::Parse() {
                     break;
                 } else {
                     if (name != MAIN_SYM)
-                        GrammaErrorLogs("expected a valid identifier, but get a " + string(symbol_name_string[name]));
+                        GrammaErrorLogs(g_log_tools, "expected a valid identifier, but get a " + string(symbol_name_string[name]));
                     return NOT_MATCH;
                 }
             }
@@ -1266,7 +1265,7 @@ compile_errcode FunctionDefinition::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '(' in function definition");
+                    GrammaErrorLogs(g_log_tools, "expected a '(' in function definition");
                     return NOT_MATCH;
                 }
             }
@@ -1284,7 +1283,7 @@ compile_errcode FunctionDefinition::Parse() {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')' in argument list");
+                    GrammaErrorLogs(g_log_tools, "expected a ')' in argument list");
                     return NOT_MATCH;
                 }
             }
@@ -1293,7 +1292,7 @@ compile_errcode FunctionDefinition::Parse() {
                     state = 6;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '{'");
+                    GrammaErrorLogs(g_log_tools, "expected a '{'");
                     return NOT_MATCH;
                 }
             }
@@ -1311,7 +1310,7 @@ compile_errcode FunctionDefinition::Parse() {
                     state = 8;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '}'");
+                    GrammaErrorLogs(g_log_tools, "expected a '}'");
                     return NOT_MATCH;
                 }
             }
@@ -1349,7 +1348,7 @@ compile_errcode MainFunction::Parse() {
                     state = 3;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '('");
+                    GrammaErrorLogs(g_log_tools, "expected a '('");
                     return NOT_MATCH;
                 }
             }
@@ -1358,7 +1357,7 @@ compile_errcode MainFunction::Parse() {
                     state = 4;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a ')'");
+                    GrammaErrorLogs(g_log_tools, "expected a ')'");
                     return NOT_MATCH;
                 }
             }
@@ -1367,7 +1366,7 @@ compile_errcode MainFunction::Parse() {
                     state = 5;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '{'");
+                    GrammaErrorLogs(g_log_tools, "expected a '{'");
                     return NOT_MATCH;
                 }
             }
@@ -1385,7 +1384,7 @@ compile_errcode MainFunction::Parse() {
                     state = 7;
                     break;
                 } else {
-                    GrammaErrorLogs("expected a '}'");
+                    GrammaErrorLogs(g_log_tools, "expected a '}'");
                     return NOT_MATCH;
                 }
             }
@@ -1419,7 +1418,7 @@ compile_errcode Program::Parse() {
     if ((ret = m_main_function.Parse()) == COMPILE_OK) {
         m_main_function.LogOutput();
     }
-    if (gramma_flag == false)
+    if (g_log_tools->GetGrammaFlag() == false)
         ret = NOT_MATCH;
     return ret;
 }
