@@ -468,3 +468,16 @@ void MipsGenerator::Translate() {
         }
     }
 }
+
+string RegisterPool::NaiveAcquireRegister() {
+    for (Register tmp : m_register_array) {
+        if (!tmp.IsUse()) {
+            tmp.SetUse();
+            return tmp.GetID();
+        }
+    }
+    // (TODO)
+    int random_number = GetRandom();
+    m_register_array[random_number].SetUse();
+    return m_register_array[random_number].GetID();
+}
