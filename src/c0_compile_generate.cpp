@@ -209,11 +209,15 @@ compile_errcode Expression::Generate(string& expression_string) {
                     state = 0;
                     break;
                 } else {
-                    m_term.Generate(term_string2);
-                    temp = pcode_generator->GetNextTemp();
-                    Pcode pcode(pcode_type, temp, term_string1, term_string2);
-                    pcode_generator->Insert(pcode);
-                    term_string1 = temp;
+                    if (pcode_type == SUB) {
+                        m_term.Generate(term_string2);
+                        temp = pcode_generator->GetNextTemp();
+                        Pcode pcode(SUB, temp, term_string1, term_string2);
+                        pcode_generator->Insert(pcode);
+                        term_string1 = temp;
+                    } else {
+                        m_term.Generate(term_string1);
+                    }
                     state = 1;
                     break;
                 }
@@ -1311,6 +1315,14 @@ compile_errcode ValueArgumentList::Generate(const string& call_name) {
                 } else if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     string parameter_address = "fp" + std::to_string(parameter_count*4);
                     parameter_count++;
+                    size_t fp = expression_string.find("fp");
+                    size_t g = expression_string.find("g");
+                    if (fp != string::npos || g != string::npos) {
+                        string temp = pcode_generator->GetNextTemp();
+                        Pcode pcode(ASSIGN, temp, expression_string, EMPTY_STR);
+                        pcode_generator->Insert(pcode);
+                        expression_string = temp;
+                    }
                     Pcode pcode(PARA, parameter_address, expression_string, call_name);
                     pcode_generator->Insert(pcode);
                     state = 1;
@@ -1331,6 +1343,14 @@ compile_errcode ValueArgumentList::Generate(const string& call_name) {
                 if ((ret = m_expression.Generate(expression_string)) == COMPILE_OK) {
                     string parameter_address = "fp" + std::to_string(parameter_count*4);
                     parameter_count++;
+                    size_t fp = expression_string.find("fp");
+                    size_t g = expression_string.find("g");
+                    if (fp != string::npos || g != string::npos) {
+                        string temp = pcode_generator->GetNextTemp();
+                        Pcode pcode(ASSIGN, temp, expression_string, EMPTY_STR);
+                        pcode_generator->Insert(pcode);
+                        expression_string = temp;
+                    }
                     Pcode pcode(PARA, parameter_address, expression_string, call_name);
                     pcode_generator->Insert(pcode);
                     state = 1;
