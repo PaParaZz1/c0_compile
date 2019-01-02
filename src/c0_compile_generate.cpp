@@ -156,11 +156,7 @@ compile_errcode Term::Generate(string& term_string) {
         SymbolName name = handle_correct_queue->GetCurrentName();
         switch (state) {
             case 0: {
-                temp = pcode_generator->GetNextTemp();
-                m_factor->Generate(factor_string2);
-                Pcode pcode(pcode_type, temp, factor_string1, factor_string2);
-                pcode_generator->Insert(pcode);
-                factor_string1 = temp;
+                m_factor->Generate(factor_string1);
                 state = 1;
                 break;
             }
@@ -171,7 +167,7 @@ compile_errcode Term::Generate(string& term_string) {
                     } else {
                         pcode_type = DIV;
                     }
-                    state = 0;
+                    state = 2;
                     break;
                 } else {
                     delete(m_factor);
@@ -179,8 +175,17 @@ compile_errcode Term::Generate(string& term_string) {
                     return COMPILE_OK;
                 }
             }
+            case 2: {
+                temp = pcode_generator->GetNextTemp();
+                m_factor->Generate(factor_string2);
+                Pcode pcode(pcode_type, temp, factor_string1, factor_string2);
+                pcode_generator->Insert(pcode);
+                factor_string1 = temp;
+                state = 1;
+                break;
+            }
         }
-        if (state == 0)
+        if (state != 1)
             handle_correct_queue->NextSymbol();
     }
 }

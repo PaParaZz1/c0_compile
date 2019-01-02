@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <iostream>
 #include "c0_compile_utils.hpp"
 #include "c0_compile_symbol.hpp"
@@ -97,20 +98,62 @@ void MipsGenerator::TranslateADD(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
-    size_t f2 = num2.find(TMP);
-    size_t f3 = num3.find(TMP);
-    if (f2 == string::npos && f3 == string::npos) {
-        fprintf(stderr, "not implemented translate ADD type\n");
-    } else if (f2 != string::npos && f3 != string::npos) {
-        GenerateLoad(NUM2, num2, TMP);
-        GenerateLoad(NUM3, num3, TMP);
-        Output2File("addu " + NUM1 + " " + NUM2 + " " + NUM3);
-    } else if (f2 == string::npos) {
-        GenerateLoad(NUM2, num3, TMP);
+    size_t t2 = num2.find(TMP);
+    size_t t3 = num3.find(TMP);
+    size_t g2 = num2.find(GLOBAL);
+    size_t g3 = num3.find(GLOBAL);
+    size_t f2 = num2.find(FP);
+    size_t f3 = num3.find(FP);
+    if (t2 == string::npos && t3 == string::npos && g2 == string::npos && g3 == string::npos && f2 == string::npos && f3 == string::npos) {
+        int value = atoi(num2.c_str()) + atoi(num3.c_str());
+        Output2File("li " + NUM1 + " " + std::to_string(value));
+    } else if (t2 == string::npos && g2 == string::npos && f2 == string::npos) {
+        if (t3 != string::npos) {
+            GenerateLoad(NUM2, num3, TMP);
+        } else if (g3 != string::npos) {
+            string relative_addr = num3.substr(g3 + 1);
+            int num_addr = atoi(relative_addr.c_str());
+            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
+        } else if (f3 != string::npos) {
+            string relative_addr = num3.substr(f3 + 2);
+            GenerateLoad(NUM2, relative_addr, FP);
+        }
         Output2File("addiu " + NUM1 + " " + NUM2 + " " + num2);
-    } else {
+    } else if (t3 == string::npos && g3 == string::npos && f3 == string::npos) {
+        if (t2 != string::npos) {
+            GenerateLoad(NUM2, num2, TMP);
+        } else if (g2 != string::npos) {
+            string relative_addr = num2.substr(g2 + 1);
+            int num_addr = atoi(relative_addr.c_str());
+            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
+        } else if (f2 != string::npos) {
+            string relative_addr = num2.substr(f2 + 2);
+            GenerateLoad(NUM2, relative_addr, FP);
+        }
         GenerateLoad(NUM2, num2, TMP);
         Output2File("addiu " + NUM1 + " " + NUM2 + " " + num3);
+    } else {
+        if (t2 != string::npos) {
+            GenerateLoad(NUM2, num2, TMP);
+        } else if (g2 != string::npos) {
+            string relative_addr = num2.substr(g2 + 1);
+            int num_addr = atoi(relative_addr.c_str());
+            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
+        } else if (f2 != string::npos) {
+            string relative_addr = num2.substr(f2 + 2);
+            GenerateLoad(NUM2, relative_addr, FP);
+        }
+        if (t3 != string::npos) {
+            GenerateLoad(NUM3, num3, TMP);
+        } else if (g3 != string::npos) {
+            string relative_addr = num3.substr(g3 + 1);
+            int num_addr = atoi(relative_addr.c_str());
+            GenerateLoad(NUM3, std::to_string(num_addr), GLOBAL); 
+        } else if (f3 != string::npos) {
+            string relative_addr = num3.substr(f3 + 2);
+            GenerateLoad(NUM3, relative_addr, FP);
+        }
+        Output2File("addu " + NUM1 + " " + NUM2 + " " + NUM3);
     }
     GenerateStore(num1, TMP);
 }
@@ -119,23 +162,37 @@ void MipsGenerator::TranslateSUB(const Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
-    size_t f2 = num2.find(TMP);
-    size_t f3 = num3.find(TMP);
-    if (f2 == string::npos && f3 == string::npos) {
-        fprintf(stderr, "not implemented translate SUB\n");
-    } else if (f2 != string::npos && f3 != string::npos) {
+    size_t t2 = num2.find(TMP);
+    size_t t3 = num3.find(TMP);
+    size_t g2 = num2.find(GLOBAL);
+    size_t g3 = num3.find(GLOBAL);
+    size_t f2 = num2.find(FP);
+    size_t f3 = num3.find(FP);
+    if (t2 != string::npos) {
         GenerateLoad(NUM2, num2, TMP);
-        GenerateLoad(NUM3, num3, TMP);
-        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
-    } else if (f2 == string::npos) {
-        Output2File("li " + NUM2 + " " + num2);
-        GenerateLoad(NUM3, num3, TMP);
-        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
+    } else if (g2 != string::npos) {
+        string relative_addr = num2.substr(g2 + 1);
+        int num_addr = atoi(relative_addr.c_str());
+        GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
+    } else if (f2 != string::npos) {
+        string relative_addr = num2.substr(f2 + 2);
+        GenerateLoad(NUM2, relative_addr, FP);
     } else {
-        Output2File("li " + NUM3 + " " + num3);
-        GenerateLoad(NUM2, num2, TMP);
-        Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File(string("li ") + NUM2 + " " + num2);
     }
+    if (t3 != string::npos) {
+        GenerateLoad(NUM3, num3, TMP);
+    } else if (g3 != string::npos) {
+        string relative_addr = num3.substr(g3 + 1);
+        int num_addr = atoi(relative_addr.c_str());
+        GenerateLoad(NUM3, std::to_string(num_addr), GLOBAL); 
+    } else if (f3 != string::npos) {
+        string relative_addr = num3.substr(f3 + 2);
+        GenerateLoad(NUM3, relative_addr, FP);
+    } else {
+        Output2File(string("li ") + NUM3 + " " + num3);
+    }
+    Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
     GenerateStore(num1, TMP);
 }
 
