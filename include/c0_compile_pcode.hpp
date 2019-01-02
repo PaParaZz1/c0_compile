@@ -29,6 +29,7 @@ using std::stack;
         FUNC(FUNC_BOTTOM) \
         FUNC(ARRAY_ASSIGN) \
         FUNC(LOAD_VALUE) \
+        FUNC(NOP) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -60,6 +61,12 @@ public:
     }
     string GetNum3() const {
         return m_num3;
+    }
+    void SetNum1(const string& other) {
+        m_num1 = other;
+    }
+    void SetOP(const PcodeType& other) {
+        m_op = other;
     }
 private:
     // num1 : num2 op num3
@@ -110,6 +117,8 @@ public:
         return argument;
     }
     void CopyPcode(vector<Pcode>& target_queue);
+    // optimization
+    void MergeSelfAssign();
 private:
     int m_temp_count;
     int m_label_count;

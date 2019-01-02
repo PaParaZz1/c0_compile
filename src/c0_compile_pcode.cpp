@@ -23,3 +23,23 @@ void PcodeGenerator::CopyPcode(vector<Pcode>& target_queue) {
         target_queue.push_back(*iter);
     }
 }
+
+void PcodeGenerator::MergeSelfAssign() {
+    int count;
+    do {
+        count = 0;
+        for (int i=0; i<m_pcode_queue.size()-1; ++i) {
+            if (m_pcode_queue[i].GetNum1() == m_pcode_queue[i+1].GetNum2() && m_pcode_queue[i+1].GetOP() == ASSIGN) {
+                m_pcode_queue[i].SetNum1(m_pcode_queue[i+1].GetNum1());
+                m_pcode_queue[i+1].SetOP(NOP);
+                i++;
+                count++;
+            }
+        }
+        for (auto iter = m_pcode_queue.begin(); iter != m_pcode_queue.end(); ++iter) {
+            if (iter->GetOP() == NOP) {
+                iter = m_pcode_queue.erase(iter);
+            }
+        }
+    } while (count != 0);
+}
