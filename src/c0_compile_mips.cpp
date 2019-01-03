@@ -653,6 +653,7 @@ void MipsGenerator::Translate() {
                 TranslateLoadValue(*iter);                 
                 break;
             }
+            case BASIC_LINE:
             case NOP: break;
             default: {
                 std::cerr << "unknown pcode: " << iter->GetOP() << std::endl;

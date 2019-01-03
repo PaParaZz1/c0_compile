@@ -481,6 +481,14 @@ void FunctionTable::GetCurrentTermBottomLabel(string& bottom_label) const {
     bottom_label = m_func_table[m_current_term_ptr].GetBottomLabel();
 }
 
+void FunctionTable::GetCurrentTermName(string& term_name) const {
+    term_name = m_func_table[m_current_term_ptr].GetName();
+}
+
+void FunctionTable::GetCurrentTermArgumentNumber(int& number) const {
+    number = m_func_table[m_current_term_ptr].GetArgumentNumber();
+}
+
 compile_errcode FunctionTable::GetTermTopLabel(const string& term_name, string& top_label) const {
     auto iter = m_func_table.begin();
     for (; iter != m_func_table.end(); ++iter) {
@@ -548,6 +556,17 @@ bool SymbolTableTree::MatchKeyword(const string& name) {
     if (iter == keyword.end()) {
         return false;
     } else {
+        return true;
+    }
+}
+
+bool FunctionTable::GetFuncLabel(string& top_label, string& bottom_label) {
+    if (m_current_term_ptr == m_func_table.size()) {
+        return false;
+    } else {
+        top_label = m_func_table[m_current_term_ptr].GetTopLabel();
+        bottom_label = m_func_table[m_current_term_ptr].GetBottomLabel();
+        //fprintf(stdout, "%s---%s\n", top_label.c_str(), bottom_label.c_str());
         return true;
     }
 }

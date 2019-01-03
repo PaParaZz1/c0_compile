@@ -360,6 +360,9 @@ public:
     vector<SymbolType> GetArgumentType() const {
         return m_argument_type;
     }
+    int GetArgumentNumber() const {
+        return m_argument_type.size();
+    }
     void SetTopLabel(const string& top_label) {
         m_top_label = top_label;
     }
@@ -383,10 +386,15 @@ public:
         m_current_term_ptr = -1;
     }
     ~FunctionTable() {}
+    void ZeroCurrentTermPtr() {
+        m_current_term_ptr = 0;
+    }
     void InsertTerm(const string& func_name, int space_length, int return_value_number, const vector<SymbolType>& argument_type);
     bool Find(const string& func_name);
     void GetCurrentTermTopLabel(string& top_label) const;
-    void GetCurrentTermBottomLabel(string& bottom_label) const ;
+    void GetCurrentTermBottomLabel(string& bottom_label) const;
+    void GetCurrentTermName(string& term_name) const;
+    void GetCurrentTermArgumentNumber(int& number) const;
     compile_errcode GetTermTopLabel(const string& term_name, string& top_label) const;
     compile_errcode GetTermBottomLabel(const string& term_name, string& bottom_label) const;
     compile_errcode GetTermSpaceLength(const string& term_name, int& space_length) const ;
@@ -394,6 +402,10 @@ public:
     void SetTermTopLabel(const string& func_name, const string& top_label);
     void SetTermBottomLabel(const string& func_name, const string& bottom_label);
     void PrintAllTerm() const;
+    bool GetFuncLabel(string& top_label, string& bottom_label);
+    void NextTerm() {
+        m_current_term_ptr++;
+    }
 private:
     vector<FunctionTableTerm> m_func_table;
     int m_current_term_ptr;

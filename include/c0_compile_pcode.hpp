@@ -30,6 +30,7 @@ using std::stack;
         FUNC(ARRAY_ASSIGN) \
         FUNC(LOAD_VALUE) \
         FUNC(NOP) \
+        FUNC(BASIC_LINE) \
 
 #define GENERATE_ENUM(ENUM) ENUM,
 #define GENERATE_STRING(STRING) #STRING,
@@ -64,6 +65,12 @@ public:
     }
     void SetNum1(const string& other) {
         m_num1 = other;
+    }
+    void SetNum2(const string& other) {
+        m_num2 = other;
+    }
+    void SetNum3(const string& other) {
+        m_num3 = other;
     }
     void SetOP(const PcodeType& other) {
         m_op = other;
@@ -119,11 +126,15 @@ public:
     void CopyPcode(vector<Pcode>& target_queue);
     // optimization
     void MergeSelfAssign();
+    void DivideBasicBlock();
+    void InlineReplace();
 private:
     int m_temp_count;
     int m_label_count;
     int m_argument_count;
     FILE* m_fp_pcode;
     vector<Pcode> m_pcode_queue;
+    bool CanInline(const string& top_label, const string& bottom_label);
+    void CallReplace(const vector<Pcode>::iterator& iter_call, const string& top_label, const string& bottom_label, int argument_number);
 };
 #endif // C0_COMPILE_PCODE_H_

@@ -171,7 +171,9 @@ void TestGenerate(const char* test_file_name, bool opt) {
     handle_correct_queue->Restart();
     program.Generate();
     if (opt) {
+        pcode_generator->InlineReplace();
         pcode_generator->MergeSelfAssign();
+        pcode_generator->DivideBasicBlock();
     }
     pcode_generator->PrintAllPcode();
     handle_func_table->PrintAllTerm();
