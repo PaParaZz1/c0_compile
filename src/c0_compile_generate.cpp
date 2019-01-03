@@ -897,7 +897,7 @@ compile_errcode WhileLoopStatement::Generate() {
                 if (name == WHILE_SYM) {
                     state = 1;
                     m_top_label = pcode_generator->GetNextLabel();
-                    Pcode pcode(LABEL, m_top_label, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode(LABEL, m_top_label, EMPTY_STR, EMPTY_STR, "#while_begin");
                     pcode_generator->Insert(pcode);
                     break;
                 } else {
@@ -939,7 +939,7 @@ compile_errcode WhileLoopStatement::Generate() {
             case 5: {
                 Pcode pcode_jump(JUMP, m_top_label, EMPTY_STR, EMPTY_STR);
                 pcode_generator->Insert(pcode_jump);
-                Pcode pcode_label(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR);
+                Pcode pcode_label(LABEL, m_bottom_label, EMPTY_STR, EMPTY_STR, "#while_end");
                 pcode_generator->Insert(pcode_label);
                 goto CORRECT_WHILE;
             }

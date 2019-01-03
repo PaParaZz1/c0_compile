@@ -1,11 +1,17 @@
 #include <stdio.h>
 #include <unordered_map>
+#include <algorithm>
 #include "c0_compile_pcode.hpp"
 #include "c0_compile_symbol.hpp"
 #define EMPTY_STR ""
+#define TMP "t"
+#define FP "fp"
+#define GLOBAL "g"
 using std::unordered_map;
+using std::pair;
 
 extern FunctionTable* handle_func_table;
+extern const int global_register_number;
 
 const char* pcode_string[] = {
     FOREACH_FUNC_PCODE(GENERATE_STRING)
@@ -42,9 +48,11 @@ void PcodeGenerator::MergeSelfAssign() {
                 count++;
             }
         }
-        for (auto iter = m_pcode_queue.begin(); iter != m_pcode_queue.end(); ++iter) {
+        for (auto iter = m_pcode_queue.begin(); iter != m_pcode_queue.end();) {
             if (iter->GetOP() == NOP) {
                 iter = m_pcode_queue.erase(iter);
+            } else {
+                iter++;
             }
         }
     } while (count != 0);
@@ -255,6 +263,22 @@ void PcodeGenerator::InlineReplace() {
                     }
                 }
             }
+            // delete origin func
+            for (auto iter=m_pcode_queue.begin(); iter != m_pcode_queue.end();) {
+                string num1 = iter->GetNum1();
+                PcodeType op = iter->GetOP();
+                if (op == LABEL && num1 == top_label) {
+                    do {
+                        //fprintf(stdout, "erase---%s\n", iter->GetNum1().c_str());
+                        iter = m_pcode_queue.erase(iter);
+                        op = iter->GetOP();
+                    } while (op != FUNC_BOTTOM); 
+                    iter = m_pcode_queue.erase(iter);
+                    break;
+                } else {
+                    iter++;
+                }
+            }
         }
         handle_func_table->NextTerm();
     }
@@ -263,4 +287,135 @@ void PcodeGenerator::InlineReplace() {
             iter = m_pcode_queue.erase(iter);
         }
     }
+}
+
+void PcodeGenerator::ActiveStreamAnalysis() {
+    int top = 0;
+    int bottom = 0;
+    for (int i=1; i<m_pcode_queue.size(); ++i) {
+        PcodeType op = m_pcode_queue[i].GetOP();
+        if (op == BASIC_LINE) {
+            bottom = i;
+            BasicBlock block(top, bottom);
+            bool is_valid = block.CalculateDU();
+            top = bottom;
+        }
+    }
+}
+
+bool PcodeGenerator::ReferenceCountSearch(const RefCount& vec, const string& source, string& replace) {
+    size_t t = source.find(TMP);
+    if (t != string::npos) {
+        return false;
+    }
+    for (int i=0; i<vec.size(); ++i) {
+        if (vec[i].first == source) {
+            replace = string("$" + std::to_string(2 + i));
+            return true;
+        }
+    }
+    return false;
+}
+
+struct _ReferenceCmp{
+    bool operator()(pair<string, int>& a, pair<string, int>& b) {
+        return a.second > b.second;
+    }
+}ReferenceCmp;
+void PcodeGenerator::ReferenceCount() {
+    handle_func_table->ZeroCurrentTermPtr();
+    string top_label;
+    string bottom_label;
+    while (handle_func_table->GetFuncLabel(top_label, bottom_label)) {
+        unordered_map<string, int> var_map;
+        vector<pair<string, int> > var_vec;
+        vector<Pcode>::iterator iter_top;
+        vector<Pcode>::iterator iter_bottom;
+        for (auto iter=m_pcode_queue.begin(); iter != m_pcode_queue.end(); ++iter) {
+            PcodeType op = iter->GetOP();
+            string num1 = iter->GetNum1();
+            if (num1 == top_label && op == LABEL)
+                iter_top = iter;
+            if (num1 == bottom_label && op == LABEL)
+                iter_bottom = iter;
+        }
+        int weight = 1;
+        for (auto iter=iter_top; iter != iter_bottom; ++iter) {
+            string num1 = iter->GetNum1();
+            string num2 = iter->GetNum2();
+            string num3 = iter->GetNum3();
+            string comment = iter->GetComment();
+            if (comment == "while_begin")
+                weight += 10;
+            else if (comment == "while_end")
+                weight -= 10;
+            if (num1.find(FP) != string::npos || num1.find(GLOBAL) != string::npos) {
+                if (var_map.find(num1) == var_map.end()) {
+                    var_map[num1] = weight;
+                } else {
+                    var_map[num1]++;
+                }
+            }
+            if (num2.find(FP) != string::npos || num2.find(GLOBAL) != string::npos) {
+                if (var_map.find(num2) == var_map.end()) {
+                    var_map[num2] = weight;
+                } else {
+                    var_map[num2]++;
+                }
+            }
+            if (num3.find(FP) != string::npos || num3.find(GLOBAL) != string::npos) {
+                if (var_map.find(num3) == var_map.end()) {
+                    var_map[num3] = weight;
+                } else {
+                    var_map[num3]++;
+                }
+            }
+        }
+        // sort by count
+        for (auto& i : var_map) {
+            var_vec.push_back(i);
+        }
+        std::sort(var_vec.begin(), var_vec.end(), ReferenceCmp);
+        // clip var_vec;
+        int temp_count = 0;
+        for (auto iter=var_vec.begin(); iter != var_vec.end();) {
+            if (temp_count < global_register_number) {
+                temp_count++;
+                iter++;
+            } else {
+                iter = var_vec.erase(iter);
+            }
+        }
+        // replace
+        fprintf(stdout, "replace begin\n");
+        for (auto iter=iter_top; iter != iter_bottom; ++iter) {
+            string num1 = iter->GetNum1();
+            string num2 = iter->GetNum2();
+            string num3 = iter->GetNum3();
+            PcodeType op = iter->GetOP();
+            if (op == PARA)
+                continue;
+            string replace;
+            if (ReferenceCountSearch(var_vec, num1, replace)) {
+                iter->SetNum1(replace);
+            }
+            if (ReferenceCountSearch(var_vec, num2, replace)) {
+                iter->SetNum2(replace);
+            }
+            if (ReferenceCountSearch(var_vec, num3, replace)) {
+                iter->SetNum3(replace);
+            }
+        }
+        fprintf(stdout, "replace end\n");
+        for (auto& i : var_vec) {
+            fprintf(stdout, "%s---%d\n", i.first.c_str(), i.second);
+        }
+        fprintf(stdout, "---finish---\n");
+        handle_func_table->NextTerm();
+    }
+
+}
+bool PcodeGenerator::BasicBlock::CalculateDU() {
+    //for (int i=0; i<)
+    return true;
 }

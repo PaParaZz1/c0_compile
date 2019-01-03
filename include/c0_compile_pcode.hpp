@@ -4,9 +4,14 @@
 #include <vector>
 #include <stack>
 #include <iostream>
+#include <set>
+
 using std::string;
 using std::vector;
 using std::stack;
+using std::pair;
+using std::set;
+
 #define FOREACH_FUNC_PCODE(FUNC) \
         FUNC(ADD) \
         FUNC(SUB) \
@@ -47,9 +52,15 @@ extern const char* pcode_string[];
 
 class Pcode {
 public:
-    Pcode(PcodeType op, string num1, string num2, string num3) : m_op(op), m_num1(num1), m_num2(num2), m_num3(num3) {}
+    Pcode(PcodeType op, string num1, string num2, string num3) : m_op(op), m_num1(num1), m_num2(num2), m_num3(num3) {
+        m_comment = string("");
+    }
+    Pcode(PcodeType op, string num1, string num2, string num3, string comment) : m_op(op), m_num1(num1), m_num2(num2), m_num3(num3), m_comment(comment) {}
     string ToString() {
-        return m_num1 + string("\t") + m_num2 + string("\t") + string(pcode_string[m_op]) + string("\t") + m_num3;
+        if (m_comment == string(""))
+            return m_num1 + string("\t") + m_num2 + string("\t") + string(pcode_string[m_op]) + string("\t") + m_num3;
+        else
+            return m_num1 + string("\t") + m_num2 + string("\t") + string(pcode_string[m_op]) + string("\t") + m_num3 + "\t" + m_comment;
     }
     PcodeType GetOP() const {
         return m_op;
@@ -62,6 +73,12 @@ public:
     }
     string GetNum3() const {
         return m_num3;
+    }
+    string GetComment() const {
+        if (m_comment == "")
+            return m_comment;
+        else
+            return m_comment.substr(1);
     }
     void SetNum1(const string& other) {
         m_num1 = other;
@@ -81,10 +98,24 @@ private:
     string m_num1;
     string m_num2;
     string m_num3;
+    string m_comment;
 };
 
 class PcodeGenerator {
 public:
+    class BasicBlock{
+    public:
+        BasicBlock(int top, int bottom) : m_top(top), m_bottom(bottom) {}
+        bool CalculateDU();
+        bool CalculateGK();  // TODO
+    private:
+        int m_top;
+        int m_bottom;
+        set<string> m_define_set;
+        set<string> m_use_set;
+        bool m_is_valid;
+    };
+    typedef vector<pair<string, int> > RefCount;
     explicit PcodeGenerator(const char* pcode_file_name) {
         m_fp_pcode = fopen(pcode_file_name, "w");
         m_temp_count = 0;
@@ -128,13 +159,19 @@ public:
     void MergeSelfAssign();
     void DivideBasicBlock();
     void InlineReplace();
+    void ActiveStreamAnalysis();
+    void ReferenceCount();
 private:
     int m_temp_count;
     int m_label_count;
     int m_argument_count;
     FILE* m_fp_pcode;
     vector<Pcode> m_pcode_queue;
+    vector<BasicBlock> m_basic_block;
+    //unordered_map<
+    vector<RefCount> m_reference_count;
     bool CanInline(const string& top_label, const string& bottom_label);
     void CallReplace(const vector<Pcode>::iterator& iter_call, const string& top_label, const string& bottom_label, int argument_number);
+    bool ReferenceCountSearch(const RefCount& vec, const string& source, string& replace);
 };
 #endif // C0_COMPILE_PCODE_H_

@@ -32,7 +32,7 @@ private:
 class RegisterPool {
 public:
     RegisterPool(bool enable_float_register) {
-        for (int i=0; i<29; ++i) {
+        for (int i=2; i<29; ++i) {
             m_register_array.push_back(Register("$" + std::to_string(i), false));
         }
         if (enable_float_register) {
@@ -100,4 +100,5 @@ private:
     }
 };
 extern MipsGenerator* handle_mips_generator;
+extern const int global_register_number;
 #endif // C0_COMPILE_MIPS_H_

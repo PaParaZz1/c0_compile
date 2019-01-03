@@ -9,9 +9,9 @@
 #define OUT_REG string("$s1")
 #define RA_REG string("$ra")
 #define V0_REG string("$v0")
-#define NUM1 string("$t0")
-#define NUM2 string("$t1")
-#define NUM3 string("$t2")
+#define NUM1 string("$26")
+#define NUM2 string("$27")
+#define NUM3 string("$28")
 #define TMP "t"
 #define GLOBAL "g"
 #define FP "fp"
@@ -22,6 +22,7 @@ using std::endl;
 extern FunctionTable* handle_func_table;
 extern SymbolTableTree* symbol_table_tree;
 MipsGenerator* handle_mips_generator;
+const int global_register_number = 18;
 
 compile_errcode MipsGenerator::FindRelativeAddr(string temp_name, int& addr) {
     auto iter = m_temp2address.find(temp_name);
@@ -40,7 +41,7 @@ void MipsGenerator::GenerateStore(string temp_name, string type) {
         Output2File(string("sw ") + NUM1 + " -" + std::to_string(store_offset) + string("($sp)"));
         m_relative_addr += 4;
     } else if (type == GLOBAL) {
-        Output2File(string("sw ") + NUM1 + " " + temp_name + string("($t9)"));
+        Output2File(string("sw ") + NUM1 + " " + temp_name + string("($1)"));
     } else {
         Output2File(string("sw ") + NUM1 + " -" + temp_name + string("($fp)"));
     }
@@ -63,7 +64,7 @@ void MipsGenerator::GenerateLoad(string target, string source, string type) {
         FindRelativeAddr(source, load_offset);
         Output2File("lw " + target + " -" + std::to_string(load_offset) + "($sp)");
     } else if (type == GLOBAL) {
-        Output2File("lw " + target + " " + source + "($t9)");
+        Output2File("lw " + target + " " + source + "($1)");
     } else {
         Output2File("lw " + target + " -" + source + "($fp)");
     }
@@ -163,7 +164,7 @@ void MipsGenerator::TranslateADD(Pcode& item) {
         GenerateStore(NUM1, relative_addr, "$fp", FP);
     } else if (g1 != string::npos) {
         string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$t9", GLOBAL);
+        GenerateStore(NUM1, relative_addr, "$1", GLOBAL);
     } else if (t1 != string::npos) {
         GenerateStore(NUM1, num1, "", TMP);
     } else if (num1 == "V0"){
@@ -217,7 +218,7 @@ void MipsGenerator::TranslateSUB(const Pcode& item) {
         GenerateStore(NUM1, relative_addr, "$fp", FP);
     } else if (g1 != string::npos) {
         string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$t9", GLOBAL);
+        GenerateStore(NUM1, relative_addr, "$1", GLOBAL);
     } else if (t1 != string::npos) {
         GenerateStore(NUM1, num1, "", TMP);
     } else if (num1 == "V0"){
@@ -279,7 +280,7 @@ void MipsGenerator::TranslateMULType(Pcode& item) {
         GenerateStore(NUM1, relative_addr, "$fp", FP);
     } else if (g1 != string::npos) {
         string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$t9", GLOBAL);
+        GenerateStore(NUM1, relative_addr, "$1", GLOBAL);
     } else if (t1 != string::npos) {
         GenerateStore(NUM1, num1, "", TMP);
     } else if (num1 == "V0"){
@@ -513,7 +514,7 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
         GenerateStore(NUM1, relative_addr, "$fp", FP);
     } else if (g1 != string::npos) {
         string relative_addr = target.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$t9", GLOBAL);
+        GenerateStore(NUM1, relative_addr, "$1", GLOBAL);
     } else if (t1 != string::npos) {
         GenerateStore(NUM1, target, "", TMP);
     } else if (target == "V0"){
@@ -586,7 +587,7 @@ void MipsGenerator::Translate() {
     handle_func_table->GetTermBottomLabel("main", main_bottom_label);
     handle_func_table->GetTermSpaceLength("main", main_space_length); 
     Output2File(".text");
-    Output2File("li $t9 " + std::to_string(m_global));
+    Output2File("li $1 " + std::to_string(m_global));
     Output2File("move $fp $sp");
     Output2File("addiu $sp $fp -" + std::to_string(main_space_length)); 
     Output2File("la $ra " + main_bottom_label);
