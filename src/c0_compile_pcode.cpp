@@ -99,8 +99,8 @@ bool PcodeGenerator::CanInline(const string& top_label, const string& bottom_lab
     for (auto iter = iter_top; iter != iter_bottom; ++iter) {
         PcodeType op = iter->GetOP();
         string num1 = iter->GetNum1();
-        //if ((op == JUMP && num1 != "RA") || op == CALL || string(pcode_string[op]).find("B") != string::npos)
-        if ((op == JUMP && num1 != "RA") || op == CALL)
+        if ((op == JUMP && num1 != "RA") || op == CALL || pcode_string[op][0] == 'B')
+        //if ((op == JUMP && num1 != "RA") || op == CALL)
             return false;
     }
     return true;
@@ -175,54 +175,56 @@ void PcodeGenerator::CallReplace(const vector<Pcode>::iterator& iter_call, const
         }
     }
     // replace argument
-    unordered_map<string, string> para_map;
-    auto iter = iter_call;
-    int count = 0;
-    string func_name = iter_call->GetNum3();
-    for (; iter != m_pcode_queue.begin(); iter--) {
-        PcodeType op = iter->GetOP();
-        string num1 = iter->GetNum1();
-        string num2 = iter->GetNum2();
-        string num3 = iter->GetNum3();
-        if (op == PARA && num3 == func_name) {
-            int value = atoi(num2.c_str());
-            if (value == 0) {
-                para_map[num1] = num2;
-                iter->SetOP(NOP);
-            } else {
-                string temp_name = this->GetNextTemp();
-                //Pcode pcode(ASSIGN, temp_name, std::to_string(value), EMPTY_STR);
-                //iter = m_pcode_queue.insert(iter, pcode);
-                //iter--;
-                iter->SetOP(ASSIGN);
-                iter->SetNum1(temp_name);
-                iter->SetNum2(std::to_string(value));
-                iter->SetNum3(EMPTY_STR);
-                para_map[num1] = temp_name;
+    if (argument_number != 0) {
+        unordered_map<string, string> para_map;
+        auto iter = iter_call;
+        int count = 0;
+        string func_name = iter_call->GetNum3();
+        for (; iter != m_pcode_queue.begin(); iter--) {
+            PcodeType op = iter->GetOP();
+            string num1 = iter->GetNum1();
+            string num2 = iter->GetNum2();
+            string num3 = iter->GetNum3();
+            if (op == PARA && num3 == func_name) {
+                int value = atoi(num2.c_str());
+                if (value == 0) {
+                    para_map[num1] = num2;
+                    iter->SetOP(NOP);
+                } else {
+                    string temp_name = this->GetNextTemp();
+                    //Pcode pcode(ASSIGN, temp_name, std::to_string(value), EMPTY_STR);
+                    //iter = m_pcode_queue.insert(iter, pcode);
+                    //iter--;
+                    iter->SetOP(ASSIGN);
+                    iter->SetNum1(temp_name);
+                    iter->SetNum2(std::to_string(value));
+                    iter->SetNum3(EMPTY_STR);
+                    para_map[num1] = temp_name;
+                }
+                count++;
+                if (count == argument_number) {
+                    break;
+                }
             }
-            count++;
-            if (count == argument_number) {
-                break;
+        }
+        if (iter == m_pcode_queue.begin()) {
+            fprintf(stderr, "no enough argument\n");
+            return;
+        }
+        for (auto iter=origin.begin(); iter != origin.end(); ++iter) {
+            string num1 = iter->GetNum1();
+            string num2 = iter->GetNum2();
+            string num3 = iter->GetNum3();
+            PcodeType op = iter->GetOP();
+            if (para_map.find(num1) != para_map.end()) {
+                iter->SetNum1(para_map[num1]);
             }
-        }
-    }
-    if (iter == m_pcode_queue.begin()) {
-        fprintf(stderr, "no enough argument\n");
-        return;
-    }
-    for (auto iter=origin.begin(); iter != origin.end(); ++iter) {
-        string num1 = iter->GetNum1();
-        string num2 = iter->GetNum2();
-        string num3 = iter->GetNum3();
-        PcodeType op = iter->GetOP();
-        if (para_map.find(num1) != para_map.end()) {
-            iter->SetNum1(para_map[num1]);
-        }
-        if (para_map.find(num2) != para_map.end()) {
-            iter->SetNum2(para_map[num2]);
-        }
-        if (para_map.find(num3) != para_map.end()) {
-            iter->SetNum3(para_map[num3]);
+            if (para_map.find(num2) != para_map.end()) {
+                iter->SetNum2(para_map[num2]);
+            }
+            if (para_map.find(num3) != para_map.end()) {
+                iter->SetNum3(para_map[num3]);
+            }
         }
     }
     // insert
@@ -238,7 +240,7 @@ void PcodeGenerator::InlineReplace() {
     string bottom_label;
     while (handle_func_table->GetFuncLabel(top_label, bottom_label)) {
         if (CanInline(top_label, bottom_label)){
-            //fprintf(stdout, "can inline label:%s---%s\n", top_label.c_str(), bottom_label.c_str());
+            fprintf(stdout, "can inline label:%s---%s\n", top_label.c_str(), bottom_label.c_str());
             string func_name;
             handle_func_table->GetCurrentTermName(func_name);
             int argument_number;
