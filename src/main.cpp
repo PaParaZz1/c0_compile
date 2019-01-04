@@ -173,13 +173,13 @@ void TestGenerate(const char* test_file_name, bool opt) {
     if (opt) {
         pcode_generator->InlineReplace();
         pcode_generator->MergeSelfAssign();
-        pcode_generator->ReferenceCount();
+        //pcode_generator->ReferenceCount();
         pcode_generator->DivideBasicBlock();
     }
     pcode_generator->PrintAllPcode();
     handle_func_table->PrintAllTerm();
     cout << "generate pcode OK" << endl;
-    goto ERROR2;
+    //goto ERROR2;
     // mips generate
     pcode_generator->CopyPcode(pcode_copy);
     MipsGenerate(pcode_copy);

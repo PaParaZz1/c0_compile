@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unordered_map>
 #include <algorithm>
+#include <regex>
 #include "c0_compile_pcode.hpp"
 #include "c0_compile_symbol.hpp"
 #define EMPTY_STR ""
@@ -272,7 +273,9 @@ void PcodeGenerator::InlineReplace() {
                         //fprintf(stdout, "erase---%s\n", iter->GetNum1().c_str());
                         iter = m_pcode_queue.erase(iter);
                         op = iter->GetOP();
-                    } while (op != FUNC_BOTTOM); 
+                        //num1 = iter->GetNum1();
+                    //} while (op != LABEL || num1 != bottom_label); 
+                    } while (op != FUNC_BOTTOM);
                     iter = m_pcode_queue.erase(iter);
                     break;
                 } else {
@@ -310,13 +313,22 @@ bool PcodeGenerator::ReferenceCountSearch(const RefCount& vec, const string& sou
     }
     for (int i=0; i<vec.size(); ++i) {
         if (vec[i].first == source) {
-            replace = string("$" + std::to_string(2 + i));
+            replace = string("$" + std::to_string(3 + i));
             return true;
         }
     }
     return false;
 }
 
+bool GlobalJudge(const string& str) {
+    std::regex re("g\\d+");
+    return std::regex_match(str, re);
+}
+
+bool FPJudge(const string& str) {
+    std::regex re("fp\\d+");
+    return std::regex_match(str, re);
+}
 struct _ReferenceCmp{
     bool operator()(pair<string, int>& a, pair<string, int>& b) {
         return a.second > b.second;
@@ -349,21 +361,21 @@ void PcodeGenerator::ReferenceCount() {
                 weight += 10;
             else if (comment == "while_end")
                 weight -= 10;
-            if (num1.find(FP) != string::npos || num1.find(GLOBAL) != string::npos) {
+            if (FPJudge(num1) || GlobalJudge(num1)) {
                 if (var_map.find(num1) == var_map.end()) {
                     var_map[num1] = weight;
                 } else {
                     var_map[num1]++;
                 }
             }
-            if (num2.find(FP) != string::npos || num2.find(GLOBAL) != string::npos) {
+            if (FPJudge(num2) || GlobalJudge(num2)) {
                 if (var_map.find(num2) == var_map.end()) {
                     var_map[num2] = weight;
                 } else {
                     var_map[num2]++;
                 }
             }
-            if (num3.find(FP) != string::npos || num3.find(GLOBAL) != string::npos) {
+            if (FPJudge(num3) || GlobalJudge(num3)) {
                 if (var_map.find(num3) == var_map.end()) {
                     var_map[num3] = weight;
                 } else {
@@ -387,7 +399,6 @@ void PcodeGenerator::ReferenceCount() {
             }
         }
         // replace
-        fprintf(stdout, "replace begin\n");
         for (auto iter=iter_top; iter != iter_bottom; ++iter) {
             string num1 = iter->GetNum1();
             string num2 = iter->GetNum2();
@@ -406,10 +417,14 @@ void PcodeGenerator::ReferenceCount() {
                 iter->SetNum3(replace);
             }
         }
-        fprintf(stdout, "replace end\n");
+        vector<pair<string, string> > replace_vec;
+        temp_count = 0;
         for (auto& i : var_vec) {
+            replace_vec.push_back(ReplaceMap(i.first, "$" + std::to_string(3 + temp_count)));
             fprintf(stdout, "%s---%d\n", i.first.c_str(), i.second);
+            temp_count++;
         }
+        m_replace_vec.push_back(replace_vec);
         fprintf(stdout, "---finish---\n");
         handle_func_table->NextTerm();
     }

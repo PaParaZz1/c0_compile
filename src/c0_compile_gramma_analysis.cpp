@@ -252,7 +252,8 @@ compile_errcode ConstantDefinition::Parse() {
                     state = 6;
                 } else {
                     GrammaErrorLogs(g_log_tools, "expected a ',' or ';'");
-                    return NOT_MATCH;
+                    return COMPILE_OK;
+                    //return NOT_MATCH;
                 }
                 break;
             }
@@ -317,7 +318,9 @@ compile_errcode VariableDefinition::Parse() {
                     break;
                 } else {
                     GrammaErrorLogs(g_log_tools, "expected a '[' or ',' or ';'");
-                    return NOT_MATCH;
+                    //return NOT_MATCH;
+                    // return NOT_MATCH;  // fault-tolerant
+                    return COMPILE_OK;
                 }
             }
             case 3: return COMPILE_OK;
@@ -336,7 +339,8 @@ compile_errcode VariableDefinition::Parse() {
                     break;
                 } else {
                     GrammaErrorLogs(g_log_tools, "expected a ']'");
-                    return NOT_MATCH;
+                    // return NOT_MATCH;  // fault-tolerant
+                    return COMPILE_OK;
                 }
             }
             case 13: {
@@ -348,7 +352,8 @@ compile_errcode VariableDefinition::Parse() {
                     break;
                 } else {
                     GrammaErrorLogs(g_log_tools, "expected a ',' or ';'");
-                    return NOT_MATCH;
+                    // return NOT_MATCH;  // fault-tolerant
+                    return COMPILE_OK;
                 }
             }
         }
@@ -1311,7 +1316,8 @@ compile_errcode FunctionDefinition::Parse() {
                     break;
                 } else {
                     GrammaErrorLogs(g_log_tools, "expected a '}'");
-                    return NOT_MATCH;
+                    //return NOT_MATCH; // fault-tolerant
+                    return COMPILE_OK;
                 }
             }
             case 8: return COMPILE_OK;

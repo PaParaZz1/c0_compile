@@ -1481,7 +1481,7 @@ compile_errcode FunctionDefinition::Generate() {
                 if (name == L_CURLY_BRACKET_SYM) {
                     top_label = pcode_generator->GetNextLabel();
                     handle_func_table->SetTermTopLabel(m_identifier_name, top_label);
-                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR, "#func_begin");
                     pcode_generator->Insert(pcode_top_label);
                     state = 6;
                     break;
@@ -1501,9 +1501,9 @@ compile_errcode FunctionDefinition::Generate() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     bottom_label = pcode_generator->GetNextLabel();
                     handle_func_table->SetTermBottomLabel(current_func_name, bottom_label);
-                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
-                    Pcode pcode_func_bottom(FUNC_BOTTOM, EMPTY_STR, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR, "#func_end");
                     pcode_generator->Insert(pcode_bottom_label);
+                    Pcode pcode_func_bottom(FUNC_BOTTOM, EMPTY_STR, EMPTY_STR, EMPTY_STR);
                     pcode_generator->Insert(pcode_func_bottom);
                     state = 8;
                     break;
@@ -1562,7 +1562,7 @@ compile_errcode MainFunction::Generate() {
                 if (name == L_CURLY_BRACKET_SYM) {
                     string top_label("main");
                     handle_func_table->SetTermTopLabel("main", top_label);
-                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_top_label(LABEL, top_label, EMPTY_STR, EMPTY_STR, "#func_begin");
                     pcode_generator->Insert(pcode_top_label);
                     state = 5;
                     break;
@@ -1582,7 +1582,7 @@ compile_errcode MainFunction::Generate() {
                 if (name == R_CURLY_BRACKET_SYM) {
                     bottom_label = pcode_generator->GetNextLabel();
                     handle_func_table->SetTermBottomLabel("main", bottom_label);
-                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR);
+                    Pcode pcode_bottom_label(LABEL, bottom_label, EMPTY_STR, EMPTY_STR, "#func_end");
                     pcode_generator->Insert(pcode_bottom_label);
                     state = 7;
                     break;

@@ -116,6 +116,7 @@ public:
         bool m_is_valid;
     };
     typedef vector<pair<string, int> > RefCount;
+    typedef pair<string, string> ReplaceMap;
     explicit PcodeGenerator(const char* pcode_file_name) {
         m_fp_pcode = fopen(pcode_file_name, "w");
         m_temp_count = 0;
@@ -168,8 +169,7 @@ private:
     FILE* m_fp_pcode;
     vector<Pcode> m_pcode_queue;
     vector<BasicBlock> m_basic_block;
-    //unordered_map<
-    vector<RefCount> m_reference_count;
+    vector<vector<ReplaceMap> > m_replace_vec;
     bool CanInline(const string& top_label, const string& bottom_label);
     void CallReplace(const vector<Pcode>::iterator& iter_call, const string& top_label, const string& bottom_label, int argument_number);
     bool ReferenceCountSearch(const RefCount& vec, const string& source, string& replace);

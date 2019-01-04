@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <regex>
 #include "c0_compile_pcode.hpp"
 
 using std::string;
@@ -32,7 +33,7 @@ private:
 class RegisterPool {
 public:
     RegisterPool(bool enable_float_register) {
-        for (int i=2; i<29; ++i) {
+        for (int i=3; i<29; ++i) {
             m_register_array.push_back(Register("$" + std::to_string(i), false));
         }
         if (enable_float_register) {
@@ -97,6 +98,32 @@ private:
     void TranslateLoadValue(Pcode& item);
     void Output2File(string str) {
         fprintf(m_fp_mips, "%s\n", str.c_str());
+    }
+};
+
+class AdvancedMipsGenerator : public MipsGenerator {
+public:
+    using MipsGenerator::MipsGenerator;
+private:
+    void Transform2REG(const string& in, string& out);
+    bool GlobalJudge(const string& str) const {
+        std::regex re("g\\d+");
+        return std::regex_match(str, re);
+    }
+
+    bool FPJudge(const string& str) const {
+        std::regex re("fp\\d+");
+        return std::regex_match(str, re);
+    }
+
+    bool TMPJudge(const string& str) const {
+        std::regex re("t\\d+");
+        return std::regex_match(str, re);
+    }
+
+    bool REGJudge(const string& str) const {
+        std::regex re("\\$\\d+");
+        return std::regex_match(str, re);
     }
 };
 extern MipsGenerator* handle_mips_generator;
