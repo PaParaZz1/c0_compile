@@ -19,6 +19,15 @@ const char* pcode_string[] = {
 };
 
 PcodeGenerator* pcode_generator;
+bool GlobalJudge(const string& str) {
+    std::regex re("g\\d+");
+    return std::regex_match(str, re);
+}
+
+bool FPJudge(const string& str) {
+    std::regex re("fp\\d+");
+    return std::regex_match(str, re);
+}
 
 void PcodeGenerator::PrintAllPcode() {
     auto iter = m_pcode_queue.begin();
@@ -42,7 +51,10 @@ void PcodeGenerator::MergeSelfAssign() {
     do {
         count = 0;
         for (int i=0; i<m_pcode_queue.size()-1; ++i) {
-            if (m_pcode_queue[i].GetNum1() == m_pcode_queue[i+1].GetNum2() && m_pcode_queue[i+1].GetOP() == ASSIGN) {
+            string num1 = m_pcode_queue[i].GetNum1();
+            if (num1 == m_pcode_queue[i+1].GetNum2() && m_pcode_queue[i+1].GetOP() == ASSIGN) {
+                if (GlobalJudge(num1) || FPJudge(num1))
+                    continue;
                 m_pcode_queue[i].SetNum1(m_pcode_queue[i+1].GetNum1());
                 m_pcode_queue[i+1].SetOP(NOP);
                 i++;
@@ -79,7 +91,7 @@ void PcodeGenerator::DivideBasicBlock() {
             case FUNC_BOTTOM:
             case CALL: {
                 iter++;
-                temp_queue.insert(iter, basic_line);
+                iter = temp_queue.insert(iter, basic_line);
                 iter++;
                 break;
             }
@@ -320,15 +332,6 @@ bool PcodeGenerator::ReferenceCountSearch(const RefCount& vec, const string& sou
     return false;
 }
 
-bool GlobalJudge(const string& str) {
-    std::regex re("g\\d+");
-    return std::regex_match(str, re);
-}
-
-bool FPJudge(const string& str) {
-    std::regex re("fp\\d+");
-    return std::regex_match(str, re);
-}
 struct _ReferenceCmp{
     bool operator()(pair<string, int>& a, pair<string, int>& b) {
         return a.second > b.second;

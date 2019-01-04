@@ -119,7 +119,7 @@ void MipsGenerate(vector<Pcode>& source_queue) {
     delete(handle_mips_generator);
 }
 
-void TestGenerate(const char* test_file_name, bool opt) {
+void TestGenerate(const char* test_file_name, bool opt, bool IsInline) {
     int ret = COMPILE_OK;
     LexicalAnalysis lexical_analysis(test_file_name);
     if (!lexical_analysis.CheckFile()) {
@@ -170,8 +170,10 @@ void TestGenerate(const char* test_file_name, bool opt) {
     // return;
     handle_correct_queue->Restart();
     program.Generate();
-    if (opt) {
+    if (IsInline) {
         pcode_generator->InlineReplace();
+    }
+    if (opt) {
         pcode_generator->MergeSelfAssign();
         //pcode_generator->ReferenceCount();
         pcode_generator->DivideBasicBlock();
@@ -203,8 +205,9 @@ int main(int argc, char** argv) {
                     case '1': TestLexicalAnalysis(argv[1]); break;
                     case '2': TestGrammaAnalysis(argv[1]); break;
                     case '3': TestSemanticAnalysis(argv[1]); break;
-                    case '4': TestGenerate(argv[1], false); break;
-                    case '5': TestGenerate(argv[1], true); break;
+                    case '4': TestGenerate(argv[1], false, false); break;
+                    case '5': TestGenerate(argv[1], true, false); break;
+                    case '6': TestGenerate(argv[1], true, true); break;
                     default: {
                         std::cerr << "invalid option: " << argv[i][1] << endl;
                         return -1;
