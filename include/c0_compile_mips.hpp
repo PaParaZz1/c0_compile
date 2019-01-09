@@ -99,6 +99,8 @@ private:
     void Output2File(string str) {
         fprintf(m_fp_mips, "%s\n", str.c_str());
     }
+    int PrepareLoadREG(const string& num, string& reg, const string& empty_reg);
+    int PrepareStoreREG(const string& num, string& reg, const string& empty_reg);
 };
 
 class AdvancedMipsGenerator : public MipsGenerator {

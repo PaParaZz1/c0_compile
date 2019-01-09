@@ -175,7 +175,7 @@ void TestGenerate(const char* test_file_name, bool opt, bool IsInline) {
     }
     if (opt) {
         pcode_generator->MergeSelfAssign();
-        //pcode_generator->ReferenceCount();
+        pcode_generator->ReferenceCount();
         pcode_generator->DivideBasicBlock();
     }
     pcode_generator->PrintAllPcode();

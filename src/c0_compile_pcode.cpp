@@ -342,6 +342,18 @@ void PcodeGenerator::ReferenceCount() {
     string top_label;
     string bottom_label;
     while (handle_func_table->GetFuncLabel(top_label, bottom_label)) {
+        bool flag = false;
+        for (auto iter = m_pcode_queue.begin(); iter != m_pcode_queue.end(); ++iter) {
+            if (iter->GetOP() == LABEL && iter->GetNum1() == top_label) {
+                flag = true;
+                break;
+            }
+        }
+        if (!flag) {
+            printf("inline\n");
+            handle_func_table->NextTerm();
+            continue;
+        }
         unordered_map<string, int> var_map;
         vector<pair<string, int> > var_vec;
         vector<Pcode>::iterator iter_top;
@@ -413,7 +425,7 @@ void PcodeGenerator::ReferenceCount() {
             if (ReferenceCountSearch(var_vec, num1, replace)) {
                 iter->SetNum1(replace);
             }
-            if (ReferenceCountSearch(var_vec, num2, replace)) {
+            if (op != ARRAY_ASSIGN && op != LOAD_VALUE && ReferenceCountSearch(var_vec, num2, replace)) {
                 iter->SetNum2(replace);
             }
             if (ReferenceCountSearch(var_vec, num3, replace)) {
@@ -427,6 +439,39 @@ void PcodeGenerator::ReferenceCount() {
             fprintf(stdout, "%s---%d\n", i.first.c_str(), i.second);
             temp_count++;
         }
+        vector<Pcode> temp_queue;
+        this->CopyPcode(temp_queue);
+        auto iter_temp = temp_queue.begin();
+        for (;iter_temp!=temp_queue.end();++iter_temp) {
+            if(iter_temp->GetOP() == LABEL && iter_temp->GetNum1() == top_label) {
+                break;
+            }
+        }
+        iter_temp++;
+        for (auto& i:replace_vec) {
+            Pcode pcode(ASSIGN, i.second, i.first, "");
+            iter_temp = temp_queue.insert(iter_temp, pcode);
+        }
+        iter_temp++;
+        for (auto iter = iter_top+1; iter != iter_bottom; ++iter) {
+            printf("m:%s\n", iter->ToString().c_str());
+            printf("t:%s\n", iter_temp->ToString().c_str());
+            if (iter->GetOP() == CALL) {
+                for (auto& i: replace_vec) {
+                    Pcode pcode(ASSIGN, i.first, i.second, "");
+                    iter_temp = temp_queue.insert(iter_temp, pcode);
+                }
+                iter_temp++;
+                iter_temp++;
+                for (auto& i: replace_vec) {
+                    Pcode pcode(ASSIGN, i.second, i.first, "");
+                    iter_temp = temp_queue.insert(iter_temp, pcode);
+                }
+            } else {
+                iter_temp++;
+            }
+        }
+        m_pcode_queue.swap(temp_queue);
         m_replace_vec.push_back(replace_vec);
         fprintf(stdout, "---finish---\n");
         handle_func_table->NextTerm();

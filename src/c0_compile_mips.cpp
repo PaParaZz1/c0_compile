@@ -24,6 +24,67 @@ extern SymbolTableTree* symbol_table_tree;
 MipsGenerator* handle_mips_generator;
 const int global_register_number = 18;
 
+
+string reg1;
+string reg2;
+string reg3;
+bool GlobalJudgeMips(const string& str) {
+    std::regex re("g\\d+");
+    return std::regex_match(str, re);
+}
+
+bool FPJudgeMips(const string& str) {
+    std::regex re("fp\\d+");
+    return std::regex_match(str, re);
+}
+
+bool TMPJudge(const string& str) {
+    std::regex re("t\\d+");
+    return std::regex_match(str, re);
+}
+
+bool REGJudge(const string& str) {
+    std::regex re1("\\$\\d+");
+    std::regex re2("\\$a0");
+    return std::regex_match(str, re1) || std::regex_match(str, re2);
+}
+
+int MipsGenerator::PrepareLoadREG(const string& num, string& reg, const string& empty_reg) {
+    if (REGJudge(num)) {
+        reg = num;
+        return 0;
+    } else if (FPJudgeMips(num)) {
+        reg = empty_reg;
+        string relative_addr = num.substr(2);
+        GenerateLoad(empty_reg, relative_addr, FP);
+        return 1;
+    } else if (GlobalJudgeMips(num)) {
+        reg = empty_reg;
+        string relative_addr = num.substr(1);
+        GenerateLoad(empty_reg, relative_addr, GLOBAL);
+        return 1;
+    } else if (TMPJudge(num)) {
+        reg = empty_reg;
+        GenerateLoad(empty_reg, num, TMP);
+        return 1;
+    } else {
+        return -1;
+    }
+}
+
+int MipsGenerator::PrepareStoreREG(const string& num, string& reg, const string& empty_reg) {
+    if (REGJudge(num)) {
+        reg = num;
+        return 0;
+    } else if (FPJudgeMips(num) || GlobalJudgeMips(num) || TMPJudge(num)){
+        reg = empty_reg; 
+        return 1;
+    } else {
+        fprintf(stderr, "invalid reg num:%s\n", num.c_str());
+        return -2;
+    }
+}
+
 compile_errcode MipsGenerator::FindRelativeAddr(string temp_name, int& addr) {
     auto iter = m_temp2address.find(temp_name);
     if (iter != m_temp2address.end()) {
@@ -49,6 +110,9 @@ void MipsGenerator::GenerateStore(string temp_name, string type) {
 
 void MipsGenerator::GenerateStore(const string& source, const string& offset, const string& base, const string& type) {
     if (type == TMP) {
+        if (!TMPJudge(offset)) {
+            fprintf(stderr, "invalid tmp offset:%s\n", offset.c_str());
+        }
         int store_offset = m_relative_addr;
         m_temp2address[offset] = store_offset;
         m_relative_addr += 4;
@@ -107,78 +171,21 @@ void MipsGenerator::TranslateADD(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
-    size_t t2 = num2.find(TMP);
-    size_t t3 = num3.find(TMP);
-    size_t g2 = num2.find(GLOBAL);
-    size_t g3 = num3.find(GLOBAL);
-    size_t f2 = num2.find(FP);
-    size_t f3 = num3.find(FP);
-    if (t2 == string::npos && t3 == string::npos && g2 == string::npos && g3 == string::npos && f2 == string::npos && f3 == string::npos) {
+    int ret1 = PrepareStoreREG(num1, reg1, NUM1);
+    int ret2 = PrepareLoadREG(num2, reg2, NUM2);
+    int ret3 = PrepareLoadREG(num3, reg3, NUM3);
+    if (ret2 == -1 && ret3 == -1) {
         int value = atoi(num2.c_str()) + atoi(num3.c_str());
-        Output2File("li " + NUM1 + " " + std::to_string(value));
-    } else if (t2 == string::npos && g2 == string::npos && f2 == string::npos) {
-        if (t3 != string::npos) {
-            GenerateLoad(NUM2, num3, TMP);
-        } else if (g3 != string::npos) {
-            string relative_addr = num3.substr(g3 + 1);
-            int num_addr = atoi(relative_addr.c_str());
-            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
-        } else if (f3 != string::npos) {
-            string relative_addr = num3.substr(f3 + 2);
-            GenerateLoad(NUM2, relative_addr, FP);
-        }
-        Output2File("addiu " + NUM1 + " " + NUM2 + " " + num2);
-    } else if (t3 == string::npos && g3 == string::npos && f3 == string::npos) {
-        if (t2 != string::npos) {
-            GenerateLoad(NUM2, num2, TMP);
-        } else if (g2 != string::npos) {
-            string relative_addr = num2.substr(g2 + 1);
-            int num_addr = atoi(relative_addr.c_str());
-            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
-        } else if (f2 != string::npos) {
-            string relative_addr = num2.substr(f2 + 2);
-            GenerateLoad(NUM2, relative_addr, FP);
-        }
-        Output2File("addiu " + NUM1 + " " + NUM2 + " " + num3);
+        Output2File("li " + reg1 + " " + std::to_string(value));
+    } else if (ret2 == -1) {
+        Output2File("addiu " + reg1 + " " + reg3 + " " + num2);
+    } else if (ret3 == -1) {
+        Output2File("addiu " + reg1 + " " + reg2 + " " + num3);
     } else {
-        if (t2 != string::npos) {
-            GenerateLoad(NUM2, num2, TMP);
-        } else if (g2 != string::npos) {
-            string relative_addr = num2.substr(g2 + 1);
-            int num_addr = atoi(relative_addr.c_str());
-            GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
-        } else if (f2 != string::npos) {
-            string relative_addr = num2.substr(f2 + 2);
-            GenerateLoad(NUM2, relative_addr, FP);
-        }
-        if (t3 != string::npos) {
-            GenerateLoad(NUM3, num3, TMP);
-        } else if (g3 != string::npos) {
-            string relative_addr = num3.substr(g3 + 1);
-            int num_addr = atoi(relative_addr.c_str());
-            GenerateLoad(NUM3, std::to_string(num_addr), GLOBAL); 
-        } else if (f3 != string::npos) {
-            string relative_addr = num3.substr(f3 + 2);
-            GenerateLoad(NUM3, relative_addr, FP);
-        }
-        Output2File("addu " + NUM1 + " " + NUM2 + " " + NUM3);
+        Output2File("addu " + reg1 + " " + reg2 + " " + reg3);
     }
-    size_t f1 = num1.find(FP);
-    size_t g1 = num1.find(GLOBAL);
-    size_t t1 = num1.find(TMP);
-    if (f1 != string::npos) {
-        string relative_addr = num1.substr(f1 + 2);
-        relative_addr = std::to_string(-1*atoi(relative_addr.c_str()));
-        GenerateStore(NUM1, relative_addr, "$fp", FP);
-    } else if (g1 != string::npos) {
-        string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$28", GLOBAL);
-    } else if (t1 != string::npos) {
-        GenerateStore(NUM1, num1, "", TMP);
-    } else if (num1 == "V0"){
-        Output2File("move $v0 " + NUM1);
-    } else {
-        fprintf(stderr, "unknown ans error\n");
+    if (ret1 == 1) {
+        GenerateStore(reg1, num1, "", TMP);
     }
 }
 
@@ -186,53 +193,23 @@ void MipsGenerator::TranslateSUB(const Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
-    size_t t2 = num2.find(TMP);
-    size_t t3 = num3.find(TMP);
-    size_t g2 = num2.find(GLOBAL);
-    size_t g3 = num3.find(GLOBAL);
-    size_t f2 = num2.find(FP);
-    size_t f3 = num3.find(FP);
-    if (t2 != string::npos) {
-        GenerateLoad(NUM2, num2, TMP);
-    } else if (g2 != string::npos) {
-        string relative_addr = num2.substr(g2 + 1);
-        int num_addr = atoi(relative_addr.c_str());
-        GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
-    } else if (f2 != string::npos) {
-        string relative_addr = num2.substr(f2 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
+    int ret1 = PrepareStoreREG(num1, reg1, NUM1);
+    int ret2 = PrepareLoadREG(num2, reg2, NUM2);
+    int ret3 = PrepareLoadREG(num3, reg3, NUM3);
+    if (ret2 == -1 && ret3 == -1) {
+        int value = atoi(num2.c_str()) - atoi(num3.c_str());
+        Output2File("li " + reg1 + " " + std::to_string(value));
+    } else if (ret2 == -1) {
+        int value = -1 * atoi(num2.c_str());
+        Output2File("addiu " + reg1 + " " + reg3 + " " + std::to_string(value));
+    } else if (ret3 == -1) {
+        int value = -1 * atoi(num3.c_str());
+        Output2File("addiu " + reg1 + " " + reg2 + " " + std::to_string(value));
     } else {
-        Output2File(string("li ") + NUM2 + " " + num2);
+        Output2File("subu " + reg1 + " " + reg2 + " " + reg3);
     }
-    if (t3 != string::npos) {
-        GenerateLoad(NUM3, num3, TMP);
-    } else if (g3 != string::npos) {
-        string relative_addr = num3.substr(g3 + 1);
-        int num_addr = atoi(relative_addr.c_str());
-        GenerateLoad(NUM3, std::to_string(num_addr), GLOBAL); 
-    } else if (f3 != string::npos) {
-        string relative_addr = num3.substr(f3 + 2);
-        GenerateLoad(NUM3, relative_addr, FP);
-    } else {
-        Output2File(string("li ") + NUM3 + " " + num3);
-    }
-    Output2File("subu " + NUM1 + " " + NUM2 + " " + NUM3);
-    size_t f1 = num1.find(FP);
-    size_t g1 = num1.find(GLOBAL);
-    size_t t1 = num1.find(TMP);
-    if (f1 != string::npos) {
-        string relative_addr = num1.substr(f1 + 2);
-        relative_addr = std::to_string(-1*atoi(relative_addr.c_str()));
-        GenerateStore(NUM1, relative_addr, "$fp", FP);
-    } else if (g1 != string::npos) {
-        string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$28", GLOBAL);
-    } else if (t1 != string::npos) {
-        GenerateStore(NUM1, num1, "", TMP);
-    } else if (num1 == "V0"){
-        Output2File("move $v0 " + NUM1);
-    } else {
-        fprintf(stderr, "unknown ans error\n");
+    if (ret1 == 1) {
+        GenerateStore(reg1, num1, "", TMP);
     }
 }
 
@@ -248,53 +225,29 @@ void MipsGenerator::TranslateMULType(Pcode& item) {
         op = string("div ");
     else
         fprintf(stderr, "invalid mul type\n");
-    size_t t2 = num2.find(TMP);
-    size_t t3 = num3.find(TMP);
-    size_t g2 = num2.find(GLOBAL);
-    size_t g3 = num3.find(GLOBAL);
-    size_t f2 = num2.find(FP);
-    size_t f3 = num3.find(FP);
-    if (t2 != string::npos) {
-        GenerateLoad(NUM2, num2, TMP);
-    } else if (g2 != string::npos) {
-        string relative_addr = num2.substr(g2 + 1);
-        int num_addr = atoi(relative_addr.c_str());
-        GenerateLoad(NUM2, std::to_string(num_addr), GLOBAL); 
-    } else if (f2 != string::npos) {
-        string relative_addr = num2.substr(f2 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
+    int ret1 = PrepareStoreREG(num1, reg1, NUM1);
+    int ret2 = PrepareLoadREG(num2, reg2, NUM2);
+    int ret3 = PrepareLoadREG(num3, reg3, NUM3);
+    if (ret2 == -1 && ret3 == -1) {
+        int value;
+        if (op_type == MUL)
+            value = atoi(num2.c_str()) * atoi(num3.c_str());
+        else
+            value = atoi(num2.c_str()) / atoi(num3.c_str());
+        Output2File("li " + reg1 + " " + std::to_string(value));
+    } else if (ret2 == -1) {
+        reg2 = NUM2;
+        Output2File("li " + reg2 + " " + num2);
+        Output2File(op + reg1 + " " + reg2 + " " + reg3);
+    } else if (ret3 == -1) {
+        reg3 = NUM3;
+        Output2File("li " + reg3 + " " + num3);
+        Output2File(op + reg1 + " " + reg2 + " " + reg3);
     } else {
-        Output2File(string("li ") + NUM2 + " " + num2);
+        Output2File(op + reg1 + " " + reg2 + " " + reg3);
     }
-    if (t3 != string::npos) {
-        GenerateLoad(NUM3, num3, TMP);
-    } else if (g3 != string::npos) {
-        string relative_addr = num3.substr(g3 + 1);
-        int num_addr = atoi(relative_addr.c_str());
-        GenerateLoad(NUM3, std::to_string(num_addr), GLOBAL); 
-    } else if (f3 != string::npos) {
-        string relative_addr = num3.substr(f3 + 2);
-        GenerateLoad(NUM3, relative_addr, FP);
-    } else {
-        Output2File(string("li ") + NUM3 + " " + num3);
-    }
-    Output2File(op + NUM1 + " " + NUM2 + " " + NUM3);
-    size_t f1 = num1.find(FP);
-    size_t g1 = num1.find(GLOBAL);
-    size_t t1 = num1.find(TMP);
-    if (f1 != string::npos) {
-        string relative_addr = num1.substr(f1 + 2);
-        relative_addr = std::to_string(-1*atoi(relative_addr.c_str()));
-        GenerateStore(NUM1, relative_addr, "$fp", FP);
-    } else if (g1 != string::npos) {
-        string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$28", GLOBAL);
-    } else if (t1 != string::npos) {
-        GenerateStore(NUM1, num1, "", TMP);
-    } else if (num1 == "V0"){
-        Output2File("move $v0 " + NUM1);
-    } else {
-        fprintf(stderr, "unknown ans error\n");
+    if (ret1 == 1) {
+        GenerateStore(reg1, num1, "", TMP);
     }
 }
 
@@ -310,11 +263,8 @@ void MipsGenerator::TranslateInput(Pcode& item) {
     } else {
         fprintf(stderr, "invalid input type\n");
     }
-    Pcode pcode(ASSIGN, num1, "V0", "");
+    Pcode pcode(ASSIGN, num1, "$2", "");
     TranslateASSIGN(pcode);
-
-    //Output2File("move " + NUM1 + " $v0");
-    //GenerateStore(num1, TMP);
 }
 
 void MipsGenerator::TranslateOutput(Pcode& item) {
@@ -333,15 +283,15 @@ void MipsGenerator::TranslateOutput(Pcode& item) {
         Output2File(string("syscall"));
     } else if (output_type == INT_EXPRESSION) {
         string temp_name = item.GetNum1();
-        GenerateLoad(OUT_REG, temp_name, TMP);
         Output2File(string("li $v0 1"));
-        Output2File(string("move $a0 ") + OUT_REG);
+        Pcode pcode(ASSIGN, "$a0", temp_name, "");
+        TranslateASSIGN(pcode);
         Output2File(string("syscall"));
     } else if (output_type == CHAR_EXPRESSION) {
         string temp_name = item.GetNum1();
-        GenerateLoad(OUT_REG, temp_name, TMP);
         Output2File(string("li $v0 11"));
-        Output2File(string("move $a0 ") + OUT_REG);
+        Pcode pcode(ASSIGN, "$a0", temp_name, "");
+        TranslateASSIGN(pcode);
         Output2File(string("syscall"));
     } else {
         fprintf(stderr, "undefined output behaviour\n");
@@ -383,48 +333,21 @@ void MipsGenerator::TranslateASSIGN(Pcode& item) {
     string num1 = item.GetNum1();
     string num2 = item.GetNum2();
     string source;
-    size_t t1 = num1.find(TMP);
-    size_t g1 = num1.find(GLOBAL);
-    size_t f1 = num1.find(FP);
-    size_t t2 = num2.find(TMP);
-    size_t g2 = num2.find(GLOBAL);
-    size_t f2 = num2.find(FP);
-    bool assign_number_flag = false;
-    source = NUM2;
-    if (num2 == string("V0")) {
-        source = string("$v0");
-    } else if (t2 != string::npos) {
-        GenerateLoad(NUM2, num2, TMP);
-    } else if (g2 != string::npos) {
-        string relative_addr = num2.substr(g2 + 1);
-        GenerateLoad(NUM2, relative_addr, GLOBAL);
-    } else if (f2 != string::npos) {
-        string relative_addr = num2.substr(f2 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
+    int ret1 = PrepareStoreREG(num1, reg1, NUM1);
+    int ret2 = PrepareLoadREG(num2, reg2, NUM2);
+    if (ret2 == -1) {
+        Output2File("li " + reg1 + " " + num2);
     } else {
-        assign_number_flag = true;
+        Output2File("move " + reg1 + " " + reg2);
     }
-    if (assign_number_flag) {
-        if (num1 == string("V0")) {
-            Output2File("li " + V0_REG + " " + num2);
+    if (ret1 == 1) {
+        if (FPJudgeMips(num1)) {
+            GenerateStore(reg1, num1.substr(2), "$fp", FP);
+        } else if (GlobalJudgeMips(num1)) {
+            GenerateStore(reg1, num1.substr(1), "$28", GLOBAL);
         } else {
-            Output2File("li " + NUM1 + " " + num2);
+            GenerateStore(reg1, num1, "", TMP);
         }
-    } else {
-        if (num1 == string("V0")) {
-            Output2File(string("move ") + V0_REG + " " + source);
-        } else {
-            Output2File(string("move ") + NUM1 + " " + source);
-        }
-    }
-    if (num1.find(FP) != string::npos) {
-        string relative_addr = num1.substr(f1 + 2);
-        GenerateStore(relative_addr, FP);
-    } else if (num1.find(GLOBAL) != string::npos) {
-        string relative_addr = num1.substr(g1 + 1);
-        GenerateStore(relative_addr, GLOBAL);
-    } else {
-        GenerateStore(num1, TMP);
     }
 }
 
@@ -432,48 +355,28 @@ void MipsGenerator::TranslateLoadAddr(Pcode& item) {
     string source = item.GetNum1();
     string array_addr = item.GetNum2();
     string offset = item.GetNum3();
-    size_t fp = array_addr.find(FP);
-    size_t g = array_addr.find(GLOBAL);
-    size_t t1 = source.find(TMP);
-    size_t f1 = source.find(FP);
-    size_t g1 = source.find(GLOBAL);
-    if (t1 != string::npos) {
-        GenerateLoad(NUM1, source, TMP);
-    } else if (f1 != string::npos) {
-        string relative_addr = source.substr(f1 + 2);
-        GenerateLoad(NUM1, relative_addr, FP);
-    } else if (g1 != string::npos) {
-        string relative_addr = source.substr(g1 + 1);
-        GenerateLoad(NUM1, relative_addr, GLOBAL);
-    } else {
-        Output2File("li " + NUM1 + " " + source);
+    int ret1 = PrepareLoadREG(source, reg1, NUM1);
+    if (ret1 == -1) {
+        reg1 = NUM1;
+        Output2File("li " + reg1 + " " + source);
     }
-    size_t t3 = offset.find(TMP);
-    size_t g3 = offset.find(GLOBAL);
-    size_t f3 = offset.find(FP);
-    if (t3 != string::npos) {
-        GenerateLoad(NUM2, offset, TMP);
-    } else if (f3 != string::npos) {
-        string relative_addr = offset.substr(f3 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
-    } else if (g3 != string::npos) {
-        string relative_addr = offset.substr(g3 + 1);
-        GenerateLoad(NUM2, relative_addr, GLOBAL);
-    } else {
-        Output2File("li " + NUM2 + " " + offset);
-    }
-    if (fp != string::npos) {
-        Output2File("sll " + NUM3 + " " + NUM2 + " 2  # addr");
-        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
+    int ret3 = PrepareLoadREG(offset, reg3, NUM3);
+    if (FPJudgeMips(array_addr)) {
+        Output2File("sll " + NUM3 + " " + reg3 + " 2  # addr");
+        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(2));
         Output2File("subu " + NUM2 + " $fp " + NUM3);
-        GenerateStore(NUM1, "0", NUM2, "0");
-    } else if (g != string::npos) {
-        int base = atoi(array_addr.substr(g + 1).c_str());
+        GenerateStore(reg1, "0", NUM2, "0");
+    } else if (GlobalJudgeMips(array_addr)) {
+        int base = atoi(array_addr.substr(1).c_str());
         base += m_global;
-        Output2File("sll " + NUM3 + " " + NUM2 + " 2");
-        Output2File("addiu " + NUM3 + " " + NUM3 + " " + std::to_string(base));
-        Output2File("addu " + NUM2 + " $0 " + NUM3);
-        GenerateStore(NUM1, "0", NUM2, "0");
+        Output2File("sll " + NUM3 + " " + reg3 + " 2");
+        Output2File("addiu " + NUM2 + " " + NUM3 + " " + std::to_string(base));
+        //Output2File("addu " + NUM2 + " $0 " + NUM3);
+        GenerateStore(reg1, "0", NUM2, "0");
+    } else if (REGJudge(array_addr)) {
+        Output2File("sll " + NUM3 + " " + reg3 + " 2  # addr reg");
+        Output2File("addu " + NUM2 + " " + NUM3 + " " + array_addr);
+        GenerateStore(reg1, "0", NUM2, "0");
     } else {
         fprintf(stderr, "not support this type array_address---%s\n", array_addr.c_str());
     }
@@ -483,52 +386,28 @@ void MipsGenerator::TranslateLoadValue(Pcode& item) {
     string target = item.GetNum1();
     string array_addr = item.GetNum2();
     string offset = item.GetNum3();
-    size_t fp = array_addr.find(FP);
-    size_t g = array_addr.find(GLOBAL);
-    size_t t3 = offset.find(TMP);
-    size_t g3 = offset.find(GLOBAL);
-    size_t f3 = offset.find(FP);
-    if (t3 != string::npos) {
-        GenerateLoad(NUM2, offset, TMP);
-    } else if (f3 != string::npos) {
-        string relative_addr = offset.substr(f3 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
-    } else if (g3 != string::npos) {
-        string relative_addr = offset.substr(g3 + 1);
-        GenerateLoad(NUM2, relative_addr, GLOBAL);
-    } else {
-        Output2File("li " + NUM2 + " " + offset);
-    }
-    if (fp != string::npos) {
-        Output2File("sll " + NUM3 + " " + NUM2 + " 2");
-        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(fp + 2));
-        Output2File("subu " + NUM1 + " $fp " + NUM3);
-        Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
-    } else if (g != string::npos) {
-        int base = atoi(array_addr.substr(g + 1).c_str());
+    int ret1 = PrepareLoadREG(target, reg1, NUM1);
+    int ret3 = PrepareLoadREG(offset, reg3, NUM3);
+    if (FPJudgeMips(array_addr)) {
+        Output2File("sll " + NUM3 + " " + reg3 + " 2  # addr");
+        Output2File("addiu " + NUM3 + " " + NUM3 + " " + array_addr.substr(2));
+        Output2File("subu " + NUM2 + " $fp " + NUM3);
+        Output2File("lw " + reg1 + " 0(" + NUM2 + ")");  // TODO
+    } else if (GlobalJudgeMips(array_addr)) {
+        int base = atoi(array_addr.substr(1).c_str());
         base += m_global;
-        Output2File("sll " + NUM3 + " " + NUM2 + " 2");
-        Output2File("addiu " + NUM1 + " " + NUM3 + " " + std::to_string(base));
-        Output2File("lw " + NUM1 + " 0(" + NUM1 + ")");  // TODO
+        Output2File("sll " + NUM3 + " " + reg3 + " 2");
+        Output2File("addiu " + NUM2 + " " + NUM3 + " " + std::to_string(base));
+        Output2File("lw " + reg1 + " 0(" + NUM2 + ")");  // TODO
+    } else if (REGJudge(array_addr)) {
+        Output2File("sll " + NUM3 + " " + reg3 + " 2");
+        Output2File("addu " + NUM2 + " " + NUM3 + " " + array_addr);
+        Output2File("lw " + reg1 + " 0(" + NUM2 + ")");  // TODO
     } else {
-        fprintf(stderr, "not support this type address---%s\n", array_addr.c_str());
+        fprintf(stderr, "not support this type array_address---%s\n", array_addr.c_str());
     }
-    size_t f1 = target.find(FP);
-    size_t g1 = target.find(GLOBAL);
-    size_t t1 = target.find(TMP);
-    if (f1 != string::npos) {
-        string relative_addr = target.substr(f1 + 2);
-        relative_addr = std::to_string(-1*atoi(relative_addr.c_str()));
-        GenerateStore(NUM1, relative_addr, "$fp", FP);
-    } else if (g1 != string::npos) {
-        string relative_addr = target.substr(g1 + 1);
-        GenerateStore(NUM1, relative_addr, "$28", GLOBAL);
-    } else if (t1 != string::npos) {
-        GenerateStore(NUM1, target, "", TMP);
-    } else if (target == "V0"){
-        Output2File("move $v0 " + NUM1);
-    } else {
-        fprintf(stderr, "unknown ans error\n");
+    if (ret1 == 1) {
+        GenerateStore(reg1, target, "", TMP);
     }
 }
 
@@ -546,41 +425,23 @@ void MipsGenerator::TranslateBType(Pcode& item) {
     string num2 = item.GetNum2();
     string num3 = item.GetNum3();
     PcodeType op = item.GetOP();
-    size_t t1 = num1.find(TMP);
-    size_t g1 = num1.find(GLOBAL);
-    size_t f1 = num1.find(FP);
-    size_t t2 = num2.find(TMP);
-    size_t g2 = num2.find(GLOBAL);
-    size_t f2 = num2.find(FP);
-    if (t1 != string::npos) {
-        GenerateLoad(NUM1, num1, TMP);
-    } else if (g1 != string::npos) {
-        string relative_addr = num1.substr(g1 + 1);
-        GenerateLoad(NUM1, relative_addr, GLOBAL);
-    } else if (f1 != string::npos) {
-        string relative_addr = num1.substr(f1 + 2);
-        GenerateLoad(NUM1, relative_addr, FP);
-    } else {
-        Output2File("li " + NUM1 + " " + num1);
+    int ret1 = PrepareLoadREG(num1, reg1, NUM1);
+    int ret2 = PrepareLoadREG(num2, reg2, NUM2);
+    if (ret1 == -1) {
+        reg1 = NUM1;
+        Output2File("li " + reg1 + " " + num1);
     }
-    if (t2 != string::npos) {
-        GenerateLoad(NUM2, num2, TMP);
-    } else if (g2 != string::npos) {
-        string relative_addr = num2.substr(g2 + 1);
-        GenerateLoad(NUM2, relative_addr, GLOBAL);
-    } else if (f2 != string::npos) {
-        string relative_addr = num2.substr(f2 + 2);
-        GenerateLoad(NUM2, relative_addr, FP);
-    } else {
-        Output2File("li " + NUM2 + " " + num2);
+    if (ret2 == -1) {
+        reg2 = NUM2;
+        Output2File("li " + reg2 + " " + num2);
     }
     switch (op) {
-        case BNE: Output2File("bne " + NUM1 + " " + NUM2 + " " + num3); break;
-        case BEQ: Output2File("beq " + NUM1 + " " + NUM2 + " " + num3); break;
-        case BLE: Output2File("ble " + NUM1 + " " + NUM2 + " " + num3); break;
-        case BLT: Output2File("blt " + NUM1 + " " + NUM2 + " " + num3); break;
-        case BGE: Output2File("bge " + NUM1 + " " + NUM2 + " " + num3); break;
-        case BGT: Output2File("bgt " + NUM1 + " " + NUM2 + " " + num3); break;
+        case BNE: Output2File("bne " + reg1 + " " + reg2 + " " + num3); break;
+        case BEQ: Output2File("beq " + reg1 + " " + reg2 + " " + num3); break;
+        case BLE: Output2File("ble " + reg1 + " " + reg2 + " " + num3); break;
+        case BLT: Output2File("blt " + reg1 + " " + reg2 + " " + num3); break;
+        case BGE: Output2File("bge " + reg1 + " " + reg2 + " " + num3); break;
+        case BGT: Output2File("bgt " + reg1 + " " + reg2 + " " + num3); break;
         default: {
             fprintf(stderr, "invalid b type\n");         
         }
@@ -601,6 +462,17 @@ void MipsGenerator::Translate() {
     Output2File("la $ra " + main_bottom_label);
     Output2File("j main");
     for (; iter != m_pcode_queue.end(); ++iter) {
+        string num1 = iter->GetNum1();
+        string num2 = iter->GetNum2();
+        string num3 = iter->GetNum3();
+        if (num1 == "V0")
+            iter->SetNum1("$2");
+        if (num2 == "V0")
+            iter->SetNum2("$2");
+        if (num3 == "V0")
+            iter->SetNum3("$2");
+    }
+    for (iter=m_pcode_queue.begin(); iter != m_pcode_queue.end(); ++iter) {
         switch (iter->GetOP()) {
             case LABEL: Output2File(iter->GetNum1() + ":"); break;
             case OUTPUT: {
